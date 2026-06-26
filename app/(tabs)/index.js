@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import { theme } from '../../theme';
 
 const FEATURED = [
   { id: '1', title: 'Japanese Government (MEXT) Scholarship', country: '🇯🇵 Japan', level: 'Masters / PhD', deadline: 'May 2025', amount: 'Full Funded', tag: 'Hot' },
@@ -19,24 +20,24 @@ const ANNOUNCEMENTS = [
   { id: '3', text: 'Chevening deadline extended to Nov 5.', time: '3d ago' },
 ];
 
-const tagColor = { Hot: '#E53935', Popular: '#1565C0', New: '#2E7D32' };
+const tagColor = { Hot: '#E53935', Popular: '#C97352', New: '#2E7D32' };
 
 export default function HomeScreen() {
   const [search, setSearch] = useState('');
 
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor="#1565C0" barStyle="light-content" />
+      <StatusBar backgroundColor="#C97352" barStyle="light-content" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
         {/* Search Bar & Notification */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <View style={styles.headerRow}>
           <View style={[styles.searchWrap, { flex: 1 }]}>
-            <MaterialIcons name="search" size={22} color="#90A4AE" style={styles.searchIcon} />
+            <MaterialIcons name="search" size={22} color={theme.colors.textSecondary} style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
               placeholder="Search scholarships..."
-              placeholderTextColor="#90A4AE"
+              placeholderTextColor={theme.colors.textSecondary}
               value={search}
               onChangeText={setSearch}
             />
@@ -45,7 +46,7 @@ export default function HomeScreen() {
             style={styles.reminderIconBtn}
             onPress={() => router.push('/reminders')}
           >
-            <MaterialIcons name="notifications-active" size={26} color="#1565C0" />
+            <MaterialIcons name="notifications-active" size={26} color="#C97352" />
             <View style={styles.dot} />
           </TouchableOpacity>
         </View>
@@ -63,7 +64,7 @@ export default function HomeScreen() {
               onPress={s.action}
               activeOpacity={s.action ? 0.7 : 1}
             >
-              <MaterialIcons name={s.icon} size={26} color="#1565C0" />
+              <MaterialIcons name={s.icon} size={26} color="#C97352" />
               <Text style={styles.statNum}>{s.label}</Text>
               <Text style={styles.statSub}>{s.sub}</Text>
             </TouchableOpacity>
@@ -106,9 +107,9 @@ export default function HomeScreen() {
               ) : null}
             </View>
             <Text style={styles.cardMeta}>
-              <MaterialIcons name="place" size={13} color="#607D8B" /> {item.country}
+              <MaterialIcons name="place" size={13} color={theme.colors.textSecondary} /> {item.country}
               {'   '}
-              <MaterialIcons name="school" size={13} color="#607D8B" /> {item.level}
+              <MaterialIcons name="school" size={13} color={theme.colors.textSecondary} /> {item.level}
             </Text>
             <View style={styles.cardBottom}>
               <Text style={styles.cardDeadline}>
@@ -125,7 +126,7 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>📢 Latest Announcements</Text>
         {ANNOUNCEMENTS.map(a => (
           <View key={a.id} style={styles.announcementCard}>
-            <MaterialIcons name="notifications" size={20} color="#1565C0" />
+            <MaterialIcons name="notifications" size={20} color="#C97352" />
             <View style={{ flex: 1, marginLeft: 10 }}>
               <Text style={styles.annoText}>{a.text}</Text>
               <Text style={styles.annoTime}>{a.time}</Text>
@@ -140,17 +141,20 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F4F6FA' },
-  scroll: { padding: 16 },
+  root: { flex: 1, backgroundColor: theme.colors.background },
+  scroll: { paddingHorizontal: theme.spacing.lg, paddingVertical: theme.spacing.md },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: theme.spacing.xs },
   searchWrap: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#fff', borderRadius: 12,
+    backgroundColor: theme.colors.surface, borderRadius: 12,
     paddingHorizontal: 12, marginBottom: 16,
-    elevation: 3, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6,
+    borderWidth: 1, borderColor: theme.colors.border,
+    ...theme.shadows.soft,
   },
   reminderIconBtn: {
-    backgroundColor: '#fff', padding: 10, borderRadius: 12, marginBottom: 16,
-    elevation: 3, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6,
+    backgroundColor: theme.colors.surface, padding: 10, borderRadius: 12, marginBottom: 16,
+    borderWidth: 1, borderColor: theme.colors.border,
+    ...theme.shadows.soft,
     position: 'relative'
   },
   dot: {
@@ -159,47 +163,50 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: '#fff'
   },
   searchIcon: { marginRight: 8 },
-  searchInput: { flex: 1, height: 46, fontSize: 15, color: '#263238' },
+  searchInput: { flex: 1, height: 46, fontSize: 15, color: theme.colors.textPrimary, fontFamily: theme.typography.fontFamily.regular },
   statsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
   statCard: {
-    flex: 1, backgroundColor: '#fff', borderRadius: 12, alignItems: 'center',
+    flex: 1, backgroundColor: theme.colors.surface, borderRadius: 12, alignItems: 'center',
     paddingVertical: 14, marginHorizontal: 4,
-    elevation: 3, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6,
+    borderWidth: 1, borderColor: theme.colors.border,
+    ...theme.shadows.soft,
   },
-  statNum: { fontSize: 18, fontWeight: 'bold', color: '#1565C0', marginTop: 4 },
-  statSub: { fontSize: 11, color: '#607D8B', marginTop: 2 },
+  statNum: { fontSize: 18, fontWeight: 'bold', color: '#C97352', marginTop: 4, fontFamily: theme.typography.fontFamily.bold },
+  statSub: { fontSize: 11, color: theme.colors.textSecondary, marginTop: 2, fontFamily: theme.typography.fontFamily.medium },
   blogBanner: {
-    backgroundColor: '#1565C0', borderRadius: 16, padding: 20,
+    backgroundColor: '#C97352', borderRadius: 16, padding: theme.spacing.lg,
     flexDirection: 'row', alignItems: 'center', marginBottom: 24,
-    elevation: 4, shadowColor: '#1565C0', shadowOpacity: 0.3, shadowRadius: 8
+    ...theme.shadows.medium,
   },
-  blogBannerTitle: { fontSize: 18, fontWeight: 'bold', color: '#fff' },
-  blogBannerSub: { fontSize: 13, color: 'rgba(255,255,255,0.8)', marginTop: 4, marginBottom: 12 },
+  blogBannerTitle: { fontSize: 18, fontWeight: 'bold', color: '#fff', fontFamily: theme.typography.fontFamily.bold },
+  blogBannerSub: { fontSize: 13, color: 'rgba(255,255,255,0.8)', marginTop: 4, marginBottom: 12, fontFamily: theme.typography.fontFamily.regular },
   blogBtn: {
     backgroundColor: '#2E7D32', alignSelf: 'flex-start',
     paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8,
     flexDirection: 'row', alignItems: 'center', gap: 6
   },
-  blogBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
-  sectionTitle: { fontSize: 17, fontWeight: 'bold', color: '#1A237E', marginBottom: 12, marginTop: 4 },
+  blogBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 13, fontFamily: theme.typography.fontFamily.bold },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: theme.colors.textPrimary, marginBottom: 16, marginTop: 8, fontFamily: theme.typography.fontFamily.bold },
   card: {
-    backgroundColor: '#fff', borderRadius: 14, padding: 16, marginBottom: 12,
-    elevation: 3, shadowColor: '#000', shadowOpacity: 0.07, shadowRadius: 6,
+    backgroundColor: theme.colors.surface, borderRadius: 14, padding: 16, marginBottom: 12,
+    borderWidth: 1, borderColor: theme.colors.border,
+    ...theme.shadows.soft,
   },
   cardTop: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 6 },
-  cardTitle: { flex: 1, fontSize: 15, fontWeight: '700', color: '#1A237E' },
+  cardTitle: { flex: 1, fontSize: 15, fontWeight: '700', color: '#C97352', fontFamily: theme.typography.fontFamily.bold },
   tag: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, marginLeft: 8 },
-  tagText: { color: '#fff', fontSize: 11, fontWeight: 'bold' },
-  cardMeta: { fontSize: 13, color: '#607D8B', marginBottom: 10 },
+  tagText: { color: '#fff', fontSize: 11, fontWeight: 'bold', fontFamily: theme.typography.fontFamily.bold },
+  cardMeta: { fontSize: 13, color: theme.colors.textSecondary, marginBottom: 10, fontFamily: theme.typography.fontFamily.regular },
   cardBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  cardDeadline: { fontSize: 13, color: '#E53935' },
+  cardDeadline: { fontSize: 13, color: '#E53935', fontFamily: theme.typography.fontFamily.medium },
   amountBadge: { backgroundColor: '#E8F5E9', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  amountText: { color: '#2E7D32', fontWeight: 'bold', fontSize: 12 },
+  amountText: { color: '#2E7D32', fontWeight: 'bold', fontSize: 12, fontFamily: theme.typography.fontFamily.bold },
   announcementCard: {
-    flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#fff',
+    flexDirection: 'row', alignItems: 'flex-start', backgroundColor: theme.colors.surface,
     borderRadius: 12, padding: 14, marginBottom: 10,
-    elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4,
+    borderWidth: 1, borderColor: theme.colors.border,
+    ...theme.shadows.soft,
   },
-  annoText: { fontSize: 14, color: '#263238', lineHeight: 20 },
-  annoTime: { fontSize: 12, color: '#90A4AE', marginTop: 4 },
+  annoText: { fontSize: 14, color: theme.colors.textPrimary, lineHeight: 20, fontFamily: theme.typography.fontFamily.medium },
+  annoTime: { fontSize: 12, color: theme.colors.textSecondary, marginTop: 4, fontFamily: theme.typography.fontFamily.regular },
 });

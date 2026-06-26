@@ -36,7 +36,7 @@ export default function DocumentManagement() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#1565C0" />
+      <StatusBar barStyle="light-content" backgroundColor="#C97352" />
 
       {/* Header */}
       <View style={styles.header}>
@@ -48,7 +48,7 @@ export default function DocumentManagement() {
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.uploadBanner}>
-          <MaterialIcons name="cloud-upload" size={40} color="#1565C0" />
+          <MaterialIcons name="cloud-upload" size={40} color="#C97352" />
           <Text style={styles.uploadTitle}>Upload New Document</Text>
           <Text style={styles.uploadSub}>PDF, JPG or PNG (Max 5MB)</Text>
           <TouchableOpacity style={styles.uploadActionBtn} onPress={handleUpload}>
@@ -58,12 +58,12 @@ export default function DocumentManagement() {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Your Documents ({docs.length})</Text>
-          <MaterialIcons name="filter-list" size={20} color="#607D8B" />
+          <MaterialIcons name="filter-list" size={20} color="#7A746E" />
         </View>
 
         {docs.length === 0 ? (
           <View style={styles.emptyState}>
-            <MaterialIcons name="folder-open" size={60} color="#B0BEC5" />
+            <MaterialIcons name="folder-open" size={60} color="#7A746E" />
             <Text style={styles.emptyText}>No documents uploaded yet.</Text>
           </View>
         ) : (
@@ -73,7 +73,7 @@ export default function DocumentManagement() {
                 <MaterialIcons
                   name={doc.name.endsWith('.pdf') ? 'picture-as-pdf' : 'insert-photo'}
                   size={28}
-                  color={doc.name.endsWith('.pdf') ? '#E53935' : '#1565C0'}
+                  color={doc.name.endsWith('.pdf') ? '#E53935' : '#C97352'}
                 />
               </View>
 
@@ -85,7 +85,7 @@ export default function DocumentManagement() {
 
               <View style={styles.docActions}>
                 <TouchableOpacity style={styles.actionIcon} onPress={() => Alert.alert('View', 'Opening document...')}>
-                  <MaterialIcons name="visibility" size={20} color="#607D8B" />
+                  <MaterialIcons name="visibility" size={20} color="#7A746E" />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionIcon} onPress={() => handleDelete(doc.id, doc.name)}>
                   <MaterialIcons name="delete-outline" size={20} color="#E53935" />
@@ -96,7 +96,7 @@ export default function DocumentManagement() {
         )}
 
         <View style={styles.infoTip}>
-          <MaterialIcons name="info-outline" size={18} color="#1565C0" />
+          <MaterialIcons name="info-outline" size={18} color="#C97352" />
           <Text style={styles.infoTipText}>
             Documents uploaded here can be easily attached when applying for scholarships.
           </Text>
@@ -109,7 +109,7 @@ export default function DocumentManagement() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F4F6FA' },
   header: {
-    height: 100, backgroundColor: '#1565C0',
+    height: 100, backgroundColor: '#C97352',
     flexDirection: 'row', alignItems: 'center',
     paddingTop: 40, paddingHorizontal: 16, gap: 12
   },
@@ -121,35 +121,35 @@ const styles = StyleSheet.create({
     alignItems: 'center', borderStyle: 'dashed', borderWidth: 2,
     borderColor: '#BBDEFB', marginBottom: 24
   },
-  uploadTitle: { fontSize: 17, fontWeight: 'bold', color: '#1A237E', marginTop: 12 },
-  uploadSub: { fontSize: 13, color: '#90A4AE', marginTop: 4, marginBottom: 16 },
+  uploadTitle: { fontSize: 17, fontWeight: 'bold', color: '#C97352', marginTop: 12 },
+  uploadSub: { fontSize: 13, color: '#7A746E', marginTop: 4, marginBottom: 16 },
   uploadActionBtn: {
-    backgroundColor: '#1565C0', paddingHorizontal: 24, paddingVertical: 10,
+    backgroundColor: '#C97352', paddingHorizontal: 24, paddingVertical: 10,
     borderRadius: 8, elevation: 2
   },
   uploadActionText: { color: '#fff', fontWeight: 'bold' },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#1A237E' },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#C97352' },
   docCard: {
     backgroundColor: '#fff', borderRadius: 12, padding: 14,
     flexDirection: 'row', alignItems: 'center', marginBottom: 12,
-    elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4
+    elevation: 2, shadowColor: '#2D2A26', shadowOpacity: 0.05, shadowRadius: 4
   },
   docIconWrap: {
     width: 48, height: 48, borderRadius: 10, backgroundColor: '#F5F5F5',
     alignItems: 'center', justifyContent: 'center', marginRight: 12
   },
   docInfo: { flex: 1 },
-  docName: { fontSize: 14, fontWeight: '700', color: '#263238' },
-  docMeta: { fontSize: 12, color: '#607D8B', marginTop: 2 },
-  docDate: { fontSize: 11, color: '#90A4AE', marginTop: 4 },
+  docName: { fontSize: 14, fontWeight: '700', color: '#2D2A26' },
+  docMeta: { fontSize: 12, color: '#7A746E', marginTop: 2 },
+  docDate: { fontSize: 11, color: '#7A746E', marginTop: 4 },
   docActions: { flexDirection: 'row', gap: 8 },
-  actionIcon: { padding: 8, borderRadius: 8, backgroundColor: '#F8F9FA' },
+  actionIcon: { padding: 8, borderRadius: 8, backgroundColor: '#FCFAF7' },
   emptyState: { alignItems: 'center', paddingVertical: 40 },
-  emptyText: { fontSize: 15, color: '#90A4AE', marginTop: 12 },
+  emptyText: { fontSize: 15, color: '#7A746E', marginTop: 12 },
   infoTip: {
     flexDirection: 'row', backgroundColor: '#E3F2FD',
     padding: 12, borderRadius: 10, marginTop: 10, gap: 8, alignItems: 'center'
   },
-  infoTipText: { flex: 1, fontSize: 12, color: '#1565C0', lineHeight: 18 }
+  infoTipText: { flex: 1, fontSize: 12, color: '#C97352', lineHeight: 18 }
 });

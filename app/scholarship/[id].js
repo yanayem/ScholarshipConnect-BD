@@ -60,7 +60,7 @@ export default function ScholarshipDetails() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#1565C0" />
+      <StatusBar barStyle="light-content" backgroundColor="#C97352" />
 
       {/* Custom Header */}
       <View style={styles.header}>
@@ -81,7 +81,7 @@ export default function ScholarshipDetails() {
               <Text style={{ color: '#2E7D32', fontWeight: 'bold', fontSize: 12 }}>Open</Text>
             </View>
             <TouchableOpacity>
-              <MaterialIcons name="bookmark-border" size={24} color="#1565C0" />
+              <MaterialIcons name="bookmark-border" size={24} color="#C97352" />
             </TouchableOpacity>
           </View>
 
@@ -89,17 +89,17 @@ export default function ScholarshipDetails() {
 
           <View style={styles.infoGrid}>
             <View style={styles.infoItem}>
-              <MaterialIcons name="public" size={20} color="#607D8B" />
+              <MaterialIcons name="public" size={20} color="#7A746E" />
               <Text style={styles.infoLabel}>Country</Text>
               <Text style={styles.infoValue}>{details.country}</Text>
             </View>
             <View style={styles.infoItem}>
-              <MaterialIcons name="school" size={20} color="#607D8B" />
+              <MaterialIcons name="school" size={20} color="#7A746E" />
               <Text style={styles.infoLabel}>Level</Text>
               <Text style={styles.infoValue}>{details.level}</Text>
             </View>
             <View style={styles.infoItem}>
-              <MaterialIcons name="payments" size={20} color="#607D8B" />
+              <MaterialIcons name="payments" size={20} color="#7A746E" />
               <Text style={styles.infoLabel}>Amount</Text>
               <Text style={styles.infoValue}>{details.amount}</Text>
             </View>
@@ -158,7 +158,7 @@ export default function ScholarshipDetails() {
           <Text style={styles.sectionTitle}>📄 Required Documents</Text>
           {details.documents.map((doc, index) => (
             <View key={index} style={styles.listItem}>
-              <MaterialIcons name="description" size={18} color="#1565C0" />
+              <MaterialIcons name="description" size={18} color="#C97352" />
               <Text style={styles.listText}>{doc}</Text>
             </View>
           ))}
@@ -184,7 +184,7 @@ export default function ScholarshipDetails() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F4F6FA' },
   header: {
-    height: 100, backgroundColor: '#1565C0',
+    height: 100, backgroundColor: '#C97352',
     flexDirection: 'row', alignItems: 'center',
     paddingTop: 40, paddingHorizontal: 16, gap: 12
   },
@@ -194,21 +194,21 @@ const styles = StyleSheet.create({
   scroll: { padding: 16 },
   mainCard: {
     backgroundColor: '#fff', borderRadius: 16, padding: 20,
-    elevation: 4, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 8,
+    elevation: 4, shadowColor: '#2D2A26', shadowOpacity: 0.08, shadowRadius: 8,
     marginBottom: 20
   },
   badgeRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  title: { fontSize: 22, fontWeight: 'bold', color: '#1A237E', marginBottom: 20 },
+  title: { fontSize: 22, fontWeight: 'bold', color: '#C97352', marginBottom: 20 },
   infoGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
   infoItem: { width: '45%', marginBottom: 10 },
-  infoLabel: { fontSize: 12, color: '#90A4AE', marginTop: 4 },
-  infoValue: { fontSize: 14, fontWeight: '700', color: '#263238', marginTop: 2 },
+  infoLabel: { fontSize: 12, color: '#7A746E', marginTop: 4 },
+  infoValue: { fontSize: 14, fontWeight: '700', color: '#2D2A26', marginTop: 2 },
   section: { backgroundColor: '#fff', borderRadius: 16, padding: 20, marginBottom: 16 },
-  sectionTitle: { fontSize: 17, fontWeight: 'bold', color: '#1A237E', marginBottom: 12 },
+  sectionTitle: { fontSize: 17, fontWeight: 'bold', color: '#C97352', marginBottom: 12 },
   description: { fontSize: 14, color: '#455A64', lineHeight: 22 },
   highlightBox: { backgroundColor: '#E3F2FD', padding: 12, borderRadius: 10 },
-  highlightText: { fontSize: 14, color: '#1565C0', fontWeight: '600', lineHeight: 20 },
+  highlightText: { fontSize: 14, color: '#C97352', fontWeight: '600', lineHeight: 20 },
   listItem: { flexDirection: 'row', gap: 10, marginBottom: 8, alignItems: 'flex-start' },
   listText: { fontSize: 14, color: '#455A64', flex: 1 },
   remindMeBtn: {
@@ -218,10 +218,10 @@ const styles = StyleSheet.create({
   remindMeText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
   footer: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: '#fff', padding: 16, borderTopWidth: 1, borderTopColor: '#E0E0E0'
+    backgroundColor: '#fff', padding: 16, borderTopWidth: 1, borderTopColor: '#ECE7E1'
   },
   applyBtn: {
-    backgroundColor: '#1565C0', height: 56, borderRadius: 12,
+    backgroundColor: '#C97352', height: 56, borderRadius: 12,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8
   },
   applyBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }

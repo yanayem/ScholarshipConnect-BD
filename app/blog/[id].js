@@ -42,10 +42,10 @@ export default function BlogDetailScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialIcons name="close" size={24} color="#263238" />
+          <MaterialIcons name="close" size={24} color="#2D2A26" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.shareBtn}>
-          <MaterialIcons name="share" size={24} color="#263238" />
+          <MaterialIcons name="share" size={24} color="#2D2A26" />
         </TouchableOpacity>
       </View>
 
@@ -98,15 +98,15 @@ const styles = StyleSheet.create({
   scroll: { padding: 20 },
   tagRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
   tag: { backgroundColor: '#E3F2FD', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
-  tagText: { color: '#1565C0', fontSize: 12, fontWeight: 'bold' },
-  title: { fontSize: 26, fontWeight: 'bold', color: '#1A237E', lineHeight: 34, marginBottom: 20 },
+  tagText: { color: '#C97352', fontSize: 12, fontWeight: 'bold' },
+  title: { fontSize: 26, fontWeight: 'bold', color: '#C97352', lineHeight: 34, marginBottom: 20 },
   authorCard: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
   authorIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#BBDEFB', alignItems: 'center', justifyContent: 'center' },
-  authorInitial: { fontSize: 18, color: '#1565C0', fontWeight: 'bold' },
-  authorName: { fontSize: 16, fontWeight: 'bold', color: '#263238' },
-  authorUni: { fontSize: 13, color: '#607D8B' },
-  date: { fontSize: 12, color: '#90A4AE' },
-  divider: { height: 1, backgroundColor: '#ECEFF1', marginBottom: 24 },
+  authorInitial: { fontSize: 18, color: '#C97352', fontWeight: 'bold' },
+  authorName: { fontSize: 16, fontWeight: 'bold', color: '#2D2A26' },
+  authorUni: { fontSize: 13, color: '#7A746E' },
+  date: { fontSize: 12, color: '#7A746E' },
+  divider: { height: 1, backgroundColor: '#FCFAF7', marginBottom: 24 },
   content: { fontSize: 16, color: '#455A64', lineHeight: 28, marginBottom: 24 },
   tipsBox: { backgroundColor: '#FFF9C4', padding: 20, borderRadius: 16, borderLeftWidth: 4, borderLeftColor: '#FBC02D' },
   tipsTitle: { fontSize: 16, fontWeight: 'bold', color: '#F57F17', marginBottom: 8 },

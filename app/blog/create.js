@@ -147,14 +147,14 @@ const styles = StyleSheet.create({
   },
   introText: { fontSize: 14, color: '#2E7D32', flex: 1, fontWeight: '500', lineHeight: 20 },
   formCard: { backgroundColor: '#fff', borderRadius: 16, padding: 20, elevation: 2 },
-  label: { fontSize: 14, fontWeight: '700', color: '#546E7A', marginBottom: 8, marginTop: 12 },
+  label: { fontSize: 14, fontWeight: '700', color: '#7A746E', marginBottom: 8, marginTop: 12 },
   row: { flexDirection: 'row' },
   input: {
-    backgroundColor: '#FAFAFA', borderWidth: 1, borderColor: '#ECEFF1',
-    borderRadius: 10, padding: 12, fontSize: 15, color: '#263238'
+    backgroundColor: '#FCFAF7', borderWidth: 1, borderColor: '#FCFAF7',
+    borderRadius: 10, padding: 12, fontSize: 15, color: '#2D2A26'
   },
   textArea: { minHeight: 180 },
-  hint: { fontSize: 12, color: '#90A4AE', marginTop: 12, fontStyle: 'italic' },
+  hint: { fontSize: 12, color: '#7A746E', marginTop: 12, fontStyle: 'italic' },
   submitBtn: {
     backgroundColor: '#2E7D32', borderRadius: 12, height: 56,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',

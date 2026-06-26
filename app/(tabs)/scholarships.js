@@ -26,6 +26,24 @@ export default function ScholarshipsScreen() {
   const [search, setSearch] = useState('');
   const [country, setCountry] = useState('All');
   const [level, setLevel] = useState('All');
+  const [bookmarks, setBookmarks] = useState(['4']); // Mocking Erasmus as saved
+
+  const toggleBookmark = (id) => {
+    setBookmarks(prev =>
+      prev.includes(id) ? prev.filter(b => b !== id) : [...prev, id]
+    );
+  };
+
+  const getDaysLeft = (deadline) => {
+    const parts = deadline.split(' ');
+    if (parts.length < 2) return null;
+    const months = { 'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5, 'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11 };
+    const month = months[parts[0]];
+    const year = parseInt(parts[1]);
+    const target = new Date(year, month || 0, 15); // Assume mid-month
+    const diff = target - new Date();
+    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  };
 
   const filtered = ALL_SCHOLARSHIPS.filter(s => {
     const matchSearch = s.title.toLowerCase().includes(search.toLowerCase());
@@ -36,16 +54,16 @@ export default function ScholarshipsScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor="#1565C0" barStyle="light-content" />
+      <StatusBar backgroundColor="#C97352" barStyle="light-content" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
         {/* Search */}
         <View style={styles.searchWrap}>
-          <MaterialIcons name="search" size={22} color="#90A4AE" style={{ marginRight: 8 }} />
+          <MaterialIcons name="search" size={22} color="#7A746E" style={{ marginRight: 8 }} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search scholarships..."
-            placeholderTextColor="#90A4AE"
+            placeholderTextColor="#7A746E"
             value={search}
             onChangeText={setSearch}
           />
@@ -85,24 +103,34 @@ export default function ScholarshipsScreen() {
         {/* List */}
         {filtered.length === 0 ? (
           <View style={styles.emptyBox}>
-            <MaterialIcons name="search-off" size={48} color="#B0BEC5" />
+            <MaterialIcons name="search-off" size={48} color="#7A746E" />
             <Text style={styles.emptyText}>No scholarships match your filters.</Text>
           </View>
         ) : (
           filtered.map(item => (
             <TouchableOpacity key={item.id} style={styles.card} activeOpacity={0.85}>
-              <Text style={styles.cardTitle}>{item.title}</Text>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>{item.title}</Text>
+                <TouchableOpacity onPress={() => toggleBookmark(item.id)} style={styles.bookmarkBtn}>
+                  <MaterialIcons
+                    name={bookmarks.includes(item.id) ? "bookmark" : "bookmark-outline"}
+                    size={22}
+                    color={bookmarks.includes(item.id) ? "#C97352" : "#7A746E"}
+                  />
+                </TouchableOpacity>
+              </View>
+
               <View style={styles.metaRow}>
                 <View style={styles.metaBadge}>
-                  <MaterialIcons name="place" size={13} color="#1565C0" />
+                  <MaterialIcons name="place" size={13} color="#C97352" />
                   <Text style={styles.metaText}>{item.country}</Text>
                 </View>
                 <View style={styles.metaBadge}>
-                  <MaterialIcons name="school" size={13} color="#1565C0" />
+                  <MaterialIcons name="school" size={13} color="#C97352" />
                   <Text style={styles.metaText}>{item.level}</Text>
                 </View>
                 <View style={styles.metaBadge}>
-                  <MaterialIcons name="work" size={13} color="#1565C0" />
+                  <MaterialIcons name="work" size={13} color="#C97352" />
                   <Text style={styles.metaText}>{item.field}</Text>
                 </View>
               </View>
@@ -110,10 +138,33 @@ export default function ScholarshipsScreen() {
                 <Text style={styles.deadline}>
                   <MaterialIcons name="event" size={13} color="#E53935" /> {item.deadline}
                 </Text>
+                <TouchableOpacity onPress={() => router.push('/reminders')} style={styles.remindBadge}>
+                  <MaterialIcons name="notifications-active" size={14} color="#C97352" />
+                  <Text style={styles.remindText}>Remind</Text>
+                </TouchableOpacity>
                 <View style={styles.amountBadge}>
                   <Text style={styles.amountText}>{item.amount}</Text>
                 </View>
               </View>
+
+              {/* Deadline Tracker */}
+              {getDaysLeft(item.deadline) !== null && (
+                <View style={styles.trackerContainer}>
+                  <View style={styles.trackerHeader}>
+                    <Text style={styles.trackerText}>Deadline Tracker</Text>
+                    <Text style={styles.daysLeftText}>{getDaysLeft(item.deadline)} days left</Text>
+                  </View>
+                  <View style={styles.progressBarBg}>
+                    <View
+                      style={[
+                        styles.progressBarFill,
+                        { width: `${Math.min(100, Math.max(10, 100 - (getDaysLeft(item.deadline) / 365) * 100))}%` }
+                      ]}
+                    />
+                  </View>
+                </View>
+              )}
+
               <TouchableOpacity
                 style={styles.applyBtn}
                 onPress={() => router.push(`/scholarship/${item.id}`)}
@@ -131,44 +182,54 @@ export default function ScholarshipsScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F4F6FA' },
-  scroll: { padding: 16 },
+  root: { flex: 1, backgroundColor: theme.colors.background },
+  scroll: { paddingHorizontal: theme.spacing.lg, paddingVertical: theme.spacing.md },
   searchWrap: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
     borderRadius: 12, paddingHorizontal: 12, marginBottom: 14,
-    elevation: 3, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6,
+    elevation: 3, shadowColor: '#2D2A26', shadowOpacity: 0.06, shadowRadius: 6,
   },
-  searchInput: { flex: 1, height: 46, fontSize: 15, color: '#263238' },
-  filterLabel: { fontSize: 13, fontWeight: '700', color: '#546E7A', marginBottom: 8, marginTop: 4 },
-  chipRow: { marginBottom: 12 },
+  searchInput: { flex: 1, height: 46, fontSize: 15, color: '#2D2A26' },
+  filterLabel: { fontSize: 13, fontWeight: '700', color: '#7A746E', marginBottom: 8, marginTop: 4 },
+  chipRow: { marginBottom: 16 },
   chip: {
-    borderWidth: 1.5, borderColor: '#90A4AE', borderRadius: 20,
+    borderWidth: 1.5, borderColor: '#7A746E', borderRadius: 20,
     paddingHorizontal: 14, paddingVertical: 6, marginRight: 8, backgroundColor: '#fff',
   },
-  chipActive: { backgroundColor: '#1565C0', borderColor: '#1565C0' },
-  chipText: { fontSize: 13, color: '#546E7A', fontWeight: '600' },
+  chipActive: { backgroundColor: '#C97352', borderColor: '#C97352' },
+  chipText: { fontSize: 13, color: '#7A746E', fontWeight: '600' },
   chipTextActive: { color: '#fff' },
-  resultCount: { fontSize: 13, color: '#78909C', marginBottom: 12 },
+  resultCount: { fontSize: 13, color: '#7A746E', marginBottom: 16, fontFamily: theme.typography.fontFamily.medium },
   card: {
     backgroundColor: '#fff', borderRadius: 14, padding: 16, marginBottom: 14,
-    elevation: 3, shadowColor: '#000', shadowOpacity: 0.07, shadowRadius: 6,
+    elevation: 3, shadowColor: '#2D2A26', shadowOpacity: 0.07, shadowRadius: 6,
   },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: '#1A237E', marginBottom: 10 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
+  cardTitle: { fontSize: 15, fontWeight: '700', color: '#C97352', flex: 1, marginRight: 8 },
+  bookmarkBtn: { padding: 2 },
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 },
   metaBadge: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: '#E3F2FD',
     borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, gap: 4,
   },
-  metaText: { fontSize: 12, color: '#1565C0', fontWeight: '600' },
+  metaText: { fontSize: 12, color: '#C97352', fontWeight: '600' },
   cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   deadline: { fontSize: 13, color: '#E53935' },
   amountBadge: { backgroundColor: '#E8F5E9', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
   amountText: { color: '#2E7D32', fontWeight: 'bold', fontSize: 12 },
+  remindBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#FFF3E0', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  remindText: { color: '#C97352', fontWeight: '700', fontSize: 11 },
+  trackerContainer: { marginBottom: 16, backgroundColor: '#FFF9F6', padding: 8, borderRadius: 10, borderWidth: 1, borderColor: '#FFEBEE' },
+  trackerHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
+  trackerText: { fontSize: 11, color: '#7A746E', fontWeight: '600' },
+  daysLeftText: { fontSize: 11, color: '#E53935', fontWeight: 'bold' },
+  progressBarBg: { height: 6, backgroundColor: '#ECE7E1', borderRadius: 3, overflow: 'hidden' },
+  progressBarFill: { height: '100%', backgroundColor: '#E53935', borderRadius: 3 },
   applyBtn: {
-    backgroundColor: '#1565C0', borderRadius: 10, paddingVertical: 10,
+    backgroundColor: '#C97352', borderRadius: 10, paddingVertical: 10,
     flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6,
   },
   applyText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
   emptyBox: { alignItems: 'center', paddingVertical: 50 },
-  emptyText: { fontSize: 15, color: '#90A4AE', marginTop: 12 },
+  emptyText: { fontSize: 15, color: '#7A746E', marginTop: 12 },
 });

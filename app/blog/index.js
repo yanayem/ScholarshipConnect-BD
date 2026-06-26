@@ -45,7 +45,7 @@ const BLOG_POSTS = [
 export default function BlogListScreen() {
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#1565C0" />
+      <StatusBar barStyle="light-content" backgroundColor="#C97352" />
 
       {/* Header */}
       <View style={styles.header}>
@@ -91,7 +91,7 @@ export default function BlogListScreen() {
 
               <View style={styles.metaRow}>
                 <View style={styles.metaItem}>
-                  <MaterialIcons name="access-time" size={14} color="#90A4AE" />
+                  <MaterialIcons name="access-time" size={14} color="#7A746E" />
                   <Text style={styles.metaText}>{post.date} • {post.readTime}</Text>
                 </View>
                 <Text style={styles.readMore}>Read Full Story →</Text>
@@ -117,7 +117,7 @@ export default function BlogListScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F4F6FA' },
   header: {
-    height: 100, backgroundColor: '#1565C0',
+    height: 100, backgroundColor: '#C97352',
     flexDirection: 'row', alignItems: 'center',
     paddingTop: 40, paddingHorizontal: 16, gap: 12
   },
@@ -125,28 +125,28 @@ const styles = StyleSheet.create({
   backBtn: { padding: 4 },
   scroll: { padding: 16 },
   topInfo: { marginBottom: 24 },
-  pageTitle: { fontSize: 22, fontWeight: 'bold', color: '#1A237E' },
-  pageSub: { fontSize: 14, color: '#607D8B', marginTop: 4, lineHeight: 20 },
+  pageTitle: { fontSize: 22, fontWeight: 'bold', color: '#C97352' },
+  pageSub: { fontSize: 14, color: '#7A746E', marginTop: 4, lineHeight: 20 },
   postCard: {
     backgroundColor: '#fff', borderRadius: 16, marginBottom: 20,
-    elevation: 4, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 8,
+    elevation: 4, shadowColor: '#2D2A26', shadowOpacity: 0.08, shadowRadius: 8,
     overflow: 'hidden'
   },
   postContent: { padding: 16 },
   tagRow: { flexDirection: 'row', gap: 6, marginBottom: 10 },
   tag: { backgroundColor: '#E3F2FD', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
-  tagText: { color: '#1565C0', fontSize: 11, fontWeight: 'bold' },
-  postTitle: { fontSize: 18, fontWeight: 'bold', color: '#1A237E', marginBottom: 8 },
+  tagText: { color: '#C97352', fontSize: 11, fontWeight: 'bold' },
+  postTitle: { fontSize: 18, fontWeight: 'bold', color: '#C97352', marginBottom: 8 },
   excerpt: { fontSize: 14, color: '#455A64', lineHeight: 20, marginBottom: 16 },
   authorRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
   authorIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#BBDEFB', alignItems: 'center', justifyContent: 'center' },
-  authorInitial: { color: '#1565C0', fontWeight: 'bold' },
-  authorName: { fontSize: 14, fontWeight: 'bold', color: '#263238' },
-  authorUni: { fontSize: 12, color: '#607D8B' },
+  authorInitial: { color: '#C97352', fontWeight: 'bold' },
+  authorName: { fontSize: 14, fontWeight: 'bold', color: '#2D2A26' },
+  authorUni: { fontSize: 12, color: '#7A746E' },
   metaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F5F5F5' },
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  metaText: { fontSize: 12, color: '#90A4AE' },
-  readMore: { fontSize: 13, color: '#1565C0', fontWeight: 'bold' },
+  metaText: { fontSize: 12, color: '#7A746E' },
+  readMore: { fontSize: 13, color: '#C97352', fontWeight: 'bold' },
   shareYourStoryBtn: {
     backgroundColor: '#2E7D32', borderRadius: 12, height: 56,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',

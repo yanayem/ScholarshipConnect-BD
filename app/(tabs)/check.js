@@ -46,12 +46,12 @@ export default function CheckScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor="#1565C0" barStyle="light-content" />
+      <StatusBar backgroundColor="#C97352" barStyle="light-content" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
         {/* Info Banner */}
         <View style={styles.banner}>
-          <MaterialIcons name="tips-and-updates" size={24} color="#1565C0" />
+          <MaterialIcons name="tips-and-updates" size={24} color="#C97352" />
           <Text style={styles.bannerText}>
             Enter your details below to find scholarships you are eligible for!
           </Text>
@@ -65,7 +65,7 @@ export default function CheckScreen() {
           <TextInput
             style={styles.input}
             placeholder="e.g. 3.5"
-            placeholderTextColor="#90A4AE"
+            placeholderTextColor="#7A746E"
             keyboardType="decimal-pad"
             value={cgpa}
             onChangeText={setCgpa}
@@ -75,7 +75,7 @@ export default function CheckScreen() {
           <TextInput
             style={styles.input}
             placeholder="e.g. Masters, PhD, Bachelors"
-            placeholderTextColor="#90A4AE"
+            placeholderTextColor="#7A746E"
             value={level}
             onChangeText={setLevel}
           />
@@ -84,7 +84,7 @@ export default function CheckScreen() {
           <TextInput
             style={styles.input}
             placeholder="e.g. Engineering, Business, Any"
-            placeholderTextColor="#90A4AE"
+            placeholderTextColor="#7A746E"
             value={field}
             onChangeText={setField}
           />
@@ -109,9 +109,9 @@ export default function CheckScreen() {
               </TouchableOpacity>
             </View>
 
-            {results.length === 0 && (
+            {checked && results.length === 0 && (
               <View style={styles.noMatch}>
-                <MaterialIcons name="sentiment-dissatisfied" size={48} color="#B0BEC5" />
+                <MaterialIcons name="sentiment-dissatisfied" size={48} color="#7A746E" />
                 <Text style={styles.noMatchText}>
                   Try improving your CGPA or adjusting your preferences.
                 </Text>
@@ -146,35 +146,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', backgroundColor: '#E3F2FD',
     borderRadius: 12, padding: 14, marginBottom: 16, gap: 10,
   },
-  bannerText: { flex: 1, fontSize: 14, color: '#1565C0', lineHeight: 20 },
+  bannerText: { flex: 1, fontSize: 14, color: '#C97352', lineHeight: 20 },
   formCard: {
     backgroundColor: '#fff', borderRadius: 14, padding: 18, marginBottom: 16,
-    elevation: 3, shadowColor: '#000', shadowOpacity: 0.07, shadowRadius: 6,
+    elevation: 3, shadowColor: '#2D2A26', shadowOpacity: 0.07, shadowRadius: 6,
   },
-  formTitle: { fontSize: 16, fontWeight: 'bold', color: '#1A237E', marginBottom: 16 },
-  label: { fontSize: 13, fontWeight: '700', color: '#546E7A', marginBottom: 6 },
+  formTitle: { fontSize: 16, fontWeight: 'bold', color: '#C97352', marginBottom: 16 },
+  label: { fontSize: 13, fontWeight: '700', color: '#7A746E', marginBottom: 6 },
   input: {
-    borderWidth: 1.5, borderColor: '#CFD8DC', borderRadius: 10,
+    borderWidth: 1.5, borderColor: '#ECE7E1', borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 12, fontSize: 15,
-    color: '#263238', backgroundColor: '#FAFAFA', marginBottom: 16,
+    color: '#2D2A26', backgroundColor: '#FCFAF7', marginBottom: 16,
   },
   checkBtn: {
-    backgroundColor: '#1565C0', borderRadius: 12, paddingVertical: 14,
+    backgroundColor: '#C97352', borderRadius: 12, paddingVertical: 14,
     flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 4,
   },
   checkBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   resultHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  resultTitle: { fontSize: 16, fontWeight: 'bold', color: '#1A237E' },
+  resultTitle: { fontSize: 16, fontWeight: 'bold', color: '#C97352' },
   resetText: { fontSize: 14, color: '#E53935', fontWeight: '600' },
   noMatch: { alignItems: 'center', paddingVertical: 30 },
-  noMatchText: { fontSize: 14, color: '#90A4AE', marginTop: 12, textAlign: 'center' },
+  noMatchText: { fontSize: 14, color: '#7A746E', marginTop: 12, textAlign: 'center' },
   resultCard: {
     backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 10,
     borderLeftWidth: 4, borderLeftColor: '#2E7D32',
-    elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4,
+    elevation: 2, shadowColor: '#2D2A26', shadowOpacity: 0.05, shadowRadius: 4,
   },
   resultTop: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  resultName: { fontSize: 14, fontWeight: '700', color: '#1A237E', flex: 1 },
+  resultName: { fontSize: 14, fontWeight: '700', color: '#C97352', flex: 1 },
   resultMeta: { flexDirection: 'row', gap: 8 },
   resultTag: {
     backgroundColor: '#E8F5E9', color: '#2E7D32', fontSize: 12,

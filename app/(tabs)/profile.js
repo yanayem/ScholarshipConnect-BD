@@ -46,7 +46,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor="#1565C0" barStyle="light-content" />
+      <StatusBar backgroundColor="#C97352" barStyle="light-content" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
         {/* Avatar & Name */}
@@ -57,7 +57,7 @@ export default function ProfileScreen() {
           <Text style={styles.userName}>{user.name}</Text>
           <Text style={styles.userEmail}>{user.email}</Text>
           <TouchableOpacity style={styles.editBtn}>
-            <MaterialIcons name="edit" size={16} color="#1565C0" />
+            <MaterialIcons name="edit" size={16} color="#C97352" />
             <Text style={styles.editBtnText}>Edit Profile</Text>
           </TouchableOpacity>
         </View>
@@ -70,7 +70,7 @@ export default function ProfileScreen() {
             { icon: 'email', label: 'Email', value: user.email },
           ].map((row, i) => (
             <View key={i} style={styles.infoRow}>
-              <MaterialIcons name={row.icon} size={18} color="#1565C0" />
+              <MaterialIcons name={row.icon} size={18} color="#C97352" />
               <View style={{ marginLeft: 12, flex: 1 }}>
                 <Text style={styles.infoLabel}>{row.label}</Text>
                 <Text style={styles.infoValue}>{row.value}</Text>
@@ -90,7 +90,7 @@ export default function ProfileScreen() {
             { icon: 'calendar-today', label: 'Graduation Year', value: user.graduationYear },
           ].map((row, i) => (
             <View key={i} style={[styles.infoRow, i > 0 && styles.infoRowBorder]}>
-              <MaterialIcons name={row.icon} size={18} color="#1565C0" />
+              <MaterialIcons name={row.icon} size={18} color="#C97352" />
               <View style={{ marginLeft: 12, flex: 1 }}>
                 <Text style={styles.infoLabel}>{row.label}</Text>
                 <Text style={styles.infoValue}>{row.value}</Text>
@@ -102,8 +102,8 @@ export default function ProfileScreen() {
         {/* Quick Stats & Actions */}
         <View style={styles.statsRow}>
           {[
-            { label: 'Saved', value: '4', icon: 'bookmark', color: '#607D8B' },
-            { label: 'Applied', value: '3', icon: 'send', color: '#1565C0' },
+            { label: 'Saved', value: '4', icon: 'bookmark', color: '#7A746E' },
+            { label: 'Applied', value: '3', icon: 'send', color: '#C97352' },
             { label: 'Documents', value: '3', icon: 'description', color: '#2E7D32', action: () => router.push('/documents') },
           ].map((s, i) => (
             <TouchableOpacity
@@ -129,13 +129,13 @@ export default function ProfileScreen() {
               activeOpacity={0.7}
             >
               <View style={styles.settingIconWrap}>
-                <MaterialIcons name={s.icon} size={20} color="#1565C0" />
+                <MaterialIcons name={s.icon} size={20} color="#C97352" />
               </View>
               <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text style={styles.settingLabel}>{s.label}</Text>
                 <Text style={styles.settingSub}>{s.sub}</Text>
               </View>
-              <MaterialIcons name="chevron-right" size={22} color="#B0BEC5" />
+              <MaterialIcons name="chevron-right" size={22} color="#7A746E" />
             </TouchableOpacity>
           ))}
         </View>
@@ -158,45 +158,45 @@ const styles = StyleSheet.create({
   profileHeader: {
     alignItems: 'center', backgroundColor: '#fff', borderRadius: 16,
     padding: 24, marginBottom: 16,
-    elevation: 4, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 8,
+    elevation: 4, shadowColor: '#2D2A26', shadowOpacity: 0.08, shadowRadius: 8,
   },
   avatar: {
-    width: 80, height: 80, borderRadius: 40, backgroundColor: '#1565C0',
+    width: 80, height: 80, borderRadius: 40, backgroundColor: '#C97352',
     alignItems: 'center', justifyContent: 'center', marginBottom: 12,
   },
   avatarText: { fontSize: 28, fontWeight: 'bold', color: '#fff' },
-  userName: { fontSize: 20, fontWeight: 'bold', color: '#1A237E' },
-  userEmail: { fontSize: 14, color: '#607D8B', marginTop: 4, marginBottom: 14 },
+  userName: { fontSize: 20, fontWeight: 'bold', color: '#C97352' },
+  userEmail: { fontSize: 14, color: '#7A746E', marginTop: 4, marginBottom: 14 },
   editBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    borderWidth: 1.5, borderColor: '#1565C0', borderRadius: 20,
+    borderWidth: 1.5, borderColor: '#C97352', borderRadius: 20,
     paddingHorizontal: 16, paddingVertical: 8,
   },
-  editBtnText: { color: '#1565C0', fontWeight: '700', fontSize: 14 },
+  editBtnText: { color: '#C97352', fontWeight: '700', fontSize: 14 },
   infoCard: {
     backgroundColor: '#fff', borderRadius: 14, padding: 16, marginBottom: 16,
-    elevation: 3, shadowColor: '#000', shadowOpacity: 0.07, shadowRadius: 6,
+    elevation: 3, shadowColor: '#2D2A26', shadowOpacity: 0.07, shadowRadius: 6,
   },
-  cardTitle: { fontSize: 15, fontWeight: 'bold', color: '#1A237E', marginBottom: 14 },
+  cardTitle: { fontSize: 15, fontWeight: 'bold', color: '#C97352', marginBottom: 14 },
   infoRow: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 10 },
-  infoRowBorder: { borderTopWidth: 1, borderTopColor: '#ECEFF1' },
-  infoLabel: { fontSize: 12, color: '#90A4AE', marginBottom: 2 },
-  infoValue: { fontSize: 14, color: '#263238', fontWeight: '600' },
+  infoRowBorder: { borderTopWidth: 1, borderTopColor: '#FCFAF7' },
+  infoLabel: { fontSize: 12, color: '#7A746E', marginBottom: 2 },
+  infoValue: { fontSize: 14, color: '#2D2A26', fontWeight: '600' },
   statsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
   statCard: {
     flex: 1, backgroundColor: '#fff', borderRadius: 12, alignItems: 'center',
     paddingVertical: 14, marginHorizontal: 4,
-    elevation: 3, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6,
+    elevation: 3, shadowColor: '#2D2A26', shadowOpacity: 0.06, shadowRadius: 6,
   },
   statValue: { fontSize: 20, fontWeight: 'bold', marginTop: 6 },
-  statLabel: { fontSize: 11, color: '#607D8B', marginTop: 2 },
+  statLabel: { fontSize: 11, color: '#7A746E', marginTop: 2 },
   settingRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12 },
   settingIconWrap: {
     width: 36, height: 36, borderRadius: 10, backgroundColor: '#E3F2FD',
     alignItems: 'center', justifyContent: 'center',
   },
-  settingLabel: { fontSize: 14, fontWeight: '600', color: '#263238' },
-  settingSub: { fontSize: 12, color: '#90A4AE', marginTop: 2 },
+  settingLabel: { fontSize: 14, fontWeight: '600', color: '#2D2A26' },
+  settingSub: { fontSize: 12, color: '#7A746E', marginTop: 2 },
   logoutBtn: {
     backgroundColor: '#C62828', borderRadius: 14, paddingVertical: 16,
     flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginBottom: 8,

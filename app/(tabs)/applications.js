@@ -6,8 +6,8 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 
 const STATUS_CONFIG = {
-  Saved:        { color: '#607D8B', bg: '#ECEFF1', icon: 'bookmark' },
-  Applied:      { color: '#1565C0', bg: '#E3F2FD', icon: 'send' },
+  Saved:        { color: '#7A746E', bg: '#FCFAF7', icon: 'bookmark' },
+  Applied:      { color: '#C97352', bg: '#E3F2FD', icon: 'send' },
   'Under Review': { color: '#E65100', bg: '#FFF3E0', icon: 'hourglass-top' },
   Accepted:     { color: '#2E7D32', bg: '#E8F5E9', icon: 'check-circle' },
   Rejected:     { color: '#C62828', bg: '#FFEBEE', icon: 'cancel' },
@@ -40,7 +40,7 @@ export default function ApplicationsScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor="#1565C0" barStyle="light-content" />
+      <StatusBar backgroundColor="#C97352" barStyle="light-content" />
 
       {/* Status Filter Tabs */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabRow}>
@@ -61,7 +61,7 @@ export default function ApplicationsScreen() {
 
         {filtered.length === 0 ? (
           <View style={styles.emptyBox}>
-            <MaterialIcons name="inbox" size={56} color="#B0BEC5" />
+            <MaterialIcons name="inbox" size={56} color="#7A746E" />
             <Text style={styles.emptyTitle}>No applications here</Text>
             <Text style={styles.emptyText}>
               {activeTab === 'Saved'
@@ -83,9 +83,9 @@ export default function ApplicationsScreen() {
                 </View>
 
                 <View style={styles.metaRow}>
-                  <MaterialIcons name="place" size={14} color="#607D8B" />
+                  <MaterialIcons name="place" size={14} color="#7A746E" />
                   <Text style={styles.metaText}>{item.country}</Text>
-                  <MaterialIcons name="school" size={14} color="#607D8B" style={{ marginLeft: 10 }} />
+                  <MaterialIcons name="school" size={14} color="#7A746E" style={{ marginLeft: 10 }} />
                   <Text style={styles.metaText}>{item.level}</Text>
                 </View>
 
@@ -133,43 +133,43 @@ const styles = StyleSheet.create({
     elevation: 2, flexGrow: 0,
   },
   tabChip: {
-    borderWidth: 1.5, borderColor: '#CFD8DC', borderRadius: 20,
+    borderWidth: 1.5, borderColor: '#ECE7E1', borderRadius: 20,
     paddingHorizontal: 14, paddingVertical: 7, marginRight: 8, backgroundColor: '#fff',
   },
-  tabChipActive: { backgroundColor: '#1565C0', borderColor: '#1565C0' },
-  tabChipText: { fontSize: 13, color: '#546E7A', fontWeight: '600' },
+  tabChipActive: { backgroundColor: '#C97352', borderColor: '#C97352' },
+  tabChipText: { fontSize: 13, color: '#7A746E', fontWeight: '600' },
   tabChipTextActive: { color: '#fff' },
   scroll: { padding: 16 },
   emptyBox: { alignItems: 'center', paddingVertical: 60 },
-  emptyTitle: { fontSize: 17, fontWeight: 'bold', color: '#90A4AE', marginTop: 14 },
-  emptyText: { fontSize: 14, color: '#B0BEC5', marginTop: 8, textAlign: 'center', paddingHorizontal: 30 },
+  emptyTitle: { fontSize: 17, fontWeight: 'bold', color: '#7A746E', marginTop: 14 },
+  emptyText: { fontSize: 14, color: '#7A746E', marginTop: 8, textAlign: 'center', paddingHorizontal: 30 },
   card: {
     backgroundColor: '#fff', borderRadius: 14, padding: 16, marginBottom: 14,
-    elevation: 3, shadowColor: '#000', shadowOpacity: 0.07, shadowRadius: 6,
+    elevation: 3, shadowColor: '#2D2A26', shadowOpacity: 0.07, shadowRadius: 6,
   },
   cardHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 },
-  cardTitle: { flex: 1, fontSize: 15, fontWeight: '700', color: '#1A237E', marginRight: 10 },
+  cardTitle: { flex: 1, fontSize: 15, fontWeight: '700', color: '#C97352', marginRight: 10 },
   statusBadge: {
     flexDirection: 'row', alignItems: 'center', borderRadius: 20,
     paddingHorizontal: 10, paddingVertical: 5, gap: 4,
   },
   statusText: { fontSize: 12, fontWeight: '700' },
   metaRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  metaText: { fontSize: 13, color: '#607D8B', marginLeft: 4 },
+  metaText: { fontSize: 13, color: '#7A746E', marginLeft: 4 },
   cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
   deadline: { fontSize: 13, color: '#E53935' },
-  detailBtn: { borderWidth: 1.5, borderColor: '#1565C0', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 6 },
-  detailBtnText: { color: '#1565C0', fontWeight: '700', fontSize: 13 },
+  detailBtn: { borderWidth: 1.5, borderColor: '#C97352', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 6 },
+  detailBtnText: { color: '#C97352', fontWeight: '700', fontSize: 13 },
   progressRow: { flexDirection: 'row', alignItems: 'center' },
   progressStep: { flex: 1, alignItems: 'center', position: 'relative' },
   progressDot: {
-    width: 12, height: 12, borderRadius: 6, backgroundColor: '#CFD8DC', marginBottom: 4,
+    width: 12, height: 12, borderRadius: 6, backgroundColor: '#ECE7E1', marginBottom: 4,
   },
-  progressDotActive: { backgroundColor: '#1565C0' },
+  progressDotActive: { backgroundColor: '#C97352' },
   progressLine: {
-    position: 'absolute', top: 5, left: '50%', right: '-50%', height: 2, backgroundColor: '#CFD8DC',
+    position: 'absolute', top: 5, left: '50%', right: '-50%', height: 2, backgroundColor: '#ECE7E1',
   },
-  progressLineActive: { backgroundColor: '#1565C0' },
-  progressLabel: { fontSize: 10, color: '#90A4AE', textAlign: 'center' },
-  progressLabelActive: { color: '#1565C0', fontWeight: '700' },
+  progressLineActive: { backgroundColor: '#C97352' },
+  progressLabel: { fontSize: 10, color: '#7A746E', textAlign: 'center' },
+  progressLabelActive: { color: '#C97352', fontWeight: '700' },
 });

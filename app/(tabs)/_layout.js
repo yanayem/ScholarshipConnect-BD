@@ -1,8 +1,8 @@
 import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 
-const PRIMARY = '#1565C0';
-const INACTIVE = '#90A4AE';
+const PRIMARY = '#C97352';
+const INACTIVE = '#7A746E';
 const TAB_BG = '#FFFFFF';
 
 export default function TabLayout() {
@@ -14,12 +14,12 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: TAB_BG,
           borderTopWidth: 1,
-          borderTopColor: '#E0E0E0',
+          borderTopColor: '#ECE7E1',
           height: 62,
           paddingBottom: 8,
           paddingTop: 6,
           elevation: 10,
-          shadowColor: '#000',
+          shadowColor: '#2D2A26',
           shadowOpacity: 0.08,
           shadowRadius: 8,
         },
@@ -70,16 +70,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="calendar"
-        options={{
-          title: 'Calendar',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="event" size={size + 2} color={color} />
-          ),
-          headerTitle: 'Deadline Calendar',
-        }}
-      />
-      <Tabs.Screen
         name="check"
         options={{
           title: 'Check',
@@ -97,16 +87,6 @@ export default function TabLayout() {
             <MaterialIcons name="bookmark" size={size + 2} color={color} />
           ),
           headerTitle: 'My Applications',
-        }}
-      />
-      <Tabs.Screen
-        name="calendar"
-        options={{
-          title: 'Calendar',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="event" size={size + 2} color={color} />
-          ),
-          headerTitle: 'Deadline Calendar',
         }}
       />
       <Tabs.Screen

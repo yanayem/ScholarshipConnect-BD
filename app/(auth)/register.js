@@ -34,7 +34,7 @@ export default function RegisterScreen() {
       <StatusBar barStyle="dark-content" backgroundColor="#F4F6FA" />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <MaterialIcons name="arrow-back" size={24} color="#1A237E" />
+          <MaterialIcons name="arrow-back" size={24} color="#C97352" />
         </TouchableOpacity>
 
         <View style={styles.header}>
@@ -44,22 +44,22 @@ export default function RegisterScreen() {
 
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <MaterialIcons name="person" size={20} color="#90A4AE" style={styles.inputIcon} />
+            <MaterialIcons name="person" size={20} color="#7A746E" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               placeholder="Full Name"
-              placeholderTextColor="#90A4AE"
+              placeholderTextColor="#7A746E"
               value={name}
               onChangeText={setName}
             />
           </View>
 
           <View style={styles.inputContainer}>
-            <MaterialIcons name="email" size={20} color="#90A4AE" style={styles.inputIcon} />
+            <MaterialIcons name="email" size={20} color="#7A746E" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               placeholder="Email Address"
-              placeholderTextColor="#90A4AE"
+              placeholderTextColor="#7A746E"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -68,11 +68,11 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <MaterialIcons name="lock" size={20} color="#90A4AE" style={styles.inputIcon} />
+            <MaterialIcons name="lock" size={20} color="#7A746E" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               placeholder="Password"
-              placeholderTextColor="#90A4AE"
+              placeholderTextColor="#7A746E"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -80,11 +80,11 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <MaterialIcons name="lock-outline" size={20} color="#90A4AE" style={styles.inputIcon} />
+            <MaterialIcons name="lock-outline" size={20} color="#7A746E" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               placeholder="Confirm Password"
-              placeholderTextColor="#90A4AE"
+              placeholderTextColor="#7A746E"
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry
@@ -115,26 +115,26 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 1, padding: 24 },
   backBtn: { marginTop: 10, marginBottom: 20 },
   header: { marginBottom: 40 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#1A237E' },
-  subtitle: { fontSize: 16, color: '#607D8B', marginTop: 8 },
+  title: { fontSize: 28, fontWeight: 'bold', color: '#C97352' },
+  subtitle: { fontSize: 16, color: '#7A746E', marginTop: 8 },
   form: { width: '100%' },
   inputContainer: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
     borderRadius: 12, paddingHorizontal: 16, marginBottom: 16,
-    borderWidth: 1, borderColor: '#E0E0E0', height: 56,
+    borderWidth: 1, borderColor: '#ECE7E1', height: 56,
   },
   inputIcon: { marginRight: 12 },
-  input: { flex: 1, fontSize: 16, color: '#263238' },
+  input: { flex: 1, fontSize: 16, color: '#2D2A26' },
   registerBtn: {
-    backgroundColor: '#1565C0', borderRadius: 12, height: 56,
+    backgroundColor: '#C97352', borderRadius: 12, height: 56,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 8, marginTop: 10, elevation: 3, shadowColor: '#1565C0', shadowOpacity: 0.3, shadowRadius: 6,
+    gap: 8, marginTop: 10, elevation: 3, shadowColor: '#C97352', shadowOpacity: 0.3, shadowRadius: 6,
   },
   registerBtnText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
   footer: {
     flexDirection: 'row', justifyContent: 'center', marginTop: 40,
     marginBottom: 20
   },
-  footerText: { color: '#607D8B', fontSize: 15 },
-  loginText: { color: '#1565C0', fontSize: 15, fontWeight: 'bold' },
+  footerText: { color: '#7A746E', fontSize: 15 },
+  loginText: { color: '#C97352', fontSize: 15, fontWeight: 'bold' },
 });

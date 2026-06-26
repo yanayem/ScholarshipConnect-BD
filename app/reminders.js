@@ -25,7 +25,7 @@ export default function RemindersScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#1565C0" />
+      <StatusBar barStyle="light-content" backgroundColor="#C97352" />
 
       {/* Header */}
       <View style={styles.header}>
@@ -37,7 +37,7 @@ export default function RemindersScreen() {
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.banner}>
-          <MaterialIcons name="notifications-active" size={32} color="#1565C0" />
+          <MaterialIcons name="notifications-active" size={32} color="#C97352" />
           <View style={{ flex: 1, marginLeft: 12 }}>
             <Text style={styles.bannerTitle}>Never miss a deadline!</Text>
             <Text style={styles.bannerSub}>Get notified 7 days before scholarship applications close.</Text>
@@ -65,8 +65,8 @@ export default function RemindersScreen() {
               <Switch
                 value={reminders[item.id]}
                 onValueChange={() => toggleReminder(item.id)}
-                trackColor={{ false: "#CFD8DC", true: "#BBDEFB" }}
-                thumbColor={reminders[item.id] ? "#1565C0" : "#90A4AE"}
+                trackColor={{ false: "#ECE7E1", true: "#BBDEFB" }}
+                thumbColor={reminders[item.id] ? "#C97352" : "#7A746E"}
               />
             </View>
           </View>
@@ -75,14 +75,14 @@ export default function RemindersScreen() {
         <View style={styles.settingsSection}>
           <Text style={styles.sectionTitle}>Reminder Settings</Text>
           <TouchableOpacity style={styles.settingItem}>
-            <MaterialIcons name="vibration" size={22} color="#607D8B" />
+            <MaterialIcons name="vibration" size={22} color="#7A746E" />
             <Text style={styles.settingText}>Vibrate on alert</Text>
-            <MaterialIcons name="chevron-right" size={24} color="#B0BEC5" />
+            <MaterialIcons name="chevron-right" size={24} color="#7A746E" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.settingItem}>
-            <MaterialIcons name="volume-up" size={22} color="#607D8B" />
+            <MaterialIcons name="volume-up" size={22} color="#7A746E" />
             <Text style={styles.settingText}>Notification sound</Text>
-            <MaterialIcons name="chevron-right" size={24} color="#B0BEC5" />
+            <MaterialIcons name="chevron-right" size={24} color="#7A746E" />
           </TouchableOpacity>
         </View>
 
@@ -94,7 +94,7 @@ export default function RemindersScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F4F6FA' },
   header: {
-    height: 100, backgroundColor: '#1565C0',
+    height: 100, backgroundColor: '#C97352',
     flexDirection: 'row', alignItems: 'center',
     paddingTop: 40, paddingHorizontal: 16, gap: 12
   },
@@ -105,30 +105,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row', backgroundColor: '#E3F2FD',
     padding: 20, borderRadius: 16, marginBottom: 24, alignItems: 'center'
   },
-  bannerTitle: { fontSize: 16, fontWeight: 'bold', color: '#1565C0' },
-  bannerSub: { fontSize: 13, color: '#1565C0', marginTop: 4, lineHeight: 18 },
-  sectionTitle: { fontSize: 15, fontWeight: 'bold', color: '#1A237E', marginBottom: 12, marginTop: 8 },
+  bannerTitle: { fontSize: 16, fontWeight: 'bold', color: '#C97352' },
+  bannerSub: { fontSize: 13, color: '#C97352', marginTop: 4, lineHeight: 18 },
+  sectionTitle: { fontSize: 15, fontWeight: 'bold', color: '#C97352', marginBottom: 12, marginTop: 8 },
   reminderCard: {
     backgroundColor: '#fff', borderRadius: 14, padding: 16,
     flexDirection: 'row', marginBottom: 12, alignItems: 'center',
-    elevation: 3, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6
+    elevation: 3, shadowColor: '#2D2A26', shadowOpacity: 0.06, shadowRadius: 6
   },
   cardInfo: { flex: 1 },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: '#1A237E', marginBottom: 4 },
-  cardDeadline: { fontSize: 13, color: '#607D8B', marginBottom: 8 },
+  cardTitle: { fontSize: 15, fontWeight: '700', color: '#C97352', marginBottom: 4 },
+  cardDeadline: { fontSize: 13, color: '#7A746E', marginBottom: 8 },
   daysBadge: {
     backgroundColor: '#F5F5F5', paddingHorizontal: 8, paddingVertical: 4,
     borderRadius: 6, alignSelf: 'flex-start'
   },
   daysBadgeUrgent: { backgroundColor: '#FFEBEE' },
-  daysText: { fontSize: 11, fontWeight: '700', color: '#607D8B' },
+  daysText: { fontSize: 11, fontWeight: '700', color: '#7A746E' },
   daysTextUrgent: { color: '#E53935' },
   actionArea: { alignItems: 'center', marginLeft: 12 },
-  notifyLabel: { fontSize: 10, color: '#90A4AE', marginBottom: 2, fontWeight: 'bold' },
+  notifyLabel: { fontSize: 10, color: '#7A746E', marginBottom: 2, fontWeight: 'bold' },
   settingsSection: { marginTop: 20, backgroundColor: '#fff', borderRadius: 16, padding: 8 },
   settingItem: {
     flexDirection: 'row', alignItems: 'center', padding: 14,
     borderBottomWidth: 1, borderBottomColor: '#F5F5F5'
   },
-  settingText: { flex: 1, fontSize: 14, color: '#263238', marginLeft: 12 }
+  settingText: { flex: 1, fontSize: 14, color: '#2D2A26', marginLeft: 12 }
 });

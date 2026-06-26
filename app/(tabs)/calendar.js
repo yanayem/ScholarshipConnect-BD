@@ -42,7 +42,7 @@ export default function CalendarScreen() {
     markedDates[selectedDate] = {
       ...markedDates[selectedDate],
       selected: true,
-      selectedColor: '#1565C0',
+      selectedColor: '#C97352',
       disableTouchEvent: true
     };
   }
@@ -51,7 +51,7 @@ export default function CalendarScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor="#1565C0" barStyle="light-content" />
+      <StatusBar backgroundColor="#C97352" barStyle="light-content" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         
         <View style={styles.calendarContainer}>
@@ -61,17 +61,17 @@ export default function CalendarScreen() {
             theme={{
               backgroundColor: '#ffffff',
               calendarBackground: '#ffffff',
-              textSectionTitleColor: '#90A4AE',
-              selectedDayBackgroundColor: '#1565C0',
+              textSectionTitleColor: '#7A746E',
+              selectedDayBackgroundColor: '#C97352',
               selectedDayTextColor: '#ffffff',
-              todayTextColor: '#1565C0',
+              todayTextColor: '#C97352',
               dayTextColor: '#2d4150',
               textDisabledColor: '#d9e1e8',
               dotColor: '#E53935',
               selectedDotColor: '#ffffff',
-              arrowColor: '#1565C0',
-              monthTextColor: '#1A237E',
-              indicatorColor: '#1565C0',
+              arrowColor: '#C97352',
+              monthTextColor: '#C97352',
+              indicatorColor: '#C97352',
               textDayFontWeight: '500',
               textMonthFontWeight: 'bold',
               textDayHeaderFontWeight: '600',
@@ -87,9 +87,9 @@ export default function CalendarScreen() {
             {selectedDate ? `Deadlines on ${selectedDate}` : 'Select a date to view deadlines'}
           </Text>
           
-          {selectedDate && selectedScholarships.length === 0 && (
+          {!!selectedDate && selectedScholarships.length === 0 && (
             <View style={styles.emptyBox}>
-              <MaterialIcons name="event-available" size={48} color="#B0BEC5" />
+              <MaterialIcons name="event-available" size={48} color="#7A746E" />
               <Text style={styles.emptyText}>No deadlines on this date.</Text>
             </View>
           )}
@@ -99,11 +99,11 @@ export default function CalendarScreen() {
               <Text style={styles.cardTitle}>{item.title}</Text>
               <View style={styles.metaRow}>
                 <View style={styles.metaBadge}>
-                  <MaterialIcons name="place" size={13} color="#1565C0" />
+                  <MaterialIcons name="place" size={13} color="#C97352" />
                   <Text style={styles.metaText}>{item.country}</Text>
                 </View>
                 <View style={styles.metaBadge}>
-                  <MaterialIcons name="school" size={13} color="#1565C0" />
+                  <MaterialIcons name="school" size={13} color="#C97352" />
                   <Text style={styles.metaText}>{item.level}</Text>
                 </View>
               </View>
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     padding: 8,
     marginBottom: 20,
     elevation: 4,
-    shadowColor: '#000',
+    shadowColor: '#2D2A26',
     shadowOpacity: 0.08,
     shadowRadius: 8,
   },
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   listHeader: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1A237E',
+    color: '#C97352',
     marginBottom: 12,
   },
   card: {
@@ -155,27 +155,27 @@ const styles = StyleSheet.create({
     padding: 16, 
     marginBottom: 14,
     elevation: 3, 
-    shadowColor: '#000', 
+    shadowColor: '#2D2A26', 
     shadowOpacity: 0.07, 
     shadowRadius: 6,
     borderLeftWidth: 4,
     borderLeftColor: '#E53935'
   },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: '#1A237E', marginBottom: 10 },
+  cardTitle: { fontSize: 15, fontWeight: '700', color: '#C97352', marginBottom: 10 },
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
   metaBadge: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: '#E3F2FD',
     borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, gap: 4,
   },
-  metaText: { fontSize: 12, color: '#1565C0', fontWeight: '600' },
+  metaText: { fontSize: 12, color: '#C97352', fontWeight: '600' },
   cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   amountBadge: { backgroundColor: '#E8F5E9', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
   amountText: { color: '#2E7D32', fontWeight: 'bold', fontSize: 12 },
   applyBtn: {
-    backgroundColor: '#1565C0', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8,
+    backgroundColor: '#C97352', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8,
     flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 4,
   },
   applyText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
   emptyBox: { alignItems: 'center', paddingVertical: 30, backgroundColor: '#fff', borderRadius: 14 },
-  emptyText: { fontSize: 15, color: '#90A4AE', marginTop: 12 },
+  emptyText: { fontSize: 15, color: '#7A746E', marginTop: 12 },
 });
