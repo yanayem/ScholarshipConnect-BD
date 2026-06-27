@@ -5,12 +5,12 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import { theme } from '../../theme';
 
 export default function ApplyScreen() {
   const { id } = useLocalSearchParams();
   const [loading, setLoading] = useState(false);
 
-  // Form States
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -26,7 +26,6 @@ export default function ApplyScreen() {
     }
 
     setLoading(true);
-    // Simulate API call
     setTimeout(() => {
       setLoading(false);
       Alert.alert(
@@ -39,14 +38,17 @@ export default function ApplyScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#C97352" />
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialIcons name="arrow-back" size={24} color="#fff" />
+        <TouchableOpacity
+          onPress={() => router.canGoBack() ? router.back() : router.replace(`/scholarship/${id}`)}
+          style={styles.backBtn}
+        >
+          <MaterialIcons name="arrow-back" size={24} color={theme.colors.heading} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Scholarship Application</Text>
+        <Text style={styles.headerTitle}>Apply for Program</Text>
       </View>
 
       <KeyboardAvoidingView
@@ -54,65 +56,44 @@ export default function ApplyScreen() {
         style={{ flex: 1 }}
       >
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-          <View style={styles.infoBox}>
-            <MaterialIcons name="info" size={20} color="#C97352" />
+          <View style={[styles.infoBox, { backgroundColor: theme.colors.tealCard }]}>
+            <MaterialIcons name="info" size={20} color={theme.colors.primary} />
             <Text style={styles.infoText}>
-              You are applying for Scholarship ID: <Text style={{fontWeight: 'bold'}}>#{id}</Text>.
-              Please ensure all details are correct.
+              Applying for Scholarship: <Text style={{fontWeight: 'bold', color: theme.colors.heading}}>#{id}</Text>
             </Text>
           </View>
 
           <View style={styles.formSection}>
-            <Text style={styles.label}>Full Name *</Text>
+            <Text style={styles.label}>Full Name</Text>
             <View style={styles.inputWrap}>
-              <MaterialIcons name="person" size={20} color="#7A746E" />
+              <MaterialIcons name="person-outline" size={20} color={theme.colors.placeholder} />
               <TextInput
                 style={styles.input}
-                placeholder="Enter your full name"
+                placeholder="John Doe"
+                placeholderTextColor={theme.colors.placeholder}
                 value={formData.fullName}
                 onChangeText={(v) => setFormData({...formData, fullName: v})}
               />
             </View>
 
-            <Text style={styles.label}>Email Address *</Text>
+            <Text style={styles.label}>Email Address</Text>
             <View style={styles.inputWrap}>
-              <MaterialIcons name="email" size={20} color="#7A746E" />
+              <MaterialIcons name="alternate-email" size={20} color={theme.colors.placeholder} />
               <TextInput
                 style={styles.input}
-                placeholder="example@gmail.com"
+                placeholder="john@example.com"
+                placeholderTextColor={theme.colors.placeholder}
                 keyboardType="email-address"
                 value={formData.email}
                 onChangeText={(v) => setFormData({...formData, email: v})}
               />
             </View>
 
-            <Text style={styles.label}>Phone Number</Text>
-            <View style={styles.inputWrap}>
-              <MaterialIcons name="phone" size={20} color="#7A746E" />
-              <TextInput
-                style={styles.input}
-                placeholder="+880 1XXX XXXXXX"
-                keyboardType="phone-pad"
-                value={formData.phone}
-                onChangeText={(v) => setFormData({...formData, phone: v})}
-              />
-            </View>
-
-            <Text style={styles.label}>University / Institution</Text>
-            <View style={styles.inputWrap}>
-              <MaterialIcons name="school" size={20} color="#7A746E" />
-              <TextInput
-                style={styles.input}
-                placeholder="Current University"
-                value={formData.university}
-                onChangeText={(v) => setFormData({...formData, university: v})}
-              />
-            </View>
-
-            <Text style={styles.label}>Statement of Purpose (SOP) *</Text>
+            <Text style={styles.label}>Statement of Purpose</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
-              placeholder="Tell us why you deserve this scholarship..."
+              placeholder="Why do you deserve this scholarship?"
+              placeholderTextColor={theme.colors.placeholder}
               multiline
               numberOfLines={6}
               textAlignVertical="top"
@@ -120,13 +101,13 @@ export default function ApplyScreen() {
               onChangeText={(v) => setFormData({...formData, sop: v})}
             />
 
-            {/* Document Upload Mock */}
-            <Text style={styles.label}>Upload Documents (PDF/JPG)</Text>
+            {/* Document Upload */}
+            <Text style={styles.label}>Supporting Documents</Text>
             <TouchableOpacity style={styles.uploadBtn}>
-              <MaterialIcons name="cloud-upload" size={24} color="#C97352" />
-              <Text style={styles.uploadBtnText}>Select Files</Text>
+              <MaterialIcons name="file-upload" size={22} color={theme.colors.primary} />
+              <Text style={styles.uploadBtnText}>Attach PDF/JPG</Text>
             </TouchableOpacity>
-            <Text style={styles.uploadHint}>Max size: 5MB (Academic transcripts, CV)</Text>
+            <Text style={styles.uploadHint}>Max total size: 10MB</Text>
           </View>
 
           <TouchableOpacity
@@ -137,7 +118,7 @@ export default function ApplyScreen() {
             <Text style={styles.submitBtnText}>
               {loading ? 'Submitting...' : 'Submit Application'}
             </Text>
-            {!loading && <MaterialIcons name="send" size={20} color="#fff" />}
+            {!loading && <MaterialIcons name="send" size={18} color={theme.colors.heading} />}
           </TouchableOpacity>
 
           <View style={{ height: 40 }} />
@@ -148,43 +129,45 @@ export default function ApplyScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F4F6FA' },
+  root: { flex: 1, backgroundColor: theme.colors.background },
   header: {
-    height: 100, backgroundColor: '#C97352',
+    height: 100, backgroundColor: theme.colors.background,
     flexDirection: 'row', alignItems: 'center',
-    paddingTop: 40, paddingHorizontal: 16, gap: 12
+    paddingTop: 40, paddingHorizontal: 20, gap: 12,
   },
-  headerTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  headerTitle: { color: theme.colors.heading, fontSize: 18, fontWeight: 'bold' },
   backBtn: { padding: 4 },
-  scroll: { padding: 16 },
+  scroll: { padding: 20 },
   infoBox: {
-    flexDirection: 'row', backgroundColor: '#E3F2FD',
-    padding: 12, borderRadius: 10, marginBottom: 20, gap: 10, alignItems: 'center'
+    flexDirection: 'row',
+    padding: 16, borderRadius: 16, marginBottom: 24, gap: 12, alignItems: 'center',
   },
-  infoText: { fontSize: 13, color: '#C97352', flex: 1 },
-  formSection: { backgroundColor: '#fff', borderRadius: 16, padding: 20, elevation: 2 },
-  label: { fontSize: 14, fontWeight: '700', color: '#7A746E', marginBottom: 8, marginTop: 12 },
+  infoText: { fontSize: 14, color: theme.colors.primaryDark, flex: 1 },
+  formSection: {
+    backgroundColor: theme.colors.surface, borderRadius: 24, padding: 24,
+    ...theme.shadows.soft,
+  },
+  label: { fontSize: 13, fontWeight: 'bold', color: theme.colors.heading, marginBottom: 10, marginTop: 16, marginLeft: 4 },
   inputWrap: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FCFAF7',
-    borderWidth: 1, borderColor: '#FCFAF7', borderRadius: 10, paddingHorizontal: 12,
-    height: 50
+    flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.secondaryBackground,
+    borderRadius: 12, paddingHorizontal: 16,
+    height: 52
   },
-  input: { flex: 1, fontSize: 15, color: '#2D2A26', marginLeft: 10 },
+  input: { flex: 1, fontSize: 15, color: theme.colors.textPrimary, marginLeft: 10 },
   textArea: {
-    backgroundColor: '#FCFAF7', borderWidth: 1, borderColor: '#FCFAF7',
-    borderRadius: 10, padding: 12, minHeight: 120, marginLeft: 0
+    backgroundColor: theme.colors.secondaryBackground,
+    borderRadius: 12, padding: 16, minHeight: 140, marginLeft: 0, marginTop: 4
   },
   uploadBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1.5, borderColor: '#C97352', borderStyle: 'dashed',
-    borderRadius: 10, padding: 16, marginTop: 4, gap: 8
+    borderRadius: 12, padding: 16, marginTop: 6, gap: 10, backgroundColor: theme.colors.primaryLight
   },
-  uploadBtnText: { color: '#C97352', fontWeight: 'bold' },
-  uploadHint: { fontSize: 11, color: '#7A746E', marginTop: 6 },
+  uploadBtnText: { color: theme.colors.primaryDark, fontWeight: 'bold', fontSize: 14 },
+  uploadHint: { fontSize: 11, color: theme.colors.textSecondary, marginTop: 8, marginLeft: 4 },
   submitBtn: {
-    backgroundColor: '#C97352', borderRadius: 12, height: 56,
+    backgroundColor: theme.colors.secondary, borderRadius: 16, height: 56,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 10, marginTop: 24, elevation: 4
+    gap: 10, marginTop: 32, ...theme.shadows.soft,
   },
-  submitBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
+  submitBtnText: { color: theme.colors.heading, fontSize: 16, fontWeight: 'bold' }
 });

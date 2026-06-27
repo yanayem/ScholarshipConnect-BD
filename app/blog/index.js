@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import { theme } from '../../theme';
 
 const BLOG_POSTS = [
   {
@@ -16,7 +17,8 @@ const BLOG_POSTS = [
     readTime: '5 min read',
     excerpt: 'Getting the DAAD scholarship was a dream come true. Here is my step-by-step guide on writing a winning motivation letter...',
     image: 'https://images.unsplash.com/photo-1523050853021-eb30896dc19e?w=400',
-    tags: ['Germany', 'DAAD', 'Masters']
+    tags: ['Germany', 'DAAD', 'Masters'],
+    bg: theme.colors.tealCard
   },
   {
     id: '2',
@@ -27,7 +29,8 @@ const BLOG_POSTS = [
     readTime: '8 min read',
     excerpt: 'The MEXT interview was the most challenging part. In this blog, I share the common questions and how I prepared for them...',
     image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400',
-    tags: ['Japan', 'MEXT', 'PhD']
+    tags: ['Japan', 'MEXT', 'PhD'],
+    bg: theme.colors.lavenderCard
   },
   {
     id: '3',
@@ -38,33 +41,37 @@ const BLOG_POSTS = [
     readTime: '6 min read',
     excerpt: 'Chevening looks for leadership qualities. I focused on my volunteering work and impact. Here is how I structured my essays...',
     image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400',
-    tags: ['UK', 'Chevening', 'Leadership']
+    tags: ['UK', 'Chevening', 'Leadership'],
+    bg: theme.colors.peachCard
   }
 ];
 
 export default function BlogListScreen() {
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#C97352" />
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialIcons name="arrow-back" size={24} color="#fff" />
+        <TouchableOpacity
+          onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')}
+          style={styles.backBtn}
+        >
+          <MaterialIcons name="arrow-back" size={24} color={theme.colors.heading} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Success Stories (Blog)</Text>
+        <Text style={styles.headerTitle}>Success Stories</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.topInfo}>
           <Text style={styles.pageTitle}>Learn from the Winners 🏆</Text>
-          <Text style={styles.pageSub}>Read real experiences from students who secured prestigious scholarships.</Text>
+          <Text style={styles.pageSub}>Real experiences from students who secured prestigious scholarships.</Text>
         </View>
 
         {BLOG_POSTS.map(post => (
           <TouchableOpacity
             key={post.id}
-            style={styles.postCard}
+            style={[styles.postCard, { backgroundColor: post.bg }]}
             onPress={() => router.push(`/blog/${post.id}`)}
           >
             <View style={styles.postContent}>
@@ -83,7 +90,7 @@ export default function BlogListScreen() {
                 <View style={styles.authorIcon}>
                   <Text style={styles.authorInitial}>{post.author[0]}</Text>
                 </View>
-                <View style={{ flex: 1, marginLeft: 8 }}>
+                <View style={{ flex: 1, marginLeft: 12 }}>
                   <Text style={styles.authorName}>{post.author}</Text>
                   <Text style={styles.authorUni}>{post.university}</Text>
                 </View>
@@ -91,10 +98,10 @@ export default function BlogListScreen() {
 
               <View style={styles.metaRow}>
                 <View style={styles.metaItem}>
-                  <MaterialIcons name="access-time" size={14} color="#7A746E" />
+                  <MaterialIcons name="access-time" size={14} color={theme.colors.textSecondary} />
                   <Text style={styles.metaText}>{post.date} • {post.readTime}</Text>
                 </View>
-                <Text style={styles.readMore}>Read Full Story →</Text>
+                <Text style={styles.readMore}>Read Story →</Text>
               </View>
             </View>
           </TouchableOpacity>
@@ -115,42 +122,44 @@ export default function BlogListScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F4F6FA' },
+  root: { flex: 1, backgroundColor: theme.colors.background },
   header: {
-    height: 100, backgroundColor: '#C97352',
+    height: 100, backgroundColor: theme.colors.background,
     flexDirection: 'row', alignItems: 'center',
-    paddingTop: 40, paddingHorizontal: 16, gap: 12
+    paddingTop: 40, paddingHorizontal: 20, gap: 12,
+    borderBottomWidth: 1, borderBottomColor: theme.colors.divider,
   },
-  headerTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  headerTitle: { color: theme.colors.heading, fontSize: 18, fontWeight: 'bold' },
   backBtn: { padding: 4 },
-  scroll: { padding: 16 },
-  topInfo: { marginBottom: 24 },
-  pageTitle: { fontSize: 22, fontWeight: 'bold', color: '#C97352' },
-  pageSub: { fontSize: 14, color: '#7A746E', marginTop: 4, lineHeight: 20 },
+  scroll: { padding: 20 },
+  topInfo: { marginBottom: 28 },
+  pageTitle: { fontSize: 24, fontWeight: 'bold', color: theme.colors.heading },
+  pageSub: { fontSize: 14, color: theme.colors.textSecondary, marginTop: 6, lineHeight: 22 },
   postCard: {
-    backgroundColor: '#fff', borderRadius: 16, marginBottom: 20,
-    elevation: 4, shadowColor: '#2D2A26', shadowOpacity: 0.08, shadowRadius: 8,
-    overflow: 'hidden'
+    borderRadius: 24, marginBottom: 20,
+    borderWidth: 1, borderColor: theme.colors.divider,
+    overflow: 'hidden',
+    ...theme.shadows.premium,
   },
-  postContent: { padding: 16 },
-  tagRow: { flexDirection: 'row', gap: 6, marginBottom: 10 },
-  tag: { backgroundColor: '#E3F2FD', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
-  tagText: { color: '#C97352', fontSize: 11, fontWeight: 'bold' },
-  postTitle: { fontSize: 18, fontWeight: 'bold', color: '#C97352', marginBottom: 8 },
-  excerpt: { fontSize: 14, color: '#455A64', lineHeight: 20, marginBottom: 16 },
-  authorRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
-  authorIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#BBDEFB', alignItems: 'center', justifyContent: 'center' },
-  authorInitial: { color: '#C97352', fontWeight: 'bold' },
-  authorName: { fontSize: 14, fontWeight: 'bold', color: '#2D2A26' },
-  authorUni: { fontSize: 12, color: '#7A746E' },
-  metaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F5F5F5' },
-  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  metaText: { fontSize: 12, color: '#7A746E' },
-  readMore: { fontSize: 13, color: '#C97352', fontWeight: 'bold' },
+  postContent: { padding: 20 },
+  tagRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  tag: { backgroundColor: 'rgba(255,255,255,0.7)', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 8 },
+  tagText: { color: theme.colors.heading, fontSize: 11, fontWeight: 'bold' },
+  postTitle: { fontSize: 18, fontWeight: 'bold', color: theme.colors.heading, marginBottom: 10, lineHeight: 24 },
+  excerpt: { fontSize: 14, color: theme.colors.textSecondary, lineHeight: 22, marginBottom: 20 },
+  authorRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  authorIcon: { width: 40, height: 40, borderRadius: 14, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', ...theme.shadows.soft },
+  authorInitial: { color: theme.colors.primary, fontWeight: 'bold', fontSize: 16 },
+  authorName: { fontSize: 14, fontWeight: 'bold', color: theme.colors.heading },
+  authorUni: { fontSize: 12, color: theme.colors.textSecondary, marginTop: 2 },
+  metaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)' },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  metaText: { fontSize: 12, color: theme.colors.textSecondary },
+  readMore: { fontSize: 13, color: theme.colors.primary, fontWeight: 'bold' },
   shareYourStoryBtn: {
-    backgroundColor: '#2E7D32', borderRadius: 12, height: 56,
+    backgroundColor: theme.colors.primary, borderRadius: 16, height: 56,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 8, marginTop: 10, elevation: 4
+    gap: 10, marginTop: 12, ...theme.shadows.soft,
   },
   shareYourStoryText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
 });

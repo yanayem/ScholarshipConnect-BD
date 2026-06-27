@@ -6,84 +6,95 @@
 ---
 
 ## 📌 Project Overview
-ScholarshipConnectBD is a specialized mobile application built with **React Native & Expo**. It serves as a central hub for students in Bangladesh to find prestigious scholarships like MEXT, Chevening, Fulbright, and DAAD. The app focuses on simplifying the complex process of international admissions by providing real-time data, eligibility checking, and deadline management.
+ScholarshipConnectBD is a specialized mobile application built with **React Native & Expo** and powered by a **Django REST Framework** backend. It serves as a central hub for students in Bangladesh to find prestigious scholarships like MEXT, Chevening, Fulbright, and DAAD.
 
 ---
 
 ## 🚀 Core Features
-- [x] **Smart Dashboard**: Real-time announcements, featured scholarships, and success stories.
+- [x] **Smart Dashboard**: Real-time announcements and featured scholarships.
 - [x] **Scholarship Discovery**: Advanced search and multi-layer filtering (Country, Level, Field).
 - [x] **Eligibility Checker**: Instant matching based on CGPA and academic background.
 - [x] **Deadline Calendar**: Visual tracking of upcoming application deadlines.
-- [x] **Personalized Profiles**: Manage academic history, CGPA, and saved scholarships.
-- [x] **Dynamic Tracker**: Visual progress bars for application deadlines.
-- [x] **Modern Glass UI**: Implemented Sage Green (#88BDA4) glassmorphism for action buttons.
+- [x] **Personalized Profiles**: Manage academic history, CGPA, and preferences.
+- [x] **JWT Authentication**: Secure login and registration with session management.
+- [x] **Admin Panel**: Robust dashboard for managing scholarships and user data.
+- [x] **Community Discussion**: Interactive forum for students to share tips.
+- [x] **Mentor Network**: Verified network of past scholars to guide new applicants.
 - [ ] **Document Vault**: (In-Progress) Secure storage for certificates and SOPs.
-- [ ] **Application Portal**: (Planned) Direct integration with scholarship provider forms.
-
----
-
-## 🔄 Workflow & User Journey
-
-### 1. 🔍 Discovery
-Users browse the **Home** feed for trending scholarships or deep-dive into the **Scholarships** tab. The dashboard provides quick stats on available opportunities and success stories.
-
-### 2. 🎯 Filtering & Matching
-Apply granular filters for specific countries (Japan, UK, USA) or levels (Bachelors, Masters, PhD). The **Eligibility Checker** acts as a validator, matching user CGPA against scholarship requirements.
-
-### 3. 📅 Planning & Deadlines
-Save scholarships to **Bookmarks** for quick access. The **Deadline Calendar** provides a monthly view of all upcoming dates, preventing missed opportunities.
-
-### 4. 📈 Tracking Progress
-Each scholarship card features a **Days Left** visual tracker and a progress bar, helping users prioritize which applications to start first.
-
----
-
-## 📅 Development Roadmap
-
-| Day | Milestone | Description |
-| :--- | :--- | :--- |
-| **Day 1** | Foundation & Discovery | Setup Expo, Router, and developed the `scholarships.js` discovery screen. |
-| **Day 2** | Home & Branding | Built the `Home` dashboard with stats and global `theme.js`. |
-| **Day 3** | Logic & Profile | Developed the `Eligibility Checker` and `Profile` management. |
-| **Day 4** | Time Management | Integrated `react-native-calendars` for deadline mapping. |
-| **Day 5** | Refinement | Optimized navigation and added visual progress trackers. |
-| **Day 6** | UI Modernization | Implemented **Sage Green (#88BDA4) Glass UI** across primary action buttons. |
 
 ---
 
 ## 🛠️ Tech Stack
-- **Frontend**: React Native, Expo (SDK 56)
+
+### Frontend
+- **Framework**: React Native, Expo (SDK 56)
 - **Navigation**: Expo Router (File-based)
-- **Styling**: StyleSheet with Glassmorphism effects
-- **Icons**: Material Icons (@expo/vector-icons)
-- **Components**: React Native Calendars, Custom Animated Progress Bars
+- **State Management**: React Hooks & Context API
+- **Storage**: AsyncStorage (Token management)
+
+### Backend
+- **Framework**: Django 3.2 (Python)
+- **API**: Django REST Framework (DRF)
+- **Database**: MongoDB Atlas (Cloud)
+- **Auth**: SimpleJWT (Access/Refresh Tokens)
+- **Connector**: Djongo (Django to MongoDB)
+
+---
+
+## 🎨 UI & Design Theme
+The application follows a **Premium, Minimal, and Modern** design system.
+
+- **Primary Color**: Warm Teal (`#2A9D8F`)
+- **Background**: Warm Cream (`#F8F2E7`)
+- **Corners**: Standardized `rounded-base` (**12px**) for a professional look.
+- **Shadows**: Reduced, subtle shadows for a clean interface.
 
 ---
 
 ## 📥 Getting Started
 
-### 1. Installation
-Clone the repository and install dependencies:
+### 1. Frontend Setup
 ```bash
+# Install dependencies
 npm install
-```
 
-### 2. Execution
-Start the development server:
-```bash
+# Start Expo
 npx expo start
 ```
-*Use **Expo Go** on your physical device or an **Android/iOS Emulator** to test.*
+
+### 2. Backend Setup
+```bash
+cd backend
+
+# Create & Activate Virtual Environment
+python -m venv venv
+.\venv\Scripts\activate  # Windows
+
+# Install Python packages
+pip install -r requirements.txt
+
+# Run Migrations
+python manage.py migrate
+
+# Start Server
+python manage.py runserver
+```
+
+### 3. Environment Variables
+Create a `.env` file in the `backend/` directory:
+```env
+DEBUG=True
+SECRET_KEY=your_secret_key
+MONGODB_URI=your_mongodb_atlas_uri
+DATABASE_NAME=scholarship_db
+```
 
 ---
 
-## 🤝 Contribution
-We are building this to help the student community. If you have suggestions or want to add scholarship data, feel free to open a PR!
-
+## 🤝 Team
 - **Developer**: ScholarshipConnectBD Team
-- **Status**: Phase 1 Complete (Active Development)
-- **UI Theme**: Sage Glass (88BDA4)
+- **Status**: Phase 1 Complete (Backend & Frontend Integrated)
+- **UI Theme**: Premium Teal & Warm Cream (#2A9D8F / #F8F2E7)
 
 ---
 *Created with ❤️ for Bangladeshi Scholars.*

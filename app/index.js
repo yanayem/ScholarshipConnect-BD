@@ -33,11 +33,11 @@ export default function LandingPage() {
         {/* Hero Section */}
         <View style={[styles.heroSection, isDesktop && styles.desktopPadding]}>
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>#1 Educational Platform in BD</Text>
+            <Text style={styles.badgeText}>Verified Education Platform</Text>
           </View>
           <Text style={styles.heroTitle}>Unlock Your Future with the Right Scholarship</Text>
           <Text style={styles.heroSubtitle}>
-            Connecting students in Bangladesh with prestigious international and local opportunities through data-driven matching.
+            Connecting students in Bangladesh with prestigious international opportunities through modern data-driven matching.
           </Text>
 
           <View style={[styles.ctaWrapper, !isDesktop && styles.ctaWrapperMobile]}>
@@ -45,14 +45,14 @@ export default function LandingPage() {
               style={[styles.ctaButton, !isDesktop && styles.ctaFullWidth]}
               onPress={() => router.push('/(tabs)')}
             >
-              <Text style={styles.ctaText}>Explore Scholarships</Text>
-              <MaterialIcons name="arrow-forward" size={20} color={theme.colors.textPrimary} />
+              <Text style={styles.ctaText}>Explore Opportunities</Text>
+              <MaterialIcons name="arrow-forward" size={18} color="#fff" />
             </Pressable>
             <Pressable
               style={[styles.ctaButton, styles.ctaSecondary, !isDesktop && styles.ctaFullWidth]}
               onPress={() => router.push('/(tabs)/check')}
             >
-              <Text style={styles.ctaText}>Check Eligibility</Text>
+              <Text style={styles.ctaSecondaryText}>Check Eligibility</Text>
             </Pressable>
           </View>
         </View>
@@ -61,42 +61,42 @@ export default function LandingPage() {
         <View style={[styles.statsSection, isDesktop && styles.desktopPadding]}>
           <View style={styles.statItem}>
             <Text style={styles.statNum}>500+</Text>
-            <Text style={styles.statLabel}>Scholarships</Text>
+            <Text style={styles.statLabel}>Active Programs</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statNum}>50+</Text>
-            <Text style={styles.statLabel}>Countries</Text>
+            <Text style={styles.statLabel}>Partner Countries</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statNum}>10k+</Text>
-            <Text style={styles.statLabel}>Students</Text>
+            <Text style={styles.statLabel}>Happy Scholars</Text>
           </View>
         </View>
 
-        {/* Features / How It Works */}
-        <Text style={[styles.sectionTitle, isDesktop && styles.desktopPadding]}>How it helps you</Text>
+        {/* Features */}
+        <Text style={[styles.sectionTitle, isDesktop && styles.desktopPadding]}>Why choose us?</Text>
         <View style={[styles.featuresSection, isDesktop && styles.desktopPadding]}>
-          <View style={styles.featureCard}>
-            <View style={[styles.iconWrapper, { backgroundColor: theme.colors.primaryAccent }]}>
-              <Ionicons name="search" size={24} color="#6B46C1" />
+          <View style={[styles.featureCard, { backgroundColor: theme.colors.tealCard }]}>
+            <View style={styles.iconWrapper}>
+              <Ionicons name="search-outline" size={24} color={theme.colors.primary} />
             </View>
             <Text style={styles.featureTitle}>Smart Discovery</Text>
-            <Text style={styles.featureDesc}>Find scholarships tailored to your academic profile and CGPA.</Text>
+            <Text style={styles.featureDesc}>Find programs tailored to your academic profile and CGPA.</Text>
           </View>
-          <View style={styles.featureCard}>
-            <View style={[styles.iconWrapper, { backgroundColor: theme.colors.secondaryAccent }]}>
-              <Ionicons name="document-text" size={24} color="#C05621" />
+          <View style={[styles.featureCard, { backgroundColor: theme.colors.lavenderCard }]}>
+            <View style={styles.iconWrapper}>
+              <Ionicons name="document-text-outline" size={24} color="#8E7DF5" />
             </View>
-            <Text style={styles.featureTitle}>Document Vault</Text>
-            <Text style={styles.featureDesc}>Securely store and organize your SOPs, LORs, and Transcripts.</Text>
+            <Text style={styles.featureTitle}>Secure Vault</Text>
+            <Text style={styles.featureDesc}>Safely store and organize your SOPs, LORs, and Transcripts.</Text>
           </View>
-          <View style={styles.featureCard}>
-            <View style={[styles.iconWrapper, { backgroundColor: theme.colors.communityMint }]}>
-              <Ionicons name="notifications" size={24} color="#2C7A7B" />
+          <View style={[styles.featureCard, { backgroundColor: theme.colors.peachCard }]}>
+            <View style={styles.iconWrapper}>
+              <Ionicons name="notifications-outline" size={24} color="#F4B942" />
             </View>
-            <Text style={styles.featureTitle}>Deadline Tracker</Text>
+            <Text style={styles.featureTitle}>Real-time Tracking</Text>
             <Text style={styles.featureDesc}>Never miss a deadline with automated alerts and reminders.</Text>
           </View>
         </View>
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 40,
+    paddingBottom: 60,
   },
   desktopPadding: {
     paddingHorizontal: '15%',
@@ -132,112 +132,113 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
   },
   logoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   logoIcon: {
-    backgroundColor: '#C97352',
-    padding: 6,
-    borderRadius: 8,
+    backgroundColor: theme.colors.primary,
+    padding: 8,
+    borderRadius: 12,
+    ...theme.shadows.soft,
   },
   logoText: {
     fontFamily: theme.typography.fontFamily.bold,
-    fontSize: theme.typography.sizes.lg,
-    color: theme.colors.textPrimary,
+    fontSize: 20,
+    color: theme.colors.heading,
   },
   loginBtn: {
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.borderRadius.full,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 12,
     backgroundColor: theme.colors.surface,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
   },
   loginBtnText: {
     fontFamily: theme.typography.fontFamily.medium,
     color: theme.colors.textPrimary,
-    fontSize: theme.typography.sizes.sm,
+    fontSize: 14,
   },
   heroSection: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.xxl,
+    paddingHorizontal: 24,
+    paddingVertical: 40,
     alignItems: 'center',
   },
   badge: {
-    backgroundColor: '#FFE7DF',
-    paddingHorizontal: 12,
+    backgroundColor: theme.colors.primaryLight,
+    paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 20,
-    marginBottom: 20,
+    marginBottom: 24,
   },
   badgeText: {
-    color: '#C97352',
+    color: theme.colors.primary,
     fontFamily: theme.typography.fontFamily.semiBold,
     fontSize: 12,
   },
   heroTitle: {
     fontFamily: theme.typography.fontFamily.bold,
-    fontSize: 40,
-    color: theme.colors.textPrimary,
+    fontSize: 36,
+    color: theme.colors.heading,
     textAlign: 'center',
-    marginBottom: theme.spacing.md,
-    lineHeight: 48,
+    marginBottom: 16,
+    lineHeight: 46,
   },
   heroSubtitle: {
     fontFamily: theme.typography.fontFamily.regular,
-    fontSize: theme.typography.sizes.base,
+    fontSize: 16,
     color: theme.colors.textSecondary,
     textAlign: 'center',
-    marginBottom: theme.spacing.xl,
+    marginBottom: 32,
     maxWidth: 600,
     lineHeight: 24,
   },
   ctaWrapper: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 16,
     width: '100%',
     justifyContent: 'center',
   },
   ctaWrapperMobile: {
     flexDirection: 'column',
     alignItems: 'center',
-    paddingHorizontal: 20,
   },
   ctaButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.colors.ctaPrimary,
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
-    borderRadius: theme.borderRadius.md,
-    gap: theme.spacing.sm,
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderRadius: 16,
+    gap: 10,
     ...theme.shadows.soft,
-    minWidth: 180,
+    minWidth: 200,
   },
   ctaFullWidth: {
-    width: '100%',
+    width: '90%',
   },
   ctaSecondary: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.surface,
   },
   ctaText: {
-    fontFamily: theme.typography.fontFamily.semiBold,
-    fontSize: theme.typography.sizes.base,
-    color: theme.colors.textPrimary,
+    fontFamily: theme.typography.fontFamily.bold,
+    fontSize: 15,
+    color: '#fff',
+  },
+  ctaSecondaryText: {
+    fontFamily: theme.typography.fontFamily.bold,
+    fontSize: 15,
+    color: theme.colors.primary,
   },
   statsSection: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: theme.spacing.xl,
+    paddingVertical: 32,
     marginTop: 20,
   },
   statItem: {
@@ -247,90 +248,87 @@ const styles = StyleSheet.create({
   statNum: {
     fontFamily: theme.typography.fontFamily.bold,
     fontSize: 24,
-    color: '#C97352',
+    color: theme.colors.primary,
   },
   statLabel: {
     fontFamily: theme.typography.fontFamily.medium,
     fontSize: 12,
     color: theme.colors.textSecondary,
-    marginTop: 4,
+    marginTop: 6,
   },
   statDivider: {
     width: 1,
     height: 30,
-    backgroundColor: theme.colors.border,
+    backgroundColor: theme.colors.divider,
   },
   sectionTitle: {
     fontFamily: theme.typography.fontFamily.bold,
     fontSize: 20,
-    color: theme.colors.textPrimary,
-    marginTop: 40,
-    marginBottom: 20,
+    color: theme.colors.heading,
+    marginTop: 48,
+    marginBottom: 24,
     textAlign: 'center',
   },
   featuresSection: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.xl,
+    gap: 20,
+    paddingHorizontal: 24,
   },
   featureCard: {
-    backgroundColor: theme.colors.surface,
-    padding: theme.spacing.lg,
-    borderRadius: theme.borderRadius.lg,
+    padding: 24,
+    borderRadius: 24,
     width: '100%',
-    maxWidth: 320,
-    ...theme.shadows.soft,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
+    maxWidth: 340,
   },
   iconWrapper: {
     width: 48,
     height: 48,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: theme.spacing.md,
+    marginBottom: 16,
+    backgroundColor: '#fff',
+    ...theme.shadows.soft,
   },
   featureTitle: {
     fontFamily: theme.typography.fontFamily.bold,
-    fontSize: theme.typography.sizes.base,
-    color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.xs,
+    fontSize: 18,
+    color: theme.colors.heading,
+    marginBottom: 8,
   },
   featureDesc: {
     fontFamily: theme.typography.fontFamily.regular,
-    fontSize: theme.typography.sizes.sm,
+    fontSize: 14,
     color: theme.colors.textSecondary,
-    lineHeight: 20,
+    lineHeight: 22,
   },
   footerBanner: {
-    margin: theme.spacing.xl,
-    padding: theme.spacing.xl,
-    backgroundColor: '#C97352',
-    borderRadius: theme.borderRadius.xl,
+    margin: 24,
+    padding: 32,
+    backgroundColor: theme.colors.heading,
+    borderRadius: 32,
     alignItems: 'center',
-    marginTop: 60,
+    marginTop: 80,
   },
   footerBannerTitle: {
     fontFamily: theme.typography.fontFamily.bold,
-    fontSize: 22,
+    fontSize: 24,
     color: '#fff',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   startBtn: {
-    backgroundColor: theme.colors.ctaPrimary,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: theme.borderRadius.full,
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 28,
+    paddingVertical: 16,
+    borderRadius: 16,
     ...theme.shadows.medium,
   },
   startBtnText: {
     fontFamily: theme.typography.fontFamily.bold,
-    color: theme.colors.textPrimary,
+    color: '#fff',
     fontSize: 16,
   }
 });

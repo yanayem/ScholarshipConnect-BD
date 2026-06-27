@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import { theme } from '../theme';
 
 const INITIAL_DOCS = [
   { id: '1', name: 'Resume_2024.pdf', type: 'CV/Resume', size: '1.2 MB', date: 'Oct 12, 2024' },
@@ -36,19 +37,22 @@ export default function DocumentManagement() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#C97352" />
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialIcons name="arrow-back" size={24} color="#fff" />
+        <TouchableOpacity
+          onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/profile')}
+          style={styles.backBtn}
+        >
+          <MaterialIcons name="arrow-back" size={24} color={theme.colors.heading} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Document Management</Text>
+        <Text style={styles.headerTitle}>Document Vault</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={styles.uploadBanner}>
-          <MaterialIcons name="cloud-upload" size={40} color="#C97352" />
+        <View style={[styles.uploadBanner, { backgroundColor: theme.colors.primaryLight }]}>
+          <MaterialIcons name="cloud-upload" size={40} color={theme.colors.primary} />
           <Text style={styles.uploadTitle}>Upload New Document</Text>
           <Text style={styles.uploadSub}>PDF, JPG or PNG (Max 5MB)</Text>
           <TouchableOpacity style={styles.uploadActionBtn} onPress={handleUpload}>
@@ -58,22 +62,22 @@ export default function DocumentManagement() {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Your Documents ({docs.length})</Text>
-          <MaterialIcons name="filter-list" size={20} color="#7A746E" />
+          <MaterialIcons name="filter-list" size={20} color={theme.colors.textSecondary} />
         </View>
 
         {docs.length === 0 ? (
           <View style={styles.emptyState}>
-            <MaterialIcons name="folder-open" size={60} color="#7A746E" />
+            <MaterialIcons name="folder-open" size={60} color={theme.colors.placeholder} />
             <Text style={styles.emptyText}>No documents uploaded yet.</Text>
           </View>
         ) : (
           docs.map(doc => (
             <View key={doc.id} style={styles.docCard}>
-              <View style={styles.docIconWrap}>
+              <View style={[styles.docIconWrap, {backgroundColor: theme.colors.secondaryBackground}]}>
                 <MaterialIcons
                   name={doc.name.endsWith('.pdf') ? 'picture-as-pdf' : 'insert-photo'}
                   size={28}
-                  color={doc.name.endsWith('.pdf') ? '#E53935' : '#C97352'}
+                  color={doc.name.endsWith('.pdf') ? theme.colors.error : theme.colors.primary}
                 />
               </View>
 
@@ -85,71 +89,71 @@ export default function DocumentManagement() {
 
               <View style={styles.docActions}>
                 <TouchableOpacity style={styles.actionIcon} onPress={() => Alert.alert('View', 'Opening document...')}>
-                  <MaterialIcons name="visibility" size={20} color="#7A746E" />
+                  <MaterialIcons name="visibility" size={20} color={theme.colors.textSecondary} />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionIcon} onPress={() => handleDelete(doc.id, doc.name)}>
-                  <MaterialIcons name="delete-outline" size={20} color="#E53935" />
+                  <MaterialIcons name="delete-outline" size={20} color={theme.colors.error} />
                 </TouchableOpacity>
               </View>
             </View>
           ))
         )}
 
-        <View style={styles.infoTip}>
-          <MaterialIcons name="info-outline" size={18} color="#C97352" />
+        <View style={[styles.infoTip, { backgroundColor: theme.colors.yellowCard }]}>
+          <MaterialIcons name="info-outline" size={18} color={theme.colors.warning} />
           <Text style={styles.infoTipText}>
             Documents uploaded here can be easily attached when applying for scholarships.
           </Text>
         </View>
+        <View style={{ height: 40 }} />
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F4F6FA' },
+  root: { flex: 1, backgroundColor: theme.colors.background },
   header: {
-    height: 100, backgroundColor: '#C97352',
+    height: 100, backgroundColor: theme.colors.background,
     flexDirection: 'row', alignItems: 'center',
-    paddingTop: 40, paddingHorizontal: 16, gap: 12
+    paddingTop: 40, paddingHorizontal: 20, gap: 12,
   },
-  headerTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  headerTitle: { color: theme.colors.heading, fontSize: 18, fontWeight: 'bold' },
   backBtn: { padding: 4 },
-  scroll: { padding: 16 },
+  scroll: { padding: 20 },
   uploadBanner: {
-    backgroundColor: '#fff', borderRadius: 16, padding: 24,
-    alignItems: 'center', borderStyle: 'dashed', borderWidth: 2,
-    borderColor: '#BBDEFB', marginBottom: 24
+    borderRadius: 24, padding: 32,
+    alignItems: 'center', marginBottom: 32
   },
-  uploadTitle: { fontSize: 17, fontWeight: 'bold', color: '#C97352', marginTop: 12 },
-  uploadSub: { fontSize: 13, color: '#7A746E', marginTop: 4, marginBottom: 16 },
+  uploadTitle: { fontSize: 18, fontWeight: 'bold', color: theme.colors.heading, marginTop: 16 },
+  uploadSub: { fontSize: 14, color: theme.colors.textSecondary, marginTop: 6, marginBottom: 20 },
   uploadActionBtn: {
-    backgroundColor: '#C97352', paddingHorizontal: 24, paddingVertical: 10,
-    borderRadius: 8, elevation: 2
+    backgroundColor: theme.colors.primary, paddingHorizontal: 28, paddingVertical: 12,
+    borderRadius: 12, ...theme.shadows.soft
   },
   uploadActionText: { color: '#fff', fontWeight: 'bold' },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#C97352' },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, paddingHorizontal: 4 },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: theme.colors.heading },
   docCard: {
-    backgroundColor: '#fff', borderRadius: 12, padding: 14,
-    flexDirection: 'row', alignItems: 'center', marginBottom: 12,
-    elevation: 2, shadowColor: '#2D2A26', shadowOpacity: 0.05, shadowRadius: 4
+    backgroundColor: theme.colors.surface, borderRadius: 20, padding: 16,
+    flexDirection: 'row', alignItems: 'center', marginBottom: 14,
+    ...theme.shadows.soft
   },
   docIconWrap: {
-    width: 48, height: 48, borderRadius: 10, backgroundColor: '#F5F5F5',
-    alignItems: 'center', justifyContent: 'center', marginRight: 12
+    width: 52, height: 52, borderRadius: 14,
+    alignItems: 'center', justifyContent: 'center', marginRight: 16
   },
   docInfo: { flex: 1 },
-  docName: { fontSize: 14, fontWeight: '700', color: '#2D2A26' },
-  docMeta: { fontSize: 12, color: '#7A746E', marginTop: 2 },
-  docDate: { fontSize: 11, color: '#7A746E', marginTop: 4 },
-  docActions: { flexDirection: 'row', gap: 8 },
-  actionIcon: { padding: 8, borderRadius: 8, backgroundColor: '#FCFAF7' },
-  emptyState: { alignItems: 'center', paddingVertical: 40 },
-  emptyText: { fontSize: 15, color: '#7A746E', marginTop: 12 },
+  docName: { fontSize: 15, fontWeight: '700', color: theme.colors.heading },
+  docMeta: { fontSize: 12, color: theme.colors.textSecondary, marginTop: 4 },
+  docDate: { fontSize: 11, color: theme.colors.placeholder, marginTop: 4 },
+  docActions: { flexDirection: 'row', gap: 10 },
+  actionIcon: { padding: 10, borderRadius: 12, backgroundColor: theme.colors.secondaryBackground },
+  emptyState: { alignItems: 'center', paddingVertical: 48 },
+  emptyText: { fontSize: 15, color: theme.colors.placeholder, marginTop: 12 },
   infoTip: {
-    flexDirection: 'row', backgroundColor: '#E3F2FD',
-    padding: 12, borderRadius: 10, marginTop: 10, gap: 8, alignItems: 'center'
+    flexDirection: 'row',
+    padding: 16, borderRadius: 16, marginTop: 16, gap: 12, alignItems: 'center',
   },
-  infoTipText: { flex: 1, fontSize: 12, color: '#C97352', lineHeight: 18 }
+  infoTipText: { flex: 1, fontSize: 13, color: theme.colors.textSecondary, lineHeight: 20 }
 });

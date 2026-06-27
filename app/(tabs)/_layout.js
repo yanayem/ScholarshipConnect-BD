@@ -1,8 +1,8 @@
 import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 
-const PRIMARY = '#C97352';
-const INACTIVE = '#7A746E';
+const PRIMARY = '#2A9D8F';
+const INACTIVE = '#6B7280';
 const TAB_BG = '#FFFFFF';
 
 export default function TabLayout() {
@@ -14,25 +14,24 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: TAB_BG,
           borderTopWidth: 1,
-          borderTopColor: '#ECE7E1',
-          height: 62,
-          paddingBottom: 8,
-          paddingTop: 6,
-          elevation: 10,
-          shadowColor: '#2D2A26',
-          shadowOpacity: 0.08,
-          shadowRadius: 8,
+          borderTopColor: '#F2F2F2',
+          height: 64,
+          paddingBottom: 10,
+          paddingTop: 8,
+          elevation: 0,
         },
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '600',
         },
         headerStyle: {
-          backgroundColor: PRIMARY,
-          elevation: 4,
-          shadowOpacity: 0.2,
+          backgroundColor: '#FFFFFF',
+          elevation: 0,
+          shadowOpacity: 0,
+          borderBottomWidth: 1,
+          borderBottomColor: '#F2F2F2',
         },
-        headerTintColor: '#FFFFFF',
+        headerTintColor: '#222222',
         headerTitleStyle: {
           fontWeight: 'bold',
           fontSize: 18,

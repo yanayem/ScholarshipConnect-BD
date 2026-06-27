@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import { theme } from '../../theme';
 
 const ALL_SCHOLARSHIPS = [
   { id: '1', title: 'MEXT (Japan)', country: 'Japan', level: 'Masters', deadline: 'May 2025', amount: 'Full Funded', field: 'Any' },
@@ -26,7 +27,7 @@ export default function ScholarshipsScreen() {
   const [search, setSearch] = useState('');
   const [country, setCountry] = useState('All');
   const [level, setLevel] = useState('All');
-  const [bookmarks, setBookmarks] = useState(['4']); // Mocking Erasmus as saved
+  const [bookmarks, setBookmarks] = useState(['4']);
 
   const toggleBookmark = (id) => {
     setBookmarks(prev =>
@@ -40,7 +41,7 @@ export default function ScholarshipsScreen() {
     const months = { 'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5, 'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11 };
     const month = months[parts[0]];
     const year = parseInt(parts[1]);
-    const target = new Date(year, month || 0, 15); // Assume mid-month
+    const target = new Date(year, month || 0, 15);
     const diff = target - new Date();
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   };
@@ -54,23 +55,23 @@ export default function ScholarshipsScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor="#C97352" barStyle="light-content" />
+      <StatusBar backgroundColor={theme.colors.background} barStyle="dark-content" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
         {/* Search */}
         <View style={styles.searchWrap}>
-          <MaterialIcons name="search" size={22} color="#7A746E" style={{ marginRight: 8 }} />
+          <MaterialIcons name="search" size={20} color={theme.colors.placeholder} style={{ marginRight: 8 }} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search scholarships..."
-            placeholderTextColor="#7A746E"
+            placeholderTextColor={theme.colors.placeholder}
             value={search}
             onChangeText={setSearch}
           />
         </View>
 
         {/* Country Filter */}
-        <Text style={styles.filterLabel}>🌍 Country</Text>
+        <Text style={styles.filterLabel}>Country</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
           {COUNTRIES.map(c => (
             <TouchableOpacity
@@ -84,7 +85,7 @@ export default function ScholarshipsScreen() {
         </ScrollView>
 
         {/* Level Filter */}
-        <Text style={styles.filterLabel}>🎓 Level</Text>
+        <Text style={styles.filterLabel}>Study Level</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
           {LEVELS.map(l => (
             <TouchableOpacity
@@ -103,7 +104,7 @@ export default function ScholarshipsScreen() {
         {/* List */}
         {filtered.length === 0 ? (
           <View style={styles.emptyBox}>
-            <MaterialIcons name="search-off" size={48} color="#7A746E" />
+            <MaterialIcons name="search-off" size={48} color={theme.colors.placeholder} />
             <Text style={styles.emptyText}>No scholarships match your filters.</Text>
           </View>
         ) : (
@@ -115,34 +116,34 @@ export default function ScholarshipsScreen() {
                   <MaterialIcons
                     name={bookmarks.includes(item.id) ? "bookmark" : "bookmark-outline"}
                     size={22}
-                    color={bookmarks.includes(item.id) ? "#C97352" : "#7A746E"}
+                    color={bookmarks.includes(item.id) ? theme.colors.primary : theme.colors.textSecondary}
                   />
                 </TouchableOpacity>
               </View>
 
               <View style={styles.metaRow}>
-                <View style={styles.metaBadge}>
-                  <MaterialIcons name="place" size={13} color="#C97352" />
+                <View style={[styles.metaBadge, { backgroundColor: theme.colors.tealCard }]}>
+                  <MaterialIcons name="place" size={13} color={theme.colors.primary} />
                   <Text style={styles.metaText}>{item.country}</Text>
                 </View>
-                <View style={styles.metaBadge}>
-                  <MaterialIcons name="school" size={13} color="#C97352" />
-                  <Text style={styles.metaText}>{item.level}</Text>
+                <View style={[styles.metaBadge, { backgroundColor: theme.colors.lavenderCard }]}>
+                  <MaterialIcons name="school" size={13} color="#8E7DF5" />
+                  <Text style={[styles.metaText, {color: '#8E7DF5'}]}>{item.level}</Text>
                 </View>
-                <View style={styles.metaBadge}>
-                  <MaterialIcons name="work" size={13} color="#C97352" />
-                  <Text style={styles.metaText}>{item.field}</Text>
+                <View style={[styles.metaBadge, { backgroundColor: theme.colors.peachCard }]}>
+                  <MaterialIcons name="work" size={13} color="#F4B942" />
+                  <Text style={[styles.metaText, {color: '#F4B942'}]}>{item.field}</Text>
                 </View>
               </View>
               <View style={styles.cardBottom}>
                 <Text style={styles.deadline}>
-                  <MaterialIcons name="event" size={13} color="#E53935" /> {item.deadline}
+                  <MaterialIcons name="event" size={13} color={theme.colors.error} /> {item.deadline}
                 </Text>
                 <TouchableOpacity onPress={() => router.push('/reminders')} style={styles.remindBadge}>
-                  <MaterialIcons name="notifications-active" size={14} color="#C97352" />
+                  <MaterialIcons name="notifications-active" size={14} color={theme.colors.primary} />
                   <Text style={styles.remindText}>Remind</Text>
                 </TouchableOpacity>
-                <View style={styles.amountBadge}>
+                <View style={[styles.amountBadge, { backgroundColor: theme.colors.mintCard }]}>
                   <Text style={styles.amountText}>{item.amount}</Text>
                 </View>
               </View>
@@ -183,53 +184,53 @@ export default function ScholarshipsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.colors.background },
-  scroll: { paddingHorizontal: theme.spacing.lg, paddingVertical: theme.spacing.md },
+  scroll: { paddingHorizontal: 20, paddingVertical: 20 },
   searchWrap: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
-    borderRadius: 12, paddingHorizontal: 12, marginBottom: 14,
-    elevation: 3, shadowColor: '#2D2A26', shadowOpacity: 0.06, shadowRadius: 6,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.surface,
+    borderRadius: 14, paddingHorizontal: 12, marginBottom: 20,
   },
-  searchInput: { flex: 1, height: 46, fontSize: 15, color: '#2D2A26' },
-  filterLabel: { fontSize: 13, fontWeight: '700', color: '#7A746E', marginBottom: 8, marginTop: 4 },
-  chipRow: { marginBottom: 16 },
+  searchInput: { flex: 1, height: 48, fontSize: 15, color: theme.colors.textPrimary },
+  filterLabel: { fontSize: 13, fontWeight: '700', color: theme.colors.heading, marginBottom: 10, marginTop: 4 },
+  chipRow: { marginBottom: 20 },
   chip: {
-    borderWidth: 1.5, borderColor: '#7A746E', borderRadius: 20,
-    paddingHorizontal: 14, paddingVertical: 6, marginRight: 8, backgroundColor: '#fff',
+    borderRadius: 10,
+    paddingHorizontal: 16, paddingVertical: 8, marginRight: 8, backgroundColor: theme.colors.surface,
   },
-  chipActive: { backgroundColor: '#C97352', borderColor: '#C97352' },
-  chipText: { fontSize: 13, color: '#7A746E', fontWeight: '600' },
+  chipActive: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
+  chipText: { fontSize: 13, color: theme.colors.textSecondary, fontWeight: '600' },
   chipTextActive: { color: '#fff' },
-  resultCount: { fontSize: 13, color: '#7A746E', marginBottom: 16, fontFamily: theme.typography.fontFamily.medium },
+  resultCount: { fontSize: 13, color: theme.colors.textSecondary, marginBottom: 16 },
   card: {
-    backgroundColor: '#fff', borderRadius: 14, padding: 16, marginBottom: 14,
-    elevation: 3, shadowColor: '#2D2A26', shadowOpacity: 0.07, shadowRadius: 6,
+    backgroundColor: theme.colors.surface, borderRadius: 24, padding: 20, marginBottom: 16,
+    ...theme.shadows.premium,
   },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: '#C97352', flex: 1, marginRight: 8 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
+  cardTitle: { fontSize: 16, fontWeight: 'bold', color: theme.colors.heading, flex: 1, marginRight: 8 },
   bookmarkBtn: { padding: 2 },
-  metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 },
+  metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
   metaBadge: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#E3F2FD',
-    borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, gap: 4,
+    flexDirection: 'row', alignItems: 'center',
+    borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, gap: 4,
   },
-  metaText: { fontSize: 12, color: '#C97352', fontWeight: '600' },
-  cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  deadline: { fontSize: 13, color: '#E53935' },
-  amountBadge: { backgroundColor: '#E8F5E9', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  amountText: { color: '#2E7D32', fontWeight: 'bold', fontSize: 12 },
-  remindBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#FFF3E0', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
-  remindText: { color: '#C97352', fontWeight: '700', fontSize: 11 },
-  trackerContainer: { marginBottom: 16, backgroundColor: '#FFF9F6', padding: 8, borderRadius: 10, borderWidth: 1, borderColor: '#FFEBEE' },
-  trackerHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
-  trackerText: { fontSize: 11, color: '#7A746E', fontWeight: '600' },
-  daysLeftText: { fontSize: 11, color: '#E53935', fontWeight: 'bold' },
-  progressBarBg: { height: 6, backgroundColor: '#ECE7E1', borderRadius: 3, overflow: 'hidden' },
-  progressBarFill: { height: '100%', backgroundColor: '#E53935', borderRadius: 3 },
+  metaText: { fontSize: 12, color: theme.colors.primary, fontWeight: '600' },
+  cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  deadline: { fontSize: 13, color: theme.colors.error, fontWeight: '500' },
+  amountBadge: { backgroundColor: theme.colors.mintCard, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
+  amountText: { color: theme.colors.success, fontWeight: 'bold', fontSize: 12 },
+  remindBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: theme.colors.primaryLight, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 },
+  remindText: { color: theme.colors.primary, fontWeight: '700', fontSize: 11 },
+  trackerContainer: { marginBottom: 20, backgroundColor: theme.colors.secondaryBackground, padding: 12, borderRadius: 12 },
+  trackerHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
+  trackerText: { fontSize: 11, color: theme.colors.textSecondary, fontWeight: '600' },
+  daysLeftText: { fontSize: 11, color: theme.colors.error, fontWeight: 'bold' },
+  progressBarBg: { height: 6, backgroundColor: theme.colors.primaryLight, borderRadius: 3, overflow: 'hidden' },
+  progressBarFill: { height: '100%', backgroundColor: theme.colors.primary, borderRadius: 3 },
   applyBtn: {
-    backgroundColor: '#C97352', borderRadius: 10, paddingVertical: 10,
-    flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6,
+    backgroundColor: theme.colors.secondary, borderRadius: 12, paddingVertical: 14,
+    flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8,
+    ...theme.shadows.soft,
   },
-  applyText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
+  applyText: { color: theme.colors.heading, fontWeight: 'bold', fontSize: 14 },
   emptyBox: { alignItems: 'center', paddingVertical: 50 },
-  emptyText: { fontSize: 15, color: '#7A746E', marginTop: 12 },
+  emptyText: { fontSize: 15, color: theme.colors.placeholder, marginTop: 12 },
 });

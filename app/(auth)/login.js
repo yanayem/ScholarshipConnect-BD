@@ -6,18 +6,17 @@ import {
 } from 'react-native';
 import { router, Link } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import { theme } from '../../theme';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = () => {
-    // Basic validation
     if (!email || !password) {
       alert('Please enter email and password');
       return;
     }
-    // In a real app, logic would go here
     router.replace('/(tabs)');
   };
 
@@ -26,23 +25,24 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.root}
     >
-      <StatusBar barStyle="dark-content" backgroundColor="#F4F6FA" />
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View style={styles.logoCircle}>
             <MaterialIcons name="school" size={40} color="#fff" />
           </View>
-          <Text style={styles.title}>Welcome Back!</Text>
-          <Text style={styles.subtitle}>Sign in to continue your journey</Text>
+          <Text style={styles.title}>Welcome Back</Text>
+          <Text style={styles.subtitle}>Sign in to access your dashboard</Text>
         </View>
 
         <View style={styles.form}>
+          <Text style={styles.label}>Email Address</Text>
           <View style={styles.inputContainer}>
-            <MaterialIcons name="email" size={20} color="#7A746E" style={styles.inputIcon} />
+            <MaterialIcons name="alternate-email" size={20} color={theme.colors.placeholder} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Email Address"
-              placeholderTextColor="#7A746E"
+              placeholder="name@example.com"
+              placeholderTextColor={theme.colors.placeholder}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -50,12 +50,13 @@ export default function LoginScreen() {
             />
           </View>
 
+          <Text style={styles.label}>Password</Text>
           <View style={styles.inputContainer}>
-            <MaterialIcons name="lock" size={20} color="#7A746E" style={styles.inputIcon} />
+            <MaterialIcons name="lock-outline" size={20} color={theme.colors.placeholder} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Password"
-              placeholderTextColor="#7A746E"
+              placeholder="••••••••"
+              placeholderTextColor={theme.colors.placeholder}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -73,7 +74,7 @@ export default function LoginScreen() {
 
           <View style={styles.divider}>
             <View style={styles.line} />
-            <Text style={styles.dividerText}>OR</Text>
+            <Text style={styles.dividerText}>Social login</Text>
             <View style={styles.line} />
           </View>
 
@@ -88,10 +89,10 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
+          <Text style={styles.footerText}>New here? </Text>
           <Link href="/(auth)/register" asChild>
             <TouchableOpacity>
-              <Text style={styles.signupText}>Sign Up</Text>
+              <Text style={styles.signupText}>Create Account</Text>
             </TouchableOpacity>
           </Link>
         </View>
@@ -101,45 +102,57 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F4F6FA' },
+  root: { flex: 1, backgroundColor: theme.colors.background },
   scroll: { flexGrow: 1, padding: 24, justifyContent: 'center' },
-  header: { alignItems: 'center', marginBottom: 40 },
+  header: { alignItems: 'center', marginBottom: 48 },
   logoCircle: {
-    width: 80, height: 80, borderRadius: 40,
-    backgroundColor: '#C97352', alignItems: 'center',
-    justifyContent: 'center', marginBottom: 20,
-    elevation: 5, shadowColor: '#C97352', shadowOpacity: 0.3, shadowRadius: 10,
+    width: 80, height: 80, borderRadius: 24,
+    backgroundColor: theme.colors.primary, alignItems: 'center',
+    justifyContent: 'center', marginBottom: 24,
+    ...theme.shadows.soft,
   },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#C97352' },
-  subtitle: { fontSize: 16, color: '#7A746E', marginTop: 8 },
-  form: { width: '100%' },
+  title: { fontSize: 28, fontWeight: 'bold', color: theme.colors.heading },
+  subtitle: { fontSize: 16, color: theme.colors.textSecondary, marginTop: 8 },
+  form: {
+    width: '100%',
+    backgroundColor: theme.colors.surface,
+    padding: 28,
+    borderRadius: 32,
+    ...theme.shadows.premium,
+  },
+  label: { fontSize: 13, fontWeight: '700', color: theme.colors.heading, marginBottom: 10, marginLeft: 4 },
   inputContainer: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
-    borderRadius: 12, paddingHorizontal: 16, marginBottom: 16,
-    borderWidth: 1, borderColor: '#ECE7E1', height: 56,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF',
+    borderRadius: 16, paddingHorizontal: 16, marginBottom: 20,
+    height: 56,
+    shadowColor: '#2A9D8F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
   },
   inputIcon: { marginRight: 12 },
-  input: { flex: 1, fontSize: 16, color: '#2D2A26' },
-  forgotPass: { alignSelf: 'flex-end', marginBottom: 24 },
-  forgotPassText: { color: '#C97352', fontWeight: '600', fontSize: 14 },
+  input: { flex: 1, fontSize: 16, color: theme.colors.textPrimary },
+  forgotPass: { alignSelf: 'flex-end', marginBottom: 28 },
+  forgotPassText: { color: theme.colors.primary, fontWeight: '600', fontSize: 14 },
   loginBtn: {
-    backgroundColor: '#C97352', borderRadius: 12, height: 56,
+    backgroundColor: theme.colors.primary, borderRadius: 16, height: 56,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 8, elevation: 3, shadowColor: '#C97352', shadowOpacity: 0.3, shadowRadius: 6,
+    gap: 8, ...theme.shadows.soft,
   },
   loginBtnText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 30 },
-  line: { flex: 1, height: 1, backgroundColor: '#ECE7E1' },
-  dividerText: { marginHorizontal: 16, color: '#7A746E', fontWeight: 'bold' },
-  socialRow: { flexDirection: 'row', justifyContent: 'center', gap: 20 },
+  divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 32 },
+  line: { flex: 1, height: 1, backgroundColor: theme.colors.divider },
+  dividerText: { marginHorizontal: 16, color: theme.colors.placeholder, fontWeight: '600', fontSize: 12 },
+  socialRow: { flexDirection: 'row', justifyContent: 'center', gap: 24 },
   socialBtn: {
-    width: 56, height: 56, borderRadius: 12, backgroundColor: '#fff',
+    width: 60, height: 60, borderRadius: 16, backgroundColor: '#fff',
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: '#ECE7E1',
+    ...theme.shadows.soft,
   },
   footer: {
-    flexDirection: 'row', justifyContent: 'center', marginTop: 40,
+    flexDirection: 'row', justifyContent: 'center', marginTop: 48,
   },
-  footerText: { color: '#7A746E', fontSize: 15 },
-  signupText: { color: '#C97352', fontSize: 15, fontWeight: 'bold' },
+  footerText: { color: theme.colors.textSecondary, fontSize: 15 },
+  signupText: { color: theme.colors.primary, fontSize: 15, fontWeight: 'bold' },
 });

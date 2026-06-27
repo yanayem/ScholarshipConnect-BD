@@ -4,6 +4,7 @@ import {
   TouchableOpacity, StyleSheet, StatusBar,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { theme } from '../../theme';
 
 const SCHOLARSHIPS = [
   { id: '1', title: 'MEXT (Japan)', minCGPA: 3.0, level: 'Masters', countries: ['Japan'], fields: ['Any'] },
@@ -46,12 +47,12 @@ export default function CheckScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor="#C97352" barStyle="light-content" />
+      <StatusBar backgroundColor={theme.colors.background} barStyle="dark-content" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
         {/* Info Banner */}
-        <View style={styles.banner}>
-          <MaterialIcons name="tips-and-updates" size={24} color="#C97352" />
+        <View style={[styles.banner, { backgroundColor: theme.colors.tealCard }]}>
+          <MaterialIcons name="lightbulb_outline" size={24} color={theme.colors.primary} />
           <Text style={styles.bannerText}>
             Enter your details below to find scholarships you are eligible for!
           </Text>
@@ -59,13 +60,13 @@ export default function CheckScreen() {
 
         {/* Input Form */}
         <View style={styles.formCard}>
-          <Text style={styles.formTitle}>📋 Your Information</Text>
+          <Text style={styles.formTitle}>Your Information</Text>
 
           <Text style={styles.label}>CGPA (out of 4.0)</Text>
           <TextInput
             style={styles.input}
             placeholder="e.g. 3.5"
-            placeholderTextColor="#7A746E"
+            placeholderTextColor={theme.colors.placeholder}
             keyboardType="decimal-pad"
             value={cgpa}
             onChangeText={setCgpa}
@@ -75,7 +76,7 @@ export default function CheckScreen() {
           <TextInput
             style={styles.input}
             placeholder="e.g. Masters, PhD, Bachelors"
-            placeholderTextColor="#7A746E"
+            placeholderTextColor={theme.colors.placeholder}
             value={level}
             onChangeText={setLevel}
           />
@@ -84,7 +85,7 @@ export default function CheckScreen() {
           <TextInput
             style={styles.input}
             placeholder="e.g. Engineering, Business, Any"
-            placeholderTextColor="#7A746E"
+            placeholderTextColor={theme.colors.placeholder}
             value={field}
             onChangeText={setField}
           />
@@ -97,7 +98,7 @@ export default function CheckScreen() {
 
         {/* Results */}
         {checked && (
-          <View style={{ marginTop: 4 }}>
+          <View style={{ marginTop: 8 }}>
             <View style={styles.resultHeader}>
               <Text style={styles.resultTitle}>
                 {results.length > 0
@@ -111,7 +112,7 @@ export default function CheckScreen() {
 
             {checked && results.length === 0 && (
               <View style={styles.noMatch}>
-                <MaterialIcons name="sentiment-dissatisfied" size={48} color="#7A746E" />
+                <MaterialIcons name="sentiment-dissatisfied" size={48} color={theme.colors.placeholder} />
                 <Text style={styles.noMatchText}>
                   Try improving your CGPA or adjusting your preferences.
                 </Text>
@@ -119,9 +120,9 @@ export default function CheckScreen() {
             )}
 
             {results.map(item => (
-              <View key={item.id} style={styles.resultCard}>
+              <View key={item.id} style={[styles.resultCard, { backgroundColor: theme.colors.mintCard }]}>
                 <View style={styles.resultTop}>
-                  <MaterialIcons name="check-circle" size={20} color="#2E7D32" />
+                  <MaterialIcons name="check-circle" size={20} color={theme.colors.success} />
                   <Text style={styles.resultName}>{item.title}</Text>
                 </View>
                 <View style={styles.resultMeta}>
@@ -140,44 +141,43 @@ export default function CheckScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F4F6FA' },
-  scroll: { padding: 16 },
+  root: { flex: 1, backgroundColor: theme.colors.background },
+  scroll: { padding: 20 },
   banner: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#E3F2FD',
-    borderRadius: 12, padding: 14, marginBottom: 16, gap: 10,
+    flexDirection: 'row', alignItems: 'center',
+    borderRadius: 16, padding: 16, marginBottom: 24, gap: 12,
   },
-  bannerText: { flex: 1, fontSize: 14, color: '#C97352', lineHeight: 20 },
+  bannerText: { flex: 1, fontSize: 14, color: theme.colors.primaryDark, lineHeight: 22, fontWeight: '500' },
   formCard: {
-    backgroundColor: '#fff', borderRadius: 14, padding: 18, marginBottom: 16,
-    elevation: 3, shadowColor: '#2D2A26', shadowOpacity: 0.07, shadowRadius: 6,
+    backgroundColor: theme.colors.surface, borderRadius: 24, padding: 24, marginBottom: 24,
+    ...theme.shadows.premium,
   },
-  formTitle: { fontSize: 16, fontWeight: 'bold', color: '#C97352', marginBottom: 16 },
-  label: { fontSize: 13, fontWeight: '700', color: '#7A746E', marginBottom: 6 },
+  formTitle: { fontSize: 18, fontWeight: 'bold', color: theme.colors.heading, marginBottom: 20 },
+  label: { fontSize: 13, fontWeight: '700', color: theme.colors.textSecondary, marginBottom: 8 },
   input: {
-    borderWidth: 1.5, borderColor: '#ECE7E1', borderRadius: 10,
-    paddingHorizontal: 14, paddingVertical: 12, fontSize: 15,
-    color: '#2D2A26', backgroundColor: '#FCFAF7', marginBottom: 16,
+    borderRadius: 12,
+    paddingHorizontal: 16, paddingVertical: 14, fontSize: 15,
+    color: theme.colors.textPrimary, backgroundColor: theme.colors.secondaryBackground, marginBottom: 20,
   },
   checkBtn: {
-    backgroundColor: '#C97352', borderRadius: 12, paddingVertical: 14,
-    flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 4,
+    backgroundColor: theme.colors.primary, borderRadius: 14, paddingVertical: 16,
+    flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, marginTop: 4,
   },
   checkBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  resultHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  resultTitle: { fontSize: 16, fontWeight: 'bold', color: '#C97352' },
-  resetText: { fontSize: 14, color: '#E53935', fontWeight: '600' },
+  resultHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  resultTitle: { fontSize: 16, fontWeight: 'bold', color: theme.colors.heading },
+  resetText: { fontSize: 14, color: theme.colors.error, fontWeight: '600' },
   noMatch: { alignItems: 'center', paddingVertical: 30 },
-  noMatchText: { fontSize: 14, color: '#7A746E', marginTop: 12, textAlign: 'center' },
+  noMatchText: { fontSize: 14, color: theme.colors.textSecondary, marginTop: 12, textAlign: 'center' },
   resultCard: {
-    backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 10,
-    borderLeftWidth: 4, borderLeftColor: '#2E7D32',
-    elevation: 2, shadowColor: '#2D2A26', shadowOpacity: 0.05, shadowRadius: 4,
+    borderRadius: 16, padding: 16, marginBottom: 12,
+    borderLeftWidth: 4, borderLeftColor: theme.colors.success,
   },
-  resultTop: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  resultName: { fontSize: 14, fontWeight: '700', color: '#C97352', flex: 1 },
+  resultTop: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
+  resultName: { fontSize: 14, fontWeight: '700', color: theme.colors.heading, flex: 1 },
   resultMeta: { flexDirection: 'row', gap: 8 },
   resultTag: {
-    backgroundColor: '#E8F5E9', color: '#2E7D32', fontSize: 12,
-    fontWeight: '600', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3,
+    backgroundColor: 'rgba(255,255,255,0.6)', color: theme.colors.textSecondary, fontSize: 12,
+    fontWeight: '600', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4,
   },
 });

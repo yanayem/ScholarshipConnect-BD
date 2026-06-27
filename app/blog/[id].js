@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import { theme } from '../../theme';
 
 const BLOG_DETAILS = {
   '1': {
@@ -33,26 +34,29 @@ My advice: Start early and be authentic. Don't just copy-paste templates.`,
 
 export default function BlogDetailScreen() {
   const { id } = useLocalSearchParams();
-  const post = BLOG_DETAILS[id] || BLOG_DETAILS['1']; // Default to 1 for demo
+  const post = BLOG_DETAILS[id] || BLOG_DETAILS['1'];
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialIcons name="close" size={24} color="#2D2A26" />
+        <TouchableOpacity
+          onPress={() => router.canGoBack() ? router.back() : router.replace('/blog')}
+          style={styles.backBtn}
+        >
+          <MaterialIcons name="close" size={24} color={theme.colors.heading} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.shareBtn}>
-          <MaterialIcons name="share" size={24} color="#2D2A26" />
+          <MaterialIcons name="share" size={22} color={theme.colors.heading} />
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.tagRow}>
           {post.tags.map(tag => (
-            <View key={tag} style={styles.tag}>
+            <View key={tag} style={[styles.tag, { backgroundColor: theme.colors.tealCard }]}>
               <Text style={styles.tagText}>{tag}</Text>
             </View>
           ))}
@@ -64,7 +68,7 @@ export default function BlogDetailScreen() {
           <View style={styles.authorIcon}>
             <Text style={styles.authorInitial}>{post.author[0]}</Text>
           </View>
-          <View style={{ flex: 1, marginLeft: 12 }}>
+          <View style={{ flex: 1, marginLeft: 16 }}>
             <Text style={styles.authorName}>{post.author}</Text>
             <Text style={styles.authorUni}>{post.university}</Text>
           </View>
@@ -75,7 +79,7 @@ export default function BlogDetailScreen() {
 
         <Text style={styles.content}>{post.content}</Text>
 
-        <View style={styles.tipsBox}>
+        <View style={[styles.tipsBox, { backgroundColor: theme.colors.peachCard }]}>
           <Text style={styles.tipsTitle}>💡 Key Takeaway</Text>
           <Text style={styles.tipsText}>Focus on how your study will benefit your home country. DAAD looks for future leaders who will contribute back to their society.</Text>
         </View>
@@ -87,28 +91,28 @@ export default function BlogDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#fff' },
+  root: { flex: 1, backgroundColor: theme.colors.background },
   header: {
-    height: 100, backgroundColor: '#fff',
+    height: 100, backgroundColor: theme.colors.background,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingTop: 40, paddingHorizontal: 16
+    paddingTop: 40, paddingHorizontal: 20
   },
-  backBtn: { padding: 8, backgroundColor: '#F5F5F5', borderRadius: 12 },
-  shareBtn: { padding: 8, backgroundColor: '#F5F5F5', borderRadius: 12 },
-  scroll: { padding: 20 },
-  tagRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-  tag: { backgroundColor: '#E3F2FD', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
-  tagText: { color: '#C97352', fontSize: 12, fontWeight: 'bold' },
-  title: { fontSize: 26, fontWeight: 'bold', color: '#C97352', lineHeight: 34, marginBottom: 20 },
-  authorCard: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  authorIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#BBDEFB', alignItems: 'center', justifyContent: 'center' },
-  authorInitial: { fontSize: 18, color: '#C97352', fontWeight: 'bold' },
-  authorName: { fontSize: 16, fontWeight: 'bold', color: '#2D2A26' },
-  authorUni: { fontSize: 13, color: '#7A746E' },
-  date: { fontSize: 12, color: '#7A746E' },
-  divider: { height: 1, backgroundColor: '#FCFAF7', marginBottom: 24 },
-  content: { fontSize: 16, color: '#455A64', lineHeight: 28, marginBottom: 24 },
-  tipsBox: { backgroundColor: '#FFF9C4', padding: 20, borderRadius: 16, borderLeftWidth: 4, borderLeftColor: '#FBC02D' },
-  tipsTitle: { fontSize: 16, fontWeight: 'bold', color: '#F57F17', marginBottom: 8 },
-  tipsText: { fontSize: 14, color: '#7F4D00', lineHeight: 22 }
+  backBtn: { padding: 10, backgroundColor: theme.colors.surface, borderRadius: 14, borderWidth: 1, borderColor: theme.colors.divider, ...theme.shadows.soft },
+  shareBtn: { padding: 10, backgroundColor: theme.colors.surface, borderRadius: 14, borderWidth: 1, borderColor: theme.colors.divider, ...theme.shadows.soft },
+  scroll: { padding: 24 },
+  tagRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
+  tag: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 10 },
+  tagText: { color: theme.colors.primaryDark, fontSize: 12, fontWeight: 'bold' },
+  title: { fontSize: 26, fontWeight: 'bold', color: theme.colors.heading, lineHeight: 36, marginBottom: 24 },
+  authorCard: { flexDirection: 'row', alignItems: 'center', marginBottom: 24 },
+  authorIcon: { width: 48, height: 48, borderRadius: 16, backgroundColor: theme.colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  authorInitial: { fontSize: 18, color: theme.colors.primary, fontWeight: 'bold' },
+  authorName: { fontSize: 16, fontWeight: 'bold', color: theme.colors.heading },
+  authorUni: { fontSize: 13, color: theme.colors.textSecondary, marginTop: 4 },
+  date: { fontSize: 12, color: theme.colors.textSecondary },
+  divider: { height: 1, backgroundColor: theme.colors.divider, marginBottom: 32 },
+  content: { fontSize: 16, color: theme.colors.textPrimary, lineHeight: 28, marginBottom: 32 },
+  tipsBox: { padding: 24, borderRadius: 24, borderLeftWidth: 4, borderLeftColor: theme.colors.primary, ...theme.shadows.soft },
+  tipsTitle: { fontSize: 16, fontWeight: 'bold', color: theme.colors.heading, marginBottom: 10 },
+  tipsText: { fontSize: 14, color: theme.colors.textSecondary, lineHeight: 24 }
 });

@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 
 import { Calendar } from 'react-native-calendars';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { theme } from '../../theme';
 
-// Helper to get current month dates for mock data
 const today = new Date();
 const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
 const nextMonth = `${today.getMonth() === 11 ? today.getFullYear() + 1 : today.getFullYear()}-${String(today.getMonth() === 11 ? 1 : today.getMonth() + 2).padStart(2, '0')}`;
@@ -20,29 +20,26 @@ const MOCK_SCHOLARSHIPS = [
 export default function CalendarScreen() {
   const [selectedDate, setSelectedDate] = useState('');
 
-  // Group scholarships by date
   const groupedScholarships = MOCK_SCHOLARSHIPS.reduce((acc, curr) => {
     if (!acc[curr.date]) acc[curr.date] = [];
     acc[curr.date].push(curr);
     return acc;
   }, {});
 
-  // Format marked dates for react-native-calendars
   const markedDates = {};
   Object.keys(groupedScholarships).forEach(date => {
     markedDates[date] = { 
       marked: true, 
-      dotColor: '#E53935', 
+      dotColor: theme.colors.primary,
       activeOpacity: 0.8 
     };
   });
 
-  // Add selection styling
   if (selectedDate) {
     markedDates[selectedDate] = {
       ...markedDates[selectedDate],
       selected: true,
-      selectedColor: '#C97352',
+      selectedColor: theme.colors.primary,
       disableTouchEvent: true
     };
   }
@@ -51,7 +48,7 @@ export default function CalendarScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor="#C97352" barStyle="light-content" />
+      <StatusBar backgroundColor={theme.colors.background} barStyle="dark-content" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         
         <View style={styles.calendarContainer}>
@@ -59,19 +56,19 @@ export default function CalendarScreen() {
             onDayPress={(day) => setSelectedDate(day.dateString)}
             markedDates={markedDates}
             theme={{
-              backgroundColor: '#ffffff',
-              calendarBackground: '#ffffff',
-              textSectionTitleColor: '#7A746E',
-              selectedDayBackgroundColor: '#C97352',
+              backgroundColor: theme.colors.surface,
+              calendarBackground: theme.colors.surface,
+              textSectionTitleColor: theme.colors.textSecondary,
+              selectedDayBackgroundColor: theme.colors.primary,
               selectedDayTextColor: '#ffffff',
-              todayTextColor: '#C97352',
-              dayTextColor: '#2d4150',
-              textDisabledColor: '#d9e1e8',
-              dotColor: '#E53935',
+              todayTextColor: theme.colors.primary,
+              dayTextColor: theme.colors.textPrimary,
+              textDisabledColor: theme.colors.placeholder,
+              dotColor: theme.colors.primary,
               selectedDotColor: '#ffffff',
-              arrowColor: '#C97352',
-              monthTextColor: '#C97352',
-              indicatorColor: '#C97352',
+              arrowColor: theme.colors.primary,
+              monthTextColor: theme.colors.heading,
+              indicatorColor: theme.colors.primary,
               textDayFontWeight: '500',
               textMonthFontWeight: 'bold',
               textDayHeaderFontWeight: '600',
@@ -89,7 +86,7 @@ export default function CalendarScreen() {
           
           {!!selectedDate && selectedScholarships.length === 0 && (
             <View style={styles.emptyBox}>
-              <MaterialIcons name="event-available" size={48} color="#7A746E" />
+              <MaterialIcons name="event-available" size={48} color={theme.colors.placeholder} />
               <Text style={styles.emptyText}>No deadlines on this date.</Text>
             </View>
           )}
@@ -98,17 +95,17 @@ export default function CalendarScreen() {
             <TouchableOpacity key={item.id} style={styles.card} activeOpacity={0.85}>
               <Text style={styles.cardTitle}>{item.title}</Text>
               <View style={styles.metaRow}>
-                <View style={styles.metaBadge}>
-                  <MaterialIcons name="place" size={13} color="#C97352" />
+                <View style={[styles.metaBadge, { backgroundColor: theme.colors.tealCard }]}>
+                  <MaterialIcons name="place" size={13} color={theme.colors.primary} />
                   <Text style={styles.metaText}>{item.country}</Text>
                 </View>
-                <View style={styles.metaBadge}>
-                  <MaterialIcons name="school" size={13} color="#C97352" />
-                  <Text style={styles.metaText}>{item.level}</Text>
+                <View style={[styles.metaBadge, { backgroundColor: theme.colors.lavenderCard }]}>
+                  <MaterialIcons name="school" size={13} color="#8E7DF5" />
+                  <Text style={[styles.metaText, {color: '#8E7DF5'}]}>{item.level}</Text>
                 </View>
               </View>
               <View style={styles.cardBottom}>
-                <View style={styles.amountBadge}>
+                <View style={[styles.amountBadge, { backgroundColor: theme.colors.mintCard }]}>
                   <Text style={styles.amountText}>{item.amount}</Text>
                 </View>
                 <TouchableOpacity
@@ -128,54 +125,48 @@ export default function CalendarScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F4F6FA' },
-  scroll: { padding: 16 },
+  root: { flex: 1, backgroundColor: theme.colors.background },
+  scroll: { padding: 20 },
   calendarContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 14,
+    backgroundColor: theme.colors.surface,
+    borderRadius: 20,
     padding: 8,
-    marginBottom: 20,
-    elevation: 4,
-    shadowColor: '#2D2A26',
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+    marginBottom: 24,
+    ...theme.shadows.soft,
   },
   listContainer: {
     paddingHorizontal: 4,
   },
   listHeader: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#C97352',
-    marginBottom: 12,
+    fontWeight: 'bold',
+    color: theme.colors.heading,
+    marginBottom: 16,
   },
   card: {
-    backgroundColor: '#fff', 
-    borderRadius: 14, 
-    padding: 16, 
-    marginBottom: 14,
-    elevation: 3, 
-    shadowColor: '#2D2A26', 
-    shadowOpacity: 0.07, 
-    shadowRadius: 6,
+    backgroundColor: theme.colors.surface,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
     borderLeftWidth: 4,
-    borderLeftColor: '#E53935'
+    borderLeftColor: theme.colors.primary,
+    ...theme.shadows.premium,
   },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: '#C97352', marginBottom: 10 },
-  metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
+  cardTitle: { fontSize: 16, fontWeight: 'bold', color: theme.colors.heading, marginBottom: 12 },
+  metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
   metaBadge: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#E3F2FD',
-    borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, gap: 4,
+    flexDirection: 'row', alignItems: 'center',
+    borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, gap: 4,
   },
-  metaText: { fontSize: 12, color: '#C97352', fontWeight: '600' },
+  metaText: { fontSize: 12, color: theme.colors.primary, fontWeight: '600' },
   cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  amountBadge: { backgroundColor: '#E8F5E9', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  amountText: { color: '#2E7D32', fontWeight: 'bold', fontSize: 12 },
+  amountBadge: { borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 },
+  amountText: { color: theme.colors.success, fontWeight: 'bold', fontSize: 12 },
   applyBtn: {
-    backgroundColor: '#C97352', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8,
-    flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 4,
+    backgroundColor: theme.colors.primary, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10,
+    flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6,
   },
   applyText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
-  emptyBox: { alignItems: 'center', paddingVertical: 30, backgroundColor: '#fff', borderRadius: 14 },
-  emptyText: { fontSize: 15, color: '#7A746E', marginTop: 12 },
+  emptyBox: { alignItems: 'center', paddingVertical: 40, backgroundColor: theme.colors.surface, borderRadius: 20 },
+  emptyText: { fontSize: 15, color: theme.colors.placeholder, marginTop: 12 },
 });
