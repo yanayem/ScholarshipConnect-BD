@@ -87,14 +87,14 @@ export default function LandingPage() {
           </View>
           <View style={[styles.featureCard, { backgroundColor: theme.colors.lavenderCard }]}>
             <View style={styles.iconWrapper}>
-              <Ionicons name="document-text-outline" size={24} color="#8E7DF5" />
+              <Ionicons name="document-text-outline" size={24} color={theme.colors.secondary} />
             </View>
             <Text style={styles.featureTitle}>Secure Vault</Text>
             <Text style={styles.featureDesc}>Safely store and organize your SOPs, LORs, and Transcripts.</Text>
           </View>
           <View style={[styles.featureCard, { backgroundColor: theme.colors.peachCard }]}>
             <View style={styles.iconWrapper}>
-              <Ionicons name="notifications-outline" size={24} color="#F4B942" />
+              <Ionicons name="notifications-outline" size={24} color={theme.colors.warning} />
             </View>
             <Text style={styles.featureTitle}>Real-time Tracking</Text>
             <Text style={styles.featureDesc}>Never miss a deadline with automated alerts and reminders.</Text>

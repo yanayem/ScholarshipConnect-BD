@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 
-const PRIMARY = '#2A9D8F';
+const PRIMARY = '#4361EE';
 const INACTIVE = '#6B7280';
 const TAB_BG = '#FFFFFF';
 

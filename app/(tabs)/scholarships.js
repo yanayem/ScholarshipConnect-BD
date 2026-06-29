@@ -127,12 +127,12 @@ export default function ScholarshipsScreen() {
                   <Text style={styles.metaText}>{item.country}</Text>
                 </View>
                 <View style={[styles.metaBadge, { backgroundColor: theme.colors.lavenderCard }]}>
-                  <MaterialIcons name="school" size={13} color="#8E7DF5" />
-                  <Text style={[styles.metaText, {color: '#8E7DF5'}]}>{item.level}</Text>
+                  <MaterialIcons name="school" size={13} color={theme.colors.secondary} />
+                  <Text style={[styles.metaText, {color: theme.colors.secondary}]}>{item.level}</Text>
                 </View>
                 <View style={[styles.metaBadge, { backgroundColor: theme.colors.peachCard }]}>
-                  <MaterialIcons name="work" size={13} color="#F4B942" />
-                  <Text style={[styles.metaText, {color: '#F4B942'}]}>{item.field}</Text>
+                  <MaterialIcons name="work" size={13} color={theme.colors.warning} />
+                  <Text style={[styles.metaText, {color: theme.colors.warning}]}>{item.field}</Text>
                 </View>
               </View>
               <View style={styles.cardBottom}>
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8,
     ...theme.shadows.soft,
   },
-  applyText: { color: theme.colors.heading, fontWeight: 'bold', fontSize: 14 },
+  applyText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
   emptyBox: { alignItems: 'center', paddingVertical: 50 },
   emptyText: { fontSize: 15, color: theme.colors.placeholder, marginTop: 12 },
 });

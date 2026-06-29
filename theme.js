@@ -1,16 +1,19 @@
 export const theme = {
   colors: {
     // Primary Brand
-    primary: '#2A9D8F',       // Warm Teal
-    primaryHover: '#23867A',
-    primaryLight: '#E6F7F5',
-    primaryDark: '#1F6F66',
+    primary: '#4361EE',       // Modern Royal Blue
+    primaryHover: '#3751D5',
+    primaryLight: '#EBEFFF',
+    primaryDark: '#2F43B5',
+
+    // Secondary Brand
+    secondary: '#7209B7',     // Deep Purple
 
     // Backgrounds
-    background: '#F8F2E7',    // Warm Cream
-    secondaryBackground: '#FCF8F2',
+    background: '#F8F9FF',    // Crystal White
+    secondaryBackground: '#F0F3FF',
     surface: '#FFFFFF',       // Card/Surface
-    sidebar: '#FFFCF8',
+    sidebar: '#FBFBFF',
 
     // Typography
     heading: '#222222',
