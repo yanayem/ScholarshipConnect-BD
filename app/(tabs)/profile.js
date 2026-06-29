@@ -1,37 +1,38 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView,
-  TouchableOpacity, StyleSheet, StatusBar, Alert,
+  TouchableOpacity, StyleSheet, StatusBar, Alert, ActivityIndicator
 } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { theme } from '../../theme';
-
-const USER = {
-  name: 'Md. Rahim Uddin',
-  email: 'rahim@example.com',
-  age: '22',
-  phone: '+880 17XX XXXXXX',
-  university: 'Bangladesh University of Engineering & Technology',
-  department: 'Computer Science & Engineering',
-  cgpa: '3.72 / 4.00',
-  currentLevel: 'Bachelors',
-  graduationYear: '2025',
-  avatar: 'RU',
-};
-
-const SETTINGS = [
-  { icon: 'notifications-none', label: 'Notifications', sub: 'Manage alerts & reminders' },
-  { icon: 'lock-outline', label: 'Privacy & Security', sub: 'Password, 2FA' },
-  { icon: 'language', label: 'Language', sub: 'English' },
-  { icon: 'help-outline', label: 'Help & Support', sub: 'FAQ, Contact us' },
-  { icon: 'info-outline', label: 'About App', sub: 'Version 1.2.0' },
-];
+import { apiService } from '../../services/api';
 
 export default function ProfileScreen() {
-  const [user] = useState(USER);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleLogout = () => {
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const { ok, data } = await apiService.getProfile();
+      if (ok) {
+        setUser(data);
+      } else {
+        // If unauthorized, redirect to login
+        router.replace('/(auth)/login');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to connect to server');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
     Alert.alert(
       'Logout',
       'Are you sure you want to logout?',
@@ -40,11 +41,24 @@ export default function ProfileScreen() {
         {
           text: 'Logout',
           style: 'destructive',
-          onPress: () => router.replace('/(auth)/login')
+          onPress: async () => {
+            await apiService.logout();
+            router.replace('/(auth)/login');
+          }
         },
       ]
     );
   };
+
+  if (loading) {
+    return (
+      <View style={[styles.root, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
+
+  if (!user) return null;
 
   return (
     <View style={styles.root}>
@@ -54,9 +68,9 @@ export default function ProfileScreen() {
         {/* Avatar & Name */}
         <View style={styles.profileHeader}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{user.avatar}</Text>
+            <Text style={styles.avatarText}>{user.full_name ? user.full_name.substring(0, 2).toUpperCase() : user.username.substring(0, 2).toUpperCase()}</Text>
           </View>
-          <Text style={styles.userName}>{user.name}</Text>
+          <Text style={styles.userName}>{user.full_name || user.username}</Text>
           <Text style={styles.userEmail}>{user.email}</Text>
           <TouchableOpacity style={styles.editBtn}>
             <MaterialIcons name="edit" size={16} color={theme.colors.primary} />
@@ -67,9 +81,9 @@ export default function ProfileScreen() {
         {/* Quick Stats */}
         <View style={styles.statsRow}>
           {[
-            { label: 'Saved', value: '4', icon: 'bookmark-outline', color: theme.colors.textSecondary, bg: theme.colors.tealCard },
-            { label: 'Applied', value: '3', icon: 'send', color: theme.colors.primary, bg: theme.colors.lavenderCard },
-            { label: 'Vault', value: '3', icon: 'folder-open', color: theme.colors.success, bg: theme.colors.mintCard, action: () => router.push('/documents') },
+            { label: 'Saved', value: '0', icon: 'bookmark-outline', color: theme.colors.textSecondary, bg: theme.colors.tealCard },
+            { label: 'Applied', value: '0', icon: 'send', color: theme.colors.primary, bg: theme.colors.lavenderCard },
+            { label: 'Vault', value: '0', icon: 'folder-open', color: theme.colors.success, bg: theme.colors.mintCard, action: () => router.push('/documents') },
           ].map((s, i) => (
             <TouchableOpacity
               key={i}
@@ -88,8 +102,8 @@ export default function ProfileScreen() {
         <View style={styles.infoCard}>
           <Text style={styles.cardTitle}>Personal Information</Text>
           {[
-            { icon: 'cake', label: 'Age', value: user.age },
-            { icon: 'phone', label: 'Phone', value: user.phone },
+            { icon: 'cake', label: 'Birthday', value: user.date_of_birth || 'Not set' },
+            { icon: 'phone', label: 'Phone', value: user.phone_number || 'Not set' },
             { icon: 'email', label: 'Email', value: user.email },
           ].map((row, i) => (
             <View key={i} style={styles.infoRow}>
@@ -106,11 +120,10 @@ export default function ProfileScreen() {
         <View style={styles.infoCard}>
           <Text style={styles.cardTitle}>Education Details</Text>
           {[
-            { icon: 'account-balance', label: 'University', value: user.university },
-            { icon: 'computer', label: 'Department', value: user.department },
-            { icon: 'grade', label: 'CGPA', value: user.cgpa },
-            { icon: 'school', label: 'Current Level', value: user.currentLevel },
-            { icon: 'calendar-today', label: 'Graduation Year', value: user.graduationYear },
+            { icon: 'account-balance', label: 'University', value: user.university || 'Not set' },
+            { icon: 'computer', label: 'Department', value: user.department || 'Not set' },
+            { icon: 'grade', label: 'CGPA', value: user.cgpa || 'Not set' },
+            { icon: 'school', label: 'Current Level', value: user.academic_level || 'Not set' },
           ].map((row, i) => (
             <View key={i} style={[styles.infoRow, i > 0 && styles.infoRowBorder]}>
               <MaterialIcons name={row.icon} size={18} color={theme.colors.textSecondary} />
@@ -122,14 +135,22 @@ export default function ProfileScreen() {
           ))}
         </View>
 
+
         {/* Settings */}
         <View style={styles.infoCard}>
           <Text style={styles.cardTitle}>Account Settings</Text>
-          {SETTINGS.map((s, i) => (
+          {[
+            { icon: 'notifications-none', label: 'Notifications', sub: 'Manage alerts & reminders', path: '/settings' },
+            { icon: 'lock-outline', label: 'Privacy & Security', sub: 'Password, 2FA', path: '/settings' },
+            { icon: 'language', label: 'Language', sub: 'English', path: '/settings' },
+            { icon: 'help-outline', label: 'Help & Support', sub: 'FAQ, Contact us', path: '/settings' },
+            { icon: 'info-outline', label: 'About App', sub: 'Version 1.2.0', path: '/settings' },
+          ].map((s, i) => (
             <TouchableOpacity
               key={i}
               style={[styles.settingRow, i > 0 && styles.infoRowBorder]}
               activeOpacity={0.7}
+              onPress={() => router.push(s.path)}
             >
               <View style={styles.settingIconWrap}>
                 <MaterialIcons name={s.icon} size={20} color={theme.colors.textSecondary} />
@@ -159,12 +180,12 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.colors.background },
   scroll: { padding: 20 },
   profileHeader: {
-    alignItems: 'center', backgroundColor: theme.colors.surface, borderRadius: 24,
+    alignItems: 'center', backgroundColor: theme.colors.surface, borderRadius: theme.borderRadius.base,
     padding: 32, marginBottom: 20,
     ...theme.shadows.premium,
   },
   avatar: {
-    width: 80, height: 80, borderRadius: 24, backgroundColor: theme.colors.primary,
+    width: 80, height: 80, borderRadius: theme.borderRadius.base, backgroundColor: theme.colors.primary,
     alignItems: 'center', justifyContent: 'center', marginBottom: 16,
     ...theme.shadows.soft,
   },
@@ -173,13 +194,13 @@ const styles = StyleSheet.create({
   userEmail: { fontSize: 14, color: theme.colors.textSecondary, marginTop: 4, marginBottom: 20 },
   editBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    borderRadius: 12,
+    borderRadius: theme.borderRadius.base,
     paddingHorizontal: 20, paddingVertical: 10,
     backgroundColor: theme.colors.primaryLight,
   },
   editBtnText: { color: theme.colors.primary, fontWeight: '700', fontSize: 14 },
   infoCard: {
-    backgroundColor: theme.colors.surface, borderRadius: 24, padding: 24, marginBottom: 20,
+    backgroundColor: theme.colors.surface, borderRadius: theme.borderRadius.base, padding: 24, marginBottom: 20,
     ...theme.shadows.soft,
   },
   cardTitle: { fontSize: 16, fontWeight: 'bold', color: theme.colors.heading, marginBottom: 20 },
@@ -189,7 +210,7 @@ const styles = StyleSheet.create({
   infoValue: { fontSize: 14, color: theme.colors.textPrimary, fontWeight: '600' },
   statsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
   statCard: {
-    flex: 1, borderRadius: 20, alignItems: 'center',
+    flex: 1, borderRadius: theme.borderRadius.base, alignItems: 'center',
     paddingVertical: 18, marginHorizontal: 4,
     ...theme.shadows.soft,
   },
@@ -203,7 +224,7 @@ const styles = StyleSheet.create({
   settingLabel: { fontSize: 14, fontWeight: '600', color: theme.colors.heading },
   settingSub: { fontSize: 12, color: theme.colors.textSecondary, marginTop: 2 },
   logoutBtn: {
-    backgroundColor: theme.colors.surface, borderRadius: 16, paddingVertical: 18,
+    backgroundColor: theme.colors.surface, borderRadius: theme.borderRadius.base, paddingVertical: 18,
     flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, marginBottom: 8,
   },
   logoutText: { color: theme.colors.error, fontWeight: 'bold', fontSize: 15 },

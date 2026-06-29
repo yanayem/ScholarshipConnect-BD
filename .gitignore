@@ -1,7 +1,7 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
-
-# dependencies
+# Dependencies
 node_modules/
+.pnp
+.pnp.js
 
 # Expo
 .expo/
@@ -10,7 +10,8 @@ web-build/
 expo-env.d.ts
 
 # Native
-.kotlin/
+ios/
+android/
 *.orig.*
 *.jks
 *.p8
@@ -21,23 +22,33 @@ expo-env.d.ts
 # Metro
 .metro-health-check*
 
-# debug
+# Backend (Django)
+backend/venv/
+backend/.env
+__pycache__/
+*.py[cod]
+*$py.class
+db.sqlite3
+backend/media/
+backend/staticfiles/
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Debug
 npm-debug.*
 yarn-debug.*
 yarn-error.*
 
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
 # macOS
 .DS_Store
-*.pem
-
-# local env files
-.env*.local
-
-# typescript
-*.tsbuildinfo
-
-example
-
-# generated native folders
-/ios
-/android

@@ -39,6 +39,7 @@ export default function RootLayout() {
       <Stack.Screen name="apply/[id]" />
       <Stack.Screen name="reminders" />
       <Stack.Screen name="documents" />
+      <Stack.Screen name="settings" />
     </Stack>
   );
 }

@@ -8,8 +8,10 @@ import { theme } from '../../theme';
 
 const STATUS_CONFIG = {
   Saved:        { color: theme.colors.textSecondary, bg: theme.colors.secondaryBackground, icon: 'bookmark-outline' },
-  Applied:      { color: theme.colors.primary, bg: theme.colors.tealCard, icon: 'send' },
-  'Under Review': { color: theme.colors.warning, bg: theme.colors.yellowCard, icon: 'hourglass-empty' },
+  Preparing:    { color: theme.colors.warning, bg: theme.colors.yellowCard, icon: 'edit' },
+  Submitted:    { color: theme.colors.info, bg: 'rgba(106, 169, 255, 0.1)', icon: 'send' },
+  'Under Review': { color: '#8E44AD', bg: theme.colors.lavenderCard, icon: 'hourglass-empty' },
+  Shortlisted:  { color: theme.colors.primary, bg: theme.colors.tealCard, icon: 'stars' },
   Accepted:     { color: theme.colors.success, bg: theme.colors.mintCard, icon: 'check-circle' },
   Rejected:     { color: theme.colors.error, bg: 'rgba(232, 93, 117, 0.1)', icon: 'cancel' },
 };
@@ -17,12 +19,13 @@ const STATUS_CONFIG = {
 const INITIAL = [
   { id: '1', title: 'MEXT (Japan)', country: '🇯🇵 Japan', level: 'Masters', deadline: 'May 2025', status: 'Accepted' },
   { id: '2', title: 'Chevening (UK)', country: '🇬🇧 UK', level: 'Masters', deadline: 'Nov 2025', status: 'Under Review' },
-  { id: '3', title: 'DAAD (Germany)', country: '🇩🇪 Germany', level: 'PhD', deadline: 'Oct 2025', status: 'Applied' },
-  { id: '4', title: 'Erasmus Mundus', country: '🇪🇺 Europe', level: 'Masters', deadline: 'Jan 2026', status: 'Saved' },
-  { id: '5', title: 'Fulbright (USA)', country: '🇺🇸 USA', level: 'Masters', deadline: 'Jun 2025', status: 'Rejected' },
+  { id: '3', title: 'DAAD (Germany)', country: '🇩🇪 Germany', level: 'PhD', deadline: 'Oct 2025', status: 'Submitted' },
+  { id: '4', title: 'Erasmus Mundus', country: '🇪🇺 Europe', level: 'Masters', deadline: 'Jan 2026', status: 'Preparing' },
+  { id: '5', title: 'Fulbright (USA)', country: '🇺🇸 USA', level: 'Masters', deadline: 'Jun 2025', status: 'Shortlisted' },
+  { id: '6', title: 'Stipendium Hungaricum', country: '🇭🇺 Hungary', level: 'Bachelors', deadline: 'Jan 2025', status: 'Saved' },
 ];
 
-const TABS = ['All', 'Saved', 'Applied', 'Review', 'Accepted', 'Rejected'];
+const TABS = ['All', 'Saved', 'Preparing', 'Submitted', 'Under Review', 'Shortlisted', 'Accepted', 'Rejected'];
 
 export default function ApplicationsScreen() {
   const [activeTab, setActiveTab] = useState('All');
@@ -30,20 +33,16 @@ export default function ApplicationsScreen() {
 
   const filtered = activeTab === 'All'
     ? applications
-    : applications.filter(a => {
-        if (activeTab === 'Review') return a.status === 'Under Review';
-        return a.status === activeTab;
-      });
+    : applications.filter(a => a.status === activeTab);
 
   const counts = {};
   TABS.forEach(t => {
     counts[t] = t === 'All'
       ? applications.length
-      : applications.filter(a => {
-          if (t === 'Review') return a.status === 'Under Review';
-          return a.status === t;
-        }).length;
+      : applications.filter(a => a.status === t).length;
   });
+
+  const STEPS = ['Saved', 'Preparing', 'Submitted', 'Under Review', 'Shortlisted', 'Accepted'];
 
   return (
     <View style={styles.root}>
@@ -80,7 +79,7 @@ export default function ApplicationsScreen() {
           </View>
         ) : (
           filtered.map(item => {
-            const cfg = STATUS_CONFIG[item.status];
+            const cfg = STATUS_CONFIG[item.status] || STATUS_CONFIG.Saved;
             return (
               <View key={item.id} style={styles.card}>
                 <View style={styles.cardHeader}>
@@ -103,27 +102,32 @@ export default function ApplicationsScreen() {
                     <MaterialIcons name="event" size={13} color={theme.colors.error} /> {item.deadline}
                   </Text>
                   <TouchableOpacity style={styles.detailBtn}>
-                    <Text style={styles.detailBtnText}>View Details</Text>
+                    <Text style={styles.detailBtnText}>Update Status</Text>
                   </TouchableOpacity>
                 </View>
 
                 {/* Progress Indicator */}
-                <View style={styles.progressRow}>
-                  {['Saved', 'Applied', 'Under Review', 'Accepted'].map((s, i) => {
-                    const steps = ['Saved', 'Applied', 'Under Review', 'Accepted'];
-                    const currentIdx = steps.indexOf(item.status);
-                    const isActive = i <= currentIdx && item.status !== 'Rejected';
-                    return (
-                      <View key={s} style={styles.progressStep}>
-                        <View style={[styles.progressDot, isActive && styles.progressDotActive]} />
-                        {i < 3 && <View style={[styles.progressLine, isActive && i < currentIdx && styles.progressLineActive]} />}
-                        <Text style={[styles.progressLabel, isActive && styles.progressLabelActive]}>
-                          {s === 'Under Review' ? 'Review' : s}
-                        </Text>
-                      </View>
-                    );
-                  })}
-                </View>
+                {item.status !== 'Rejected' && (
+                  <View style={styles.progressRow}>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 10 }}>
+                      {STEPS.map((s, i) => {
+                        const currentIdx = STEPS.indexOf(item.status);
+                        const isActive = i <= currentIdx;
+                        return (
+                          <View key={s} style={styles.progressStep}>
+                            <View style={styles.dotRow}>
+                              <View style={[styles.progressDot, isActive && styles.progressDotActive]} />
+                              {i < STEPS.length - 1 && <View style={[styles.progressLine, i < currentIdx && styles.progressLineActive]} />}
+                            </View>
+                            <Text style={[styles.progressLabel, isActive && styles.progressLabelActive]}>
+                              {s === 'Under Review' ? 'Review' : s}
+                            </Text>
+                          </View>
+                        );
+                      })}
+                    </ScrollView>
+                  </View>
+                )}
               </View>
             );
           })
@@ -169,14 +173,15 @@ const styles = StyleSheet.create({
   deadline: { fontSize: 13, color: theme.colors.error, fontWeight: '500' },
   detailBtn: { borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: theme.colors.primaryLight },
   detailBtnText: { color: theme.colors.primary, fontWeight: '700', fontSize: 13 },
-  progressRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
-  progressStep: { flex: 1, alignItems: 'center', position: 'relative' },
+  progressRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10, borderTopWidth: 1, borderTopColor: theme.colors.divider, paddingTop: 15 },
+  progressStep: { width: 80, alignItems: 'center' },
+  dotRow: { flexDirection: 'row', alignItems: 'center', width: '100%', justifyContent: 'center', marginBottom: 6 },
   progressDot: {
-    width: 10, height: 10, borderRadius: 5, backgroundColor: theme.colors.divider, marginBottom: 6,
+    width: 10, height: 10, borderRadius: 5, backgroundColor: theme.colors.divider, zIndex: 2,
   },
   progressDotActive: { backgroundColor: theme.colors.primary },
   progressLine: {
-    position: 'absolute', top: 4, left: '50%', right: '-50%', height: 2, backgroundColor: theme.colors.divider,
+    position: 'absolute', top: 4, left: '50%', right: '-50%', height: 2, backgroundColor: theme.colors.divider, zIndex: 1,
   },
   progressLineActive: { backgroundColor: theme.colors.primary },
   progressLabel: { fontSize: 10, color: theme.colors.textSecondary, textAlign: 'center' },

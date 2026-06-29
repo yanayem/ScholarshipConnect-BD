@@ -64,9 +64,10 @@ export const theme = {
     xxl: 48,
   },
   borderRadius: {
+    base: 12,
     sm: 8,
     md: 12,
-    lg: 16, // Premium rounded corners
+    lg: 16,
     xl: 20,
     xxl: 24,
     full: 9999,
@@ -74,17 +75,17 @@ export const theme = {
   shadows: {
     soft: {
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.04,
-      shadowRadius: 10,
-      elevation: 2,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.03,
+      shadowRadius: 6,
+      elevation: 1,
     },
     premium: {
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 0.06,
-      shadowRadius: 30,
-      elevation: 4,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.05,
+      shadowRadius: 12,
+      elevation: 3,
     }
   }
 };

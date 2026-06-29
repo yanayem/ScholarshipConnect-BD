@@ -38,7 +38,21 @@ export default function DashboardLayout() {
             options={{ 
               title: 'Discover',
               tabBarIcon: ({ color }) => <MaterialIcons name="school" size={24} color={color} />
-            }} 
+            }}
+          />
+          <Tabs.Screen
+            name="tracker"
+            options={{
+              title: 'Tracker',
+              tabBarIcon: ({ color }) => <MaterialIcons name="track-changes" size={24} color={color} />
+            }}
+          />
+          <Tabs.Screen
+            name="mentors"
+            options={{
+              title: 'Mentors',
+              tabBarIcon: ({ color }) => <MaterialIcons name="people" size={24} color={color} />
+            }}
           />
         </Tabs>
       </View>

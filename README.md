@@ -71,7 +71,7 @@ python -m venv venv
 .\venv\Scripts\activate  # Windows
 
 # Install Python packages
-pip install -r requirements.txt
+pip install -r requirements.txt  # (Ensure you create this or install manually)
 
 # Run Migrations
 python manage.py migrate

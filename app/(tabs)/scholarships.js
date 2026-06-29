@@ -187,13 +187,13 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: 20, paddingVertical: 20 },
   searchWrap: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.surface,
-    borderRadius: 14, paddingHorizontal: 12, marginBottom: 20,
+    borderRadius: theme.borderRadius.base, paddingHorizontal: 12, marginBottom: 20,
   },
   searchInput: { flex: 1, height: 48, fontSize: 15, color: theme.colors.textPrimary },
   filterLabel: { fontSize: 13, fontWeight: '700', color: theme.colors.heading, marginBottom: 10, marginTop: 4 },
   chipRow: { marginBottom: 20 },
   chip: {
-    borderRadius: 10,
+    borderRadius: theme.borderRadius.base,
     paddingHorizontal: 16, paddingVertical: 8, marginRight: 8, backgroundColor: theme.colors.surface,
   },
   chipActive: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
   chipTextActive: { color: '#fff' },
   resultCount: { fontSize: 13, color: theme.colors.textSecondary, marginBottom: 16 },
   card: {
-    backgroundColor: theme.colors.surface, borderRadius: 24, padding: 20, marginBottom: 16,
+    backgroundColor: theme.colors.surface, borderRadius: theme.borderRadius.base, padding: 20, marginBottom: 16,
     ...theme.shadows.premium,
   },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   progressBarBg: { height: 6, backgroundColor: theme.colors.primaryLight, borderRadius: 3, overflow: 'hidden' },
   progressBarFill: { height: '100%', backgroundColor: theme.colors.primary, borderRadius: 3 },
   applyBtn: {
-    backgroundColor: theme.colors.secondary, borderRadius: 12, paddingVertical: 14,
+    backgroundColor: theme.colors.secondary, borderRadius: theme.borderRadius.base, paddingVertical: 14,
     flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8,
     ...theme.shadows.soft,
   },

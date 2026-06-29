@@ -9,6 +9,8 @@ const NAV_ITEMS = [
   { label: 'Application Tracker', path: '/(dashboard)/tracker', icon: 'track-changes' },
   { label: 'Documents', path: '/(dashboard)/documents', icon: 'folder' },
   { label: 'Mentors', path: '/(dashboard)/mentors', icon: 'people' },
+  { label: 'Community', path: '/community', icon: 'forum' },
+  { label: 'Admin Panel', path: '/admin', icon: 'admin-panel-settings' },
 ];
 
 export default function Sidebar() {
