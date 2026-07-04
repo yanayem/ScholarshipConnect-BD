@@ -16,7 +16,7 @@ ScholarshipConnectBD is a specialized mobile application built with **React Nati
 - [x] **Eligibility Checker**: Instant matching based on CGPA and academic background.
 - [x] **Deadline Calendar**: Visual tracking of upcoming application deadlines.
 - [x] **Personalized Profiles**: Manage academic history, CGPA, and preferences.
-- [x] **JWT Authentication**: Secure login and registration with session management.
+- [x] **Firebase Authentication**: Secure login and registration with social auth support.
 - [x] **Admin Panel**: Robust dashboard for managing scholarships and user data.
 - [x] **Community Discussion**: Interactive forum for students to share tips.
 - [x] **Mentor Network**: Verified network of past scholars to guide new applicants via community discussions.
@@ -47,13 +47,13 @@ ScholarshipConnectBD is a specialized mobile application built with **React Nati
 - **Architecture**: **RESTful API** powered by Django REST Framework (DRF)
 - **Database**: **MongoDB Atlas** (NoSQL Cloud Database for flexible data schemas)
 - **Database Connector**: **Djongo** (Seamlessly maps Django ORM to MongoDB)
-- **Authentication**: **SimpleJWT** (JSON Web Tokens with Access/Refresh cycle)
+- **Authentication**: **Firebase Auth** (Cross-platform secure authentication)
 - **Deployment**: Prepared for Docker and cloud hosting
 
 ### 🛠️ Tools & DevOps
 - **Version Control**: Git & GitHub
 - **API Testing**: Postman / Insomnia
-- **Design**: Figma (Modern Royal Blue design language)
+- **Design**: Figma (Modern Warm Teal design language)
 - **Environment**: Dotenv for secure credential management
 
 ---
@@ -82,10 +82,10 @@ Scholarship entries are stored as flexible JSON-like documents, allowing for var
 The application follows a **Premium, Minimal, and Modern** design system focused on clarity and scholar focus.
 
 ### 🎨 Color Palette
-- **Primary**: Modern Royal Blue (`#4361EE`) - Main branding and CTAs.
-- **Secondary**: Deep Purple (`#7209B7`) - Accent highlights.
-- **Background**: Crystal White (`#F8F9FF`) - Clean, modern backdrop.
-- **Surface**: Pure White (`#FFFFFF`) - For cards and input fields.
+- **Primary**: Sophisticated Warm Teal (`#2A9D8F`) - Main branding and CTAs.
+- **Secondary**: Accent Lavender (`#8E7DF5`) - Highlight accents and data visualization.
+- **Background**: Warm Cream (`#F8F2E7`) - A soft, academic backdrop for high readability.
+- **Surface**: Pure White (`#FFFFFF`) - For cards, modals, and input fields.
 
 ### 🔤 Typography & Spacing
 - **Font Family**: `Inter` (Regular, Medium, SemiBold, Bold) for maximum readability.
@@ -104,18 +104,22 @@ The application follows a **Premium, Minimal, and Modern** design system focused
 
 ```text
 ScholarshipConnectBD/
-├── app/                  # Frontend (React Native + Expo Router)
-│   ├── (auth)/           # Login & Registration screens
-│   ├── (tabs)/           # Main application tabs (Dashboard, Search, etc.)
-│   ├── blog/             # Scholarship articles and success stories
-│   ├── scholarship/      # Individual scholarship detail pages
-│   └── components/       # Reusable UI components
+├── mobile/               # Frontend (React Native + Expo Router)
+│   ├── app/              # Navigation and Screen components
+│   ├── components/       # Reusable UI components
+│   ├── services/         # API service layer
+│   ├── constants/        # Config and Global constants
+│   ├── theme.js          # Centralized Theme Engine
+│   └── package.json      # Mobile dependencies and scripts
 ├── backend/              # Backend (Django REST Framework)
-│   ├── accounts/         # User models, profiles, and authentication logic
 │   ├── core/             # Project settings and root URL routing
-│   └── manage.py         # Django management CLI
-├── theme.js              # Centralized Theme Engine (Colors, Spacing, Shadows)
-├── assets/               # Local images, fonts, and branding assets
+│   ├── accounts/         # User models, profiles, and authentication logic
+│   ├── scholarships/     # Scholarship database management
+│   ├── blog/             # Success stories and articles
+│   ├── applications/     # Scholarship applications tracker
+│   ├── notifications/    # User notification system
+│   ├── manage.py         # Django management CLI
+│   └── .env              # Environment variables (API Keys, DB URI)
 └── README.md             # Project documentation
 ```
 
@@ -123,8 +127,10 @@ ScholarshipConnectBD/
 
 ## 📥 Getting Started
 
-### 1. Frontend Setup
+### 1. Frontend (Mobile) Setup
 ```bash
+cd mobile
+
 # Install dependencies
 npm install
 
@@ -139,6 +145,7 @@ cd backend
 # Create & Activate Virtual Environment
 python -m venv venv
 .\venv\Scripts\activate  # Windows
+source venv/bin/activate # macOS/Linux
 
 # Install Python packages
 pip install -r requirements.txt
@@ -150,13 +157,21 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-### 3. Environment Variables
+### 3. Integrated Development
+You can run both servers simultaneously using the scripts in the `mobile/package.json`:
+```bash
+cd mobile
+npm run dev  # Runs backend and starts Android Emulator
+```
+
+### 4. Environment Variables
 Create a `.env` file in the `backend/` directory:
 ```env
 DEBUG=True
 SECRET_KEY=your_secret_key
 MONGODB_URI=your_mongodb_atlas_uri
 DATABASE_NAME=scholarship_db
+FIREBASE_SERVICE_ACCOUNT_KEY=path/to/your/firebase-service-account.json
 ```
 
 ---
@@ -164,7 +179,7 @@ DATABASE_NAME=scholarship_db
 ## 🤝 Team
 - **Developer**: ScholarshipConnectBD Team
 - **Status**: Phase 2 Complete (Advanced Features & Modern UI)
-- **UI Theme**: Royal Blue & Crystal White (#4361EE / #F8F9FF)
+- **UI Theme**: Warm Teal & Cream (#2A9D8F / #F8F2E7)
 
 ---
 *Created with ❤️ for Bangladeshi Scholars.*

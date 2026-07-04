@@ -24,8 +24,16 @@ class Profile(models.Model):
     
     # Preferences
     target_countries = models.CharField(max_length=255, blank=True, help_text="Comma separated countries")
+    preferred_fields = models.CharField(max_length=255, blank=True, help_text="Comma separated fields (e.g., Engineering, Arts)")
     bio = models.TextField(max_length=500, blank=True)
-    profile_picture = models.URLField(blank=True) # Using URL for simplicity with MongoDB/Cloudinary
+    
+    # Social Media Links
+    linkedin_url = models.URLField(blank=True)
+    github_url = models.URLField(blank=True)
+    facebook_url = models.URLField(blank=True)
+    
+    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
+    profile_picture_url = models.URLField(blank=True) # Fallback/Alternative
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

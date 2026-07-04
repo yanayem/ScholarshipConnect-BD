@@ -2,6 +2,12 @@
 Django settings for core project.
 """
 
+"""
+DJANGO SETTINGS: Main configuration for the backend project.
+- Configures MongoDB (Djongo), Firebase Auth, CORS, and REST Framework.
+- Manages INSTALLED_APPS (accounts, scholarships, blog, applications, notifications).
+- Connected to: .env (database/keys), accounts.authentication.
+"""
 from pathlib import Path
 import environ
 import os
@@ -38,6 +44,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'accounts',
+    'scholarships',
+    'blog',
+    'applications',
+    'notifications',
 ]
 
 MIDDLEWARE = [
@@ -93,15 +103,11 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'accounts.authentication.FirebaseAuthentication',
     )
 }
 
-from datetime import timedelta
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-}
+# Firebase Authentication configured
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -137,6 +143,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
