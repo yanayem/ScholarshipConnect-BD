@@ -230,7 +230,7 @@ export default function ScholarshipDetails() {
             onPress={() => router.push(`/apply/${id}`)}
         >
             <Text style={styles.applyBtnText}>Apply Now</Text>
-            <MaterialIcons name="arrow-forward" size={20} color="white" />
+            <MaterialIcons name="arrow-forward" size={20} color={theme.colors.white} />
         </TouchableOpacity>
       </View>
     </View>
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(21, 78, 71, 0.7)', // Darker teal overlay for maximum text contrast
+    backgroundColor: 'rgba(31, 111, 102, 0.7)', // Darker teal overlay (primaryDark based)
   },
   headerActions: {
     position: 'absolute',
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   statusText: {
-    color: '#fff',
+    color: theme.colors.white,
     fontSize: 10,
     fontFamily: theme.typography.fontFamily.bold,
   },
@@ -300,8 +300,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.3)',
   },
   typeText: {
-    color: '#fff',
-    fontSize: 12, // Increased size
+    color: theme.colors.white,
+    fontSize: 12,
     fontFamily: theme.typography.fontFamily.bold,
     letterSpacing: 1.2,
   },
