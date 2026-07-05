@@ -203,3 +203,13 @@ The app uses **Firebase SDK** for robust cross-platform authentication:
 
 ---
 *Created with ❤️ for Bangladeshi Scholars.*
+
+---
+
+## 🌟 v2 - The Next Evolution (Upcoming)
+In this version, we are enhancing the user experience and expanding the platform's capabilities:
+- **AI-Powered Recommendation Engine**: Suggesting scholarships based on user profiles and past application behavior.
+- **In-App Document Verification**: Built-in verification for academic documents to speed up application processes.
+- **Multilingual Support**: Providing content in both Bengali and English for better accessibility.
+- **Offline Mode**: Allowing students to browse saved scholarships and application guides without an internet connection.
+- **Push Notification 2.0**: Highly personalized alerts for deadlines, status updates, and new blog posts.

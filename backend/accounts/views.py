@@ -1,4 +1,4 @@
-from rest_framework import generics, permissions, parsers
+from rest_framework import generics, permissions, parsers, exceptions
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from django.db import models
@@ -17,11 +17,11 @@ class AdminTokenObtainPairSerializer(TokenObtainPairSerializer):
             if user and user.check_password(password):
                 attrs['username'] = user.username # SimpleJWT needs the actual username
             elif not user:
-                 raise permissions.exceptions.AuthenticationFailed("No account found with this email/username.")
+                 raise exceptions.AuthenticationFailed("No account found with this email/username.")
         
         data = super().validate(attrs)
         if not self.user.is_staff:
-            raise permissions.exceptions.PermissionDenied("Only staff members can log in here.")
+            raise exceptions.PermissionDenied("Only staff members can log in here.")
         return data
 
 class AdminLoginView(TokenObtainPairView):
