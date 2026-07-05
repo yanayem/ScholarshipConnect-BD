@@ -1,0 +1,34 @@
+from django.db import models
+from django.contrib.auth.models import User
+
+class Scholarship(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('active', 'Active'),
+        ('rejected', 'Rejected'),
+    ]
+
+    title = models.CharField(max_length=255)
+    provider = models.CharField(max_length=255, blank=True, default='')
+    country = models.CharField(max_length=100, blank=True, default='')
+    amount = models.CharField(max_length=255, blank=True, default='', help_text="e.g. Full Tuition, $10,000, etc.")
+    category = models.CharField(max_length=100, blank=True, default='')
+    level = models.CharField(max_length=100, blank=True, default='', help_text="e.g. Bachelors, Masters, PhD")
+    field = models.CharField(max_length=100, blank=True, default='', help_text="e.g. Engineering, Arts, etc.")
+    min_cgpa = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True, default=0.00)
+    deadline = models.DateField()
+    description = models.TextField(blank=True, default='')
+    eligibility = models.TextField(blank=True, default='')
+    official_link = models.URLField(blank=True, default='')
+    image_url = models.URLField(blank=True, default='')
+    is_featured = models.BooleanField(default=False)
+    
+    # Verification System
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    submitted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def _str_(self):
+        return self.title
