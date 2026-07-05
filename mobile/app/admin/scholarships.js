@@ -8,12 +8,13 @@ import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, FlatList, ScrollView,
   TextInput, TouchableOpacity, ActivityIndicator,
-  Alert, ToastAndroid, Platform
+  Alert, Platform
 } from 'react-native';
 import { theme } from '../../theme';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { apiService } from '../../services/api';
+import { showToast } from '../../components/AdminToast';
 
 export default function ManageScholarships() {
   const [search, setSearch] = useState('');
@@ -42,24 +43,20 @@ export default function ManageScholarships() {
     loadScholarships();
   }, [filterStatus]);
 
-  const showToast = (msg) => {
-    if (Platform.OS === 'android') {
-      ToastAndroid.show(msg, ToastAndroid.SHORT);
-    }
-  };
+
 
   const handleDelete = (id, title) => {
     const performDelete = async () => {
       try {
         const res = await apiService.deleteScholarship(id);
         if (res.ok) {
-          showToast('Scholarship deleted');
+          showToast('Scholarship deleted', 'success');
           setScholarships(prev => prev.filter(s => s.id !== id));
         } else {
-          Alert.alert('Error', 'Failed to delete');
+          showToast('Failed to delete scholarship', 'error');
         }
       } catch (err) {
-        Alert.alert('Error', 'Network error');
+        showToast('Network error', 'error');
       }
     };
 
@@ -83,13 +80,13 @@ export default function ManageScholarships() {
     try {
       const res = await apiService.approveScholarship(id, action);
       if (res.ok) {
-        showToast(`Scholarship ${action}ed`);
+        showToast(`Scholarship ${action}ed successfully`, 'success');
         loadScholarships();
       } else {
-        Alert.alert('Error', `Failed to ${action}`);
+        showToast(`Failed to ${action} scholarship`, 'error');
       }
     } catch (err) {
-      Alert.alert('Error', 'Network error');
+      showToast('Network error', 'error');
     }
   };
 
@@ -122,6 +119,14 @@ export default function ManageScholarships() {
             <Text style={styles.metaText}>{item.country}</Text>
           </View>
         </View>
+        {item.submitter_email && (
+          <View style={[styles.metaRow, { marginTop: 4 }]}>
+            <View style={styles.metaItem}>
+              <MaterialIcons name="person" size={14} color={theme.colors.textSecondary} />
+              <Text style={styles.metaText}>Posted by: {item.submitter_email}</Text>
+            </View>
+          </View>
+        )}
       </View>
 
       <View style={styles.itemActions}>

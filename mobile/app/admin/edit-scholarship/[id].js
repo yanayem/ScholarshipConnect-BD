@@ -8,13 +8,14 @@ import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
   TextInput, TouchableOpacity, KeyboardAvoidingView,
-  Platform, Alert, Modal, ToastAndroid, ActivityIndicator
+  Platform, Modal, ActivityIndicator
 } from 'react-native';
 import { theme } from '../../../theme';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
 import { apiService } from '../../../services/api';
+import { showToast } from '../../../components/AdminToast';
 
 const InputField = ({ label, value, onChangeText, name, placeholder, multiline = false, numberOfLines = 1, keyboardType = 'default' }) => (
   <View style={styles.inputContainer}>
@@ -78,7 +79,7 @@ export default function EditScholarship() {
             image_url: data.image_url || '',
           });
         } else {
-          Alert.alert('Error', 'Could not load scholarship details');
+          showToast('Could not load scholarship details', 'error');
         }
       } catch (error) {
         console.error(error);
@@ -95,7 +96,7 @@ export default function EditScholarship() {
 
   const handleUpdate = async () => {
     if (!formData.title || !formData.deadline) {
-      Alert.alert('Error', 'Title and Deadline are required');
+      showToast('Title and Deadline are required', 'error');
       return;
     }
 
@@ -108,19 +109,17 @@ export default function EditScholarship() {
 
       const res = await apiService.updateScholarship(id, payload);
       if (res.ok) {
-        if (Platform.OS === 'android') {
-          ToastAndroid.show('Scholarship updated successfully!', ToastAndroid.SHORT);
-        }
+        showToast('Scholarship updated successfully!', 'success');
         if (router.canGoBack()) {
           router.back();
         } else {
           router.replace('/(tabs)');
         }
       } else {
-        Alert.alert('Error', 'Update failed');
+        showToast('Update failed', 'error');
       }
     } catch (error) {
-      Alert.alert('Error', 'Network error occurred');
+      showToast('Network error occurred', 'error');
     } finally {
       setSaving(false);
     }

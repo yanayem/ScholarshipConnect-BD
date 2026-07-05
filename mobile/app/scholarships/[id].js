@@ -16,23 +16,26 @@ import { apiService } from '../../services/api';
 
 const { width, height } = Dimensions.get('window');
 
-const InfoItem = ({ icon, label, value, isLink = false, onPress }) => (
-    <View style={styles.infoItem}>
-        <View style={styles.infoIconBox}>
-            <MaterialIcons name={icon} size={18} color={theme.colors.primary} />
+const InfoItem = ({ icon, label, value, isLink = false, onPress }) => {
+    const displayValue = (value === null || value === undefined || value === '') ? 'N/A' : value;
+    return (
+        <View style={styles.infoItem}>
+            <View style={styles.infoIconBox}>
+                <MaterialIcons name={icon} size={18} color={theme.colors.primary} />
+            </View>
+            <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>{label}</Text>
+                {isLink ? (
+                    <TouchableOpacity onPress={onPress}>
+                        <Text style={[styles.infoValue, { color: theme.colors.primary }]}>{displayValue} 🔗</Text>
+                    </TouchableOpacity>
+                ) : (
+                    <Text style={styles.infoValue} numberOfLines={1}>{displayValue}</Text>
+                )}
+            </View>
         </View>
-        <View style={styles.infoContent}>
-            <Text style={styles.infoLabel}>{label}</Text>
-            {isLink ? (
-                <TouchableOpacity onPress={onPress}>
-                    <Text style={[styles.infoValue, { color: theme.colors.primary }]}>{value} 🔗</Text>
-                </TouchableOpacity>
-            ) : (
-                <Text style={styles.infoValue} numberOfLines={1}>{value}</Text>
-            )}
-        </View>
-    </View>
-);
+    );
+};
 
 export default function ScholarshipDetails() {
   const { id } = useLocalSearchParams();
@@ -143,12 +146,12 @@ export default function ScholarshipDetails() {
                   </View>
                 )}
                 <View style={styles.typeBadge}>
-                    <Text style={styles.typeText}>{details.category ? details.category.toUpperCase() : 'PREMIUM PROGRAM'}</Text>
+                    <Text style={styles.typeText}>{details.category ? details.category.toUpperCase() : 'N/A'}</Text>
                 </View>
-                <Text style={styles.mainTitle}>{details.title}</Text>
+                <Text style={styles.mainTitle}>{details.title || 'N/A'}</Text>
                 <View style={styles.providerRow}>
                     <MaterialIcons name="verified" size={16} color={theme.colors.primary} />
-                    <Text style={styles.providerText}>{details.provider || 'Verified Organization'}</Text>
+                    <Text style={styles.providerText}>{details.provider || 'N/A'}</Text>
                 </View>
             </View>
         </View>
@@ -167,11 +170,11 @@ export default function ScholarshipDetails() {
                     <InfoItem icon="timer" label="Deadline" value={details.deadline} />
                 </View>
                 <View style={styles.infoRow}>
-                    <InfoItem icon="category" label="Category" value={details.category || 'General'} />
-                    <InfoItem icon="grade" label="Min CGPA" value={details.min_cgpa || 'None'} />
+                    <InfoItem icon="category" label="Category" value={details.category} />
+                    <InfoItem icon="grade" label="Min CGPA" value={details.min_cgpa} />
                 </View>
                 <View style={styles.infoRow}>
-                    <InfoItem icon="book" label="Field" value={details.field || 'All Fields'} />
+                    <InfoItem icon="book" label="Field" value={details.field} />
                     <InfoItem
                         icon="language"
                         label="Website"
@@ -189,7 +192,7 @@ export default function ScholarshipDetails() {
                         <View style={styles.titleAccent} />
                         <Text style={styles.sectionTitle}>Scholarship Overview</Text>
                     </View>
-                    <Text style={styles.descriptionText}>{details.description}</Text>
+                    <Text style={styles.descriptionText}>{details.description || 'N/A'}</Text>
                 </View>
 
                 <View style={styles.section}>
@@ -199,7 +202,7 @@ export default function ScholarshipDetails() {
                     </View>
                     <View style={styles.bulletItem}>
                         <MaterialIcons name="check-circle" size={20} color={theme.colors.primary} style={{ marginTop: 2 }} />
-                        <Text style={styles.bulletText}>{details.eligibility}</Text>
+                        <Text style={styles.bulletText}>{details.eligibility || 'N/A'}</Text>
                     </View>
                 </View>
 
@@ -265,8 +268,8 @@ const styles = StyleSheet.create({
   circleBtn: {
     width: 44,
     height: 44,
-    borderRadius: 0,
-    backgroundColor: 'rgba(255, 255, 255, 1)', // Solid white for buttons
+    borderRadius: theme.borderRadius.full,
+    backgroundColor: theme.colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
     ...theme.shadows.soft,
@@ -290,7 +293,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 0,
+    borderRadius: theme.borderRadius.md,
     alignSelf: 'flex-start',
     marginBottom: 12,
     borderWidth: 1,
@@ -303,9 +306,9 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
   },
   mainTitle: {
-    fontSize: 32, // Larger and bolder
+    fontSize: 32,
     fontFamily: theme.typography.fontFamily.bold,
-    color: '#FFFFFF',
+    color: theme.colors.white,
     lineHeight: 40,
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: {width: 0, height: 2},
@@ -318,23 +321,24 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   providerText: {
-    color: '#FFFFFF', // Pure white for better visibility
+    color: theme.colors.white,
     fontSize: 16,
     fontFamily: theme.typography.fontFamily.semiBold,
   },
   contentCard: {
     marginTop: -30,
     backgroundColor: theme.colors.surface,
-    borderRadius: 0,
+    borderTopLeftRadius: theme.borderRadius.xxl,
+    borderTopRightRadius: theme.borderRadius.xxl,
     padding: 24,
     flex: 1,
     ...theme.shadows.premium,
   },
   infoGrid: {
     marginBottom: 32,
-    backgroundColor: '#F0F9F8', // Slightly lighter tint for contrast with text
+    backgroundColor: theme.colors.tealCard,
     padding: 20,
-    borderRadius: 0,
+    borderRadius: theme.borderRadius.lg,
     borderWidth: 1,
     borderColor: theme.colors.primaryLight,
   },
@@ -351,8 +355,8 @@ const styles = StyleSheet.create({
   infoIconBox: {
     width: 42,
     height: 42,
-    borderRadius: 0,
-    backgroundColor: '#fff',
+    borderRadius: theme.borderRadius.md,
+    backgroundColor: theme.colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
@@ -390,18 +394,18 @@ const styles = StyleSheet.create({
     width: 6,
     height: 24,
     backgroundColor: theme.colors.primary,
-    borderRadius: 0,
+    borderRadius: theme.borderRadius.xs,
     marginRight: 12,
   },
   sectionTitle: {
-    fontSize: 22, // Larger
+    fontSize: 22,
     fontFamily: theme.typography.fontFamily.bold,
     color: theme.colors.heading,
   },
   descriptionText: {
-    fontSize: 17, // Increased size for readability
+    fontSize: 17,
     fontFamily: theme.typography.fontFamily.regular,
-    color: '#222222', // Darker text
+    color: theme.colors.textPrimary,
     lineHeight: 28,
   },
   bulletItem: {
@@ -410,7 +414,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     backgroundColor: theme.colors.primaryLight,
     padding: 20,
-    borderRadius: 0,
+    borderRadius: theme.borderRadius.md,
     borderLeftWidth: 6,
     borderLeftColor: theme.colors.primary,
   },
@@ -423,9 +427,9 @@ const styles = StyleSheet.create({
   },
   alertBox: {
     flexDirection: 'row',
-    backgroundColor: '#F8F9FA',
+    backgroundColor: theme.colors.secondaryBackground,
     padding: 18,
-    borderRadius: 0,
+    borderRadius: theme.borderRadius.md,
     alignItems: 'center',
     gap: 14,
     marginTop: 8,
@@ -433,9 +437,9 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   alertText: {
-    fontSize: 14, // Increased size
+    fontSize: 14,
     fontFamily: theme.typography.fontFamily.medium,
-    color: '#444444',
+    color: theme.colors.textPrimary,
     flex: 1,
     lineHeight: 22,
   },
@@ -444,7 +448,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.surface,
     padding: 20,
     paddingBottom: 34,
     flexDirection: 'row',
@@ -464,7 +468,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   footerDate: {
-    fontSize: 20, // Increased size
+    fontSize: 20,
     fontFamily: theme.typography.fontFamily.bold,
     color: theme.colors.error,
   },
@@ -472,14 +476,14 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
     paddingHorizontal: 32,
     paddingVertical: 18,
-    borderRadius: 0,
+    borderRadius: theme.borderRadius.md,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
   applyBtnText: {
-    color: '#fff',
-    fontSize: 18, // Increased size
+    color: theme.colors.white,
+    fontSize: 18,
     fontFamily: theme.typography.fontFamily.bold,
   },
 });

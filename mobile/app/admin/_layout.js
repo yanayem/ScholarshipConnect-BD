@@ -5,6 +5,7 @@ import { theme } from '../../theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import AdminToast from '../../components/AdminToast';
 
 function AdminSidebar() {
   const router = useRouter();
@@ -110,6 +111,7 @@ export default function AdminLayout() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <AdminToast />
       <View style={styles.wrapper}>
         {isDesktop && pathname !== '/admin/login' && <AdminSidebar />}
         <View style={styles.mainContent}>
@@ -126,6 +128,7 @@ export default function AdminLayout() {
             <Stack.Screen name="index" options={{ title: 'Admin Dashboard' }} />
             <Stack.Screen name="login" options={{ title: 'Security Login', headerShown: false }} />
             <Stack.Screen name="scholarships" options={{ title: 'Manage Scholarships' }} />
+            <Stack.Screen name="edit-scholarship" options={{ title: 'Edit Scholarship' }} />
             <Stack.Screen name="users" options={{ title: 'User Management' }} />
             <Stack.Screen name="settings" options={{ title: 'Admin Settings' }} />
           </Stack>

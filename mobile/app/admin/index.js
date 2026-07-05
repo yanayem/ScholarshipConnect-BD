@@ -9,21 +9,16 @@ import React from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
   Pressable, StatusBar, Dimensions,
-  TouchableOpacity, ToastAndroid, Platform, Alert
+  TouchableOpacity, Platform
 } from 'react-native';
 import { theme } from '../../theme';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { showToast } from '../../components/AdminToast';
 
 const { width } = Dimensions.get('window');
 
-const showToast = (message) => {
-  if (Platform.OS === 'android') {
-    ToastAndroid.show(message, ToastAndroid.SHORT);
-  } else {
-    Alert.alert('Admin Info', message);
-  }
-};
+
 
 const MetricCard = ({ title, value, icon, subValue, subColor, onPress }) => (
   <TouchableOpacity

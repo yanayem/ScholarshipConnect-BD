@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import Scholarship
 
 class ScholarshipSerializer(serializers.ModelSerializer):
+    submitter_email = serializers.ReadOnlyField(source='submitted_by.email')
+    
     class Meta:
         model = Scholarship
         fields = '__all__'
