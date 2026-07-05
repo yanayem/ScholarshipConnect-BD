@@ -1,29 +1,38 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, ScrollView,
-  TouchableOpacity, StyleSheet, StatusBar,
+  TouchableOpacity, StyleSheet, StatusBar, ActivityIndicator
 } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { theme } from '../../theme';
+import { apiService } from '../../services/api';
 
-const FEATURED = [
-  { id: '1', title: 'Japanese Government (MEXT) Scholarship', country: '🇯🇵 Japan', level: 'Masters / PhD', deadline: 'May 2025', amount: 'Full Funded', tag: 'Hot' },
-  { id: '2', title: 'Chevening Scholarship UK', country: '🇬🇧 United Kingdom', level: 'Masters', deadline: 'Nov 2025', amount: 'Full Funded', tag: 'Popular' },
-  { id: '3', title: 'Erasmus Mundus Joint Masters', country: '🇪🇺 Europe', level: 'Masters', deadline: 'Jan 2026', amount: 'Full Funded', tag: 'New' },
-  { id: '4', title: 'DAAD Scholarship Germany', country: '🇩🇪 Germany', level: 'Masters / PhD', deadline: 'Oct 2025', amount: 'Full Funded', tag: '' },
-];
-
-const ANNOUNCEMENTS = [
-  { id: '1', text: 'MEXT 2025 application window is now open!', time: '2h ago' },
-  { id: '2', text: 'New Australian Awards scholarships added.', time: '1d ago' },
-  { id: '3', text: 'Chevening deadline extended to Nov 5.', time: '3d ago' },
-];
+const ANNOUNCEMENTS = [];
 
 const tagColor = { Hot: theme.colors.error, Popular: theme.colors.primary, New: theme.colors.success };
 
 export default function HomeScreen() {
   const [search, setSearch] = useState('');
+  const [featured, setFeatured] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadFeatured = async () => {
+      try {
+        const res = await apiService.getScholarships();
+        if (res.ok && res.data) {
+          const featuredOnly = res.data.filter(s => s.is_featured === true);
+          setFeatured(featuredOnly);
+        }
+      } catch (error) {
+        console.error('Failed to load featured scholarships', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadFeatured();
+  }, []);
 
   const statCards = [
     { icon: 'school', label: '500+', sub: 'Scholarships', bg: theme.colors.tealCard },
@@ -91,20 +100,22 @@ export default function HomeScreen() {
 
         {/* Featured Scholarships */}
         <Text style={styles.sectionTitle}>Featured Scholarships</Text>
-        {FEATURED.filter(s =>
+        {loading ? (
+          <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginVertical: 20 }} />
+        ) : featured.filter(s =>
           s.title.toLowerCase().includes(search.toLowerCase())
         ).map(item => (
           <TouchableOpacity
             key={item.id}
             style={styles.card}
             activeOpacity={0.85}
-            onPress={() => router.push(`/scholarship/${item.id}`)}
+            onPress={() => router.push(`/scholarships/${item.id}`)}
           >
             <View style={styles.cardTop}>
               <Text style={styles.cardTitle}>{item.title}</Text>
-              {item.tag ? (
-                <View style={[styles.tag, { backgroundColor: tagColor[item.tag] }]}>
-                  <Text style={styles.tagText}>{item.tag}</Text>
+              {item.is_featured ? (
+                <View style={[styles.tag, { backgroundColor: tagColor['Hot'] }]}>
+                  <Text style={styles.tagText}>Hot</Text>
                 </View>
               ) : null}
             </View>
@@ -123,18 +134,25 @@ export default function HomeScreen() {
             </View>
           </TouchableOpacity>
         ))}
+        {!loading && featured.length === 0 && (
+          <Text style={{ textAlign: 'center', color: theme.colors.textSecondary, marginTop: 10 }}>No featured scholarships available.</Text>
+        )}
 
         {/* Announcements */}
-        <Text style={styles.sectionTitle}>Latest Announcements</Text>
-        {ANNOUNCEMENTS.map(a => (
-          <View key={a.id} style={[styles.announcementCard, { backgroundColor: theme.colors.mintCard }]}>
-            <MaterialIcons name="info-outline" size={20} color={theme.colors.primary} />
-            <View style={{ flex: 1, marginLeft: 10 }}>
-              <Text style={styles.annoText}>{a.text}</Text>
-              <Text style={styles.annoTime}>{a.time}</Text>
-            </View>
-          </View>
-        ))}
+        {ANNOUNCEMENTS.length > 0 && (
+          <>
+            <Text style={styles.sectionTitle}>Latest Announcements</Text>
+            {ANNOUNCEMENTS.map(a => (
+              <View key={a.id} style={[styles.announcementCard, { backgroundColor: theme.colors.mintCard }]}>
+                <MaterialIcons name="info-outline" size={20} color={theme.colors.primary} />
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={styles.annoText}>{a.text}</Text>
+                  <Text style={styles.annoTime}>{a.time}</Text>
+                </View>
+              </View>
+            ))}
+          </>
+        )}
 
         <View style={{ height: 20 }} />
       </ScrollView>

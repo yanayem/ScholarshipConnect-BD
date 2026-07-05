@@ -39,40 +39,30 @@ export default function ScholarshipDetails() {
   const [details, setDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const loadDetails = async () => {
+    const loadData = async () => {
       try {
-        const res = await apiService.getScholarshipDetail(id);
-        if (res.ok) {
+        const [res, staffStatus] = await Promise.all([
+          apiService.getScholarshipDetail(id),
+          apiService.isStaff()
+        ]);
+
+        if (res.ok && res.data) {
           setDetails(res.data);
+          setIsAdmin(staffStatus);
         } else {
-          // Fallback data
-          setDetails({
-            id: id,
-            title: 'Japanese Government (MEXT) Research Scholarship 2025',
-            provider: 'Ministry of Education, Japan',
-            country: 'Japan',
-            level: 'Masters / PhD',
-            amount: 'Fully Funded (143,000 JPY/mo)',
-            deadline: '2025-05-15',
-            category: 'Government',
-            min_cgpa: '3.80',
-            field: 'All Fields',
-            official_link: 'https://www.mext.go.jp/en/',
-            image_url: 'https://images.unsplash.com/photo-1526232759583-d6f44a7a4710?w=800',
-            description: 'The Ministry of Education, Culture, Sports, Science and Technology (MEXT) of Japan offers scholarships to international students who wish to study in graduate courses at Japanese universities.',
-            eligibility: 'Must be a Bangladeshi citizen, under 35 years of age, and have completed 16 years of education.',
-            benefits: 'Tuition fees, monthly stipend, and round-trip airfare included.',
-          });
+          setDetails(null);
         }
       } catch (error) {
         console.error(error);
+        setDetails(null);
       } finally {
         setLoading(false);
       }
     };
-    loadDetails();
+    loadData();
   }, [id]);
 
   const onShare = async () => {
@@ -90,6 +80,17 @@ export default function ScholarshipDetails() {
     return (
       <View style={styles.loader}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
+
+  if (!details) {
+    return (
+      <View style={styles.loader}>
+        <Text style={{ color: theme.colors.textSecondary, fontSize: 16 }}>Scholarship not found.</Text>
+        <TouchableOpacity style={{ marginTop: 20 }} onPress={() => router.back()}>
+          <Text style={{ color: theme.colors.primary, fontWeight: 'bold' }}>Go Back</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -136,6 +137,11 @@ export default function ScholarshipDetails() {
             </View>
 
             <View style={styles.heroContent}>
+                {isAdmin && (
+                  <View style={[styles.statusBadge, { backgroundColor: details.status === 'active' ? theme.colors.success : theme.colors.warning }]}>
+                    <Text style={styles.statusText}>ADMIN: {details.status.toUpperCase()}</Text>
+                  </View>
+                )}
                 <View style={styles.typeBadge}>
                     <Text style={styles.typeText}>{details.category ? details.category.toUpperCase() : 'PREMIUM PROGRAM'}</Text>
                 </View>
@@ -197,19 +203,6 @@ export default function ScholarshipDetails() {
                     </View>
                 </View>
 
-                <View style={styles.section}>
-                    <View style={styles.sectionHeader}>
-                        <View style={styles.titleAccent} />
-                        <Text style={styles.sectionTitle}>Key Benefits</Text>
-                    </View>
-                    <View style={styles.benefitsCard}>
-                        <View style={styles.benefitsIconBox}>
-                            <MaterialIcons name="stars" size={24} color={theme.colors.primary} />
-                        </View>
-                        <Text style={styles.benefitsText}>{details.benefits}</Text>
-                    </View>
-                </View>
-
                 {/* Important Alert */}
                 <View style={styles.alertBox}>
                     <Ionicons name="information-circle" size={22} color={theme.colors.primary} />
@@ -246,20 +239,19 @@ const styles = StyleSheet.create({
   loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   scroll: { flexGrow: 1 },
   heroSection: {
-    height: height * 0.4,
+    height: height * 0.45,
     justifyContent: 'flex-end',
-    padding: 20,
+    padding: 24,
     position: 'relative',
   },
   heroBg: {
     ...StyleSheet.absoluteFillObject,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
+    borderRadius: 0,
     overflow: 'hidden',
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.88)',
+    backgroundColor: 'rgba(21, 78, 71, 0.7)', // Darker teal overlay for maximum text contrast
   },
   headerActions: {
     position: 'absolute',
@@ -274,65 +266,82 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    backgroundColor: 'rgba(255, 255, 255, 1)', // Solid white for buttons
     justifyContent: 'center',
     alignItems: 'center',
+    ...theme.shadows.soft,
   },
   heroContent: {
-    marginBottom: 16,
+    marginBottom: 32,
   },
-  typeBadge: {
-    backgroundColor: theme.colors.primary,
+  statusBadge: {
+    alignSelf: 'flex-start',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 0,
-    alignSelf: 'flex-start',
-    marginBottom: 8,
+    borderRadius: 4,
+    marginBottom: 10,
   },
-  typeText: {
+  statusText: {
     color: '#fff',
     fontSize: 10,
     fontFamily: theme.typography.fontFamily.bold,
-    letterSpacing: 1,
+  },
+  typeBadge: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 0,
+    alignSelf: 'flex-start',
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  typeText: {
+    color: '#fff',
+    fontSize: 12, // Increased size
+    fontFamily: theme.typography.fontFamily.bold,
+    letterSpacing: 1.2,
   },
   mainTitle: {
-    fontSize: 26,
+    fontSize: 32, // Larger and bolder
     fontFamily: theme.typography.fontFamily.bold,
-    color: theme.colors.heading,
-    lineHeight: 34,
+    color: '#FFFFFF',
+    lineHeight: 40,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: {width: 0, height: 2},
+    textShadowRadius: 4
   },
   providerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
-    gap: 6,
+    marginTop: 12,
+    gap: 8,
   },
   providerText: {
-    color: theme.colors.textSecondary,
-    fontSize: 14,
-    fontFamily: theme.typography.fontFamily.medium,
+    color: '#FFFFFF', // Pure white for better visibility
+    fontSize: 16,
+    fontFamily: theme.typography.fontFamily.semiBold,
   },
   contentCard: {
-    marginTop: -40,
+    marginTop: -30,
     backgroundColor: theme.colors.surface,
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-    padding: 20,
+    borderRadius: 0,
+    padding: 24,
     flex: 1,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.divider,
+    ...theme.shadows.premium,
   },
   infoGrid: {
-    marginBottom: 24,
-    backgroundColor: theme.colors.background,
-    padding: 12,
+    marginBottom: 32,
+    backgroundColor: '#F0F9F8', // Slightly lighter tint for contrast with text
+    padding: 20,
+    borderRadius: 0,
     borderWidth: 1,
-    borderColor: theme.colors.divider,
+    borderColor: theme.colors.primaryLight,
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 20,
   },
   infoItem: {
     flexDirection: 'row',
@@ -340,119 +349,95 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   infoIconBox: {
-    width: 32,
-    height: 32,
+    width: 42,
+    height: 42,
     borderRadius: 0,
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
+    marginRight: 10,
     borderWidth: 1,
-    borderColor: theme.colors.divider,
+    borderColor: theme.colors.border,
   },
   infoContent: {
     flex: 1,
   },
   infoLabel: {
-    fontSize: 10,
-    fontFamily: theme.typography.fontFamily.medium,
+    fontSize: 12, // Increased size
+    fontFamily: theme.typography.fontFamily.bold,
     color: theme.colors.textSecondary,
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   infoValue: {
-    fontSize: 13,
+    fontSize: 16, // Increased size
     fontFamily: theme.typography.fontFamily.bold,
     color: theme.colors.heading,
-    marginTop: 1,
+    marginTop: 2,
   },
   detailsContainer: {
-    gap: 20,
+    gap: 32,
   },
   section: {
-    marginBottom: 4,
+    marginBottom: 8,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 16,
   },
   titleAccent: {
-    width: 4,
-    height: 18,
+    width: 6,
+    height: 24,
     backgroundColor: theme.colors.primary,
-    marginRight: 8,
+    borderRadius: 0,
+    marginRight: 12,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 22, // Larger
     fontFamily: theme.typography.fontFamily.bold,
     color: theme.colors.heading,
   },
   descriptionText: {
-    fontSize: 15,
+    fontSize: 17, // Increased size for readability
     fontFamily: theme.typography.fontFamily.regular,
-    color: theme.colors.textPrimary,
-    lineHeight: 24,
+    color: '#222222', // Darker text
+    lineHeight: 28,
   },
   bulletItem: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
     alignItems: 'flex-start',
     backgroundColor: theme.colors.primaryLight,
-    padding: 16,
+    padding: 20,
     borderRadius: 0,
-    borderLeftWidth: 4,
+    borderLeftWidth: 6,
     borderLeftColor: theme.colors.primary,
   },
   bulletText: {
-    fontSize: 14,
+    fontSize: 16, // Increased size
     fontFamily: theme.typography.fontFamily.medium,
     color: theme.colors.textPrimary,
     flex: 1,
-    lineHeight: 22,
-  },
-  benefitsCard: {
-    backgroundColor: theme.colors.mintCard,
-    padding: 16,
-    borderRadius: 0,
-    flexDirection: 'row',
-    gap: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.colors.divider,
-  },
-  benefitsIconBox: {
-    width: 44,
-    height: 44,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.colors.divider,
-  },
-  benefitsText: {
-    fontSize: 14,
-    fontFamily: theme.typography.fontFamily.semiBold,
-    color: theme.colors.primaryDark,
-    flex: 1,
-    lineHeight: 22,
+    lineHeight: 26,
   },
   alertBox: {
     flexDirection: 'row',
-    backgroundColor: theme.colors.secondaryBackground,
-    padding: 16,
+    backgroundColor: '#F8F9FA',
+    padding: 18,
     borderRadius: 0,
     alignItems: 'center',
-    gap: 12,
-    marginTop: 10,
+    gap: 14,
+    marginTop: 8,
     borderWidth: 1,
-    borderColor: theme.colors.divider,
+    borderColor: theme.colors.border,
   },
   alertText: {
-    fontSize: 12,
+    fontSize: 14, // Increased size
     fontFamily: theme.typography.fontFamily.medium,
-    color: theme.colors.textSecondary,
+    color: '#444444',
     flex: 1,
-    lineHeight: 18,
+    lineHeight: 22,
   },
   footer: {
     position: 'absolute',
@@ -460,41 +445,41 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: '#fff',
-    padding: 16,
-    paddingBottom: 20,
+    padding: 20,
+    paddingBottom: 34,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderTopWidth: 1,
+    borderTopWidth: 2,
     borderTopColor: theme.colors.divider,
+    ...theme.shadows.premium,
   },
   footerLeft: {
     flex: 1,
   },
   footerLabel: {
-    fontSize: 11,
-    fontFamily: theme.typography.fontFamily.medium,
+    fontSize: 12,
+    fontFamily: theme.typography.fontFamily.bold,
     color: theme.colors.textSecondary,
     marginBottom: 4,
   },
   footerDate: {
-    fontSize: 16,
+    fontSize: 20, // Increased size
     fontFamily: theme.typography.fontFamily.bold,
     color: theme.colors.error,
   },
   applyBtn: {
     backgroundColor: theme.colors.primary,
-    paddingHorizontal: 28,
-    paddingVertical: 16,
+    paddingHorizontal: 32,
+    paddingVertical: 18,
     borderRadius: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    ...theme.shadows.teal,
+    gap: 12,
   },
   applyBtnText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18, // Increased size
     fontFamily: theme.typography.fontFamily.bold,
   },
 });

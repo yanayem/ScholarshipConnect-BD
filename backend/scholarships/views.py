@@ -9,29 +9,27 @@ class ScholarshipListCreateView(generics.ListCreateAPIView):
     serializer_class = ScholarshipSerializer
 
     def get_queryset(self):
-        # Regular users only see active ones
-        if self.request.user.is_staff:
-            queryset = Scholarship.objects.all().order_by('-created_at')
+        user = self.request.user
+        
+        status_param = self.request.query_params.get('status')
+        
+        if user.is_authenticated and user.is_staff and status_param:
+            queryset = Scholarship.objects.filter(status=status_param).order_by('-created_at')
         else:
+            # Everyone (including staff by default) gets active scholarships
             queryset = Scholarship.objects.filter(status='active').order_by('-created_at')
         
-        # Filtering
         country = self.request.query_params.get('country')
-        category = self.request.query_params.get('category')
-        level = self.request.query_params.get('level')
-        is_featured = self.request.query_params.get('is_featured')
-        status_param = self.request.query_params.get('status')
-
-        if country:
+        if country and country.lower() != 'all':
             queryset = queryset.filter(country__icontains=country)
-        if category:
+            
+        category = self.request.query_params.get('category')
+        if category and category.lower() != 'all':
             queryset = queryset.filter(category__icontains=category)
-        if level:
+            
+        level = self.request.query_params.get('level')
+        if level and level.lower() != 'all':
             queryset = queryset.filter(level__icontains=level)
-        if is_featured:
-            queryset = queryset.filter(is_featured=is_featured.lower() == 'true')
-        if status_param and self.request.user.is_staff:
-            queryset = queryset.filter(status=status_param)
             
         return queryset
 
@@ -41,17 +39,19 @@ class ScholarshipListCreateView(generics.ListCreateAPIView):
         return [permissions.IsAuthenticated()]
 
     def perform_create(self, serializer):
-        # If user is admin, make it active immediately. Otherwise, pending.
-        status = 'active' if self.request.user.is_staff else 'pending'
-        serializer.save(submitted_by=self.request.user, status=status)
+        user = self.request.user
+        serializer.save(submitted_by=user, status='pending')
 
 class ScholarshipApproveView(APIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, pk):
+        if not request.user.is_staff:
+            return Response({"error": "Staff access required."}, status=status.HTTP_403_FORBIDDEN)
+
         try:
             scholarship = Scholarship.objects.get(pk=pk)
-            action = request.data.get('action') # 'approve' or 'reject'
+            action = request.data.get('action')
             
             if action == 'approve':
                 scholarship.status = 'active'
@@ -97,17 +97,12 @@ class EligibilityCheckView(APIView):
         if not profile:
             return Response({"error": "User profile not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Base queryset: only upcoming scholarships
         from django.utils import timezone
-        queryset = Scholarship.objects.filter(deadline__gte=timezone.now().date())
+        queryset = Scholarship.objects.filter(deadline__gte=timezone.now().date(), status='active')
 
-        # Match CGPA (User CGPA must be >= Scholarship min_cgpa)
         if profile.cgpa is not None:
             queryset = queryset.filter(models.Q(min_cgpa__lte=profile.cgpa) | models.Q(min_cgpa__isnull=True))
 
-        # Match Academic Level (e.g. if user is at Bachelors, they look for Masters scholarships)
-        # Or more simply, match the level exactly if that's how it's mapped.
-        # Let's do a case-insensitive match for level.
         if profile.academic_level:
             queryset = queryset.filter(level__icontains=profile.academic_level)
 

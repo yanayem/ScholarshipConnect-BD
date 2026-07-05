@@ -21,7 +21,7 @@ export default function ScholarshipsScreen() {
   const [search, setSearch] = useState('');
   const [country, setCountry] = useState('All');
   const [level, setLevel] = useState('All');
-  const [bookmarks, setBookmarks] = useState(['4']);
+  const [bookmarks, setBookmarks] = useState([]);
   const [scholarships, setScholarships] = useState([]);
 
   useEffect(() => {
@@ -78,7 +78,7 @@ export default function ScholarshipsScreen() {
           </View>
           <TouchableOpacity
             style={styles.submitBtnHeader}
-            onPress={() => router.push('/admin/add-scholarship')}
+            onPress={() => router.push('/add-scholarship')}
           >
             <MaterialIcons name="add-circle" size={24} color={theme.colors.primary} />
             <Text style={styles.submitTextHeader}>Submit</Text>

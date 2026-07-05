@@ -25,10 +25,10 @@ const showToast = (message) => {
   }
 };
 
-const MetricCard = ({ title, value, icon, subValue, subColor }) => (
+const MetricCard = ({ title, value, icon, subValue, subColor, onPress }) => (
   <TouchableOpacity
     style={[styles.metricCard, theme.shadows.soft]}
-    onPress={() => showToast(`${title} details coming soon!`)}
+    onPress={onPress || (() => showToast(`${title} details coming soon!`))}
   >
     <View style={styles.metricHeader}>
       <View style={[styles.metricIcon, { backgroundColor: theme.colors.primaryLight }]}>
@@ -83,28 +83,29 @@ export default function AdminDashboard() {
         <View style={styles.metricsGrid}>
           <MetricCard
             title="Total Programs"
-            value="1,420"
+            value="0"
             icon="school"
-            subValue="+24 this week"
+            subValue="---"
           />
           <MetricCard
             title="Active Scholars"
-            value="8,540"
+            value="0"
             icon="people-outline"
-            subValue="+15% growth"
+            subValue="---"
           />
           <MetricCard
             title="Pending Approval"
-            value="42"
+            value="0"
             icon="pending"
-            subValue="Requires action"
+            subValue="---"
             subColor={theme.colors.warning}
+            onPress={() => router.push('/admin/scholarships')}
           />
           <MetricCard
             title="Platform Reach"
-            value="125k"
+            value="0"
             icon="public"
-            subValue="+5k impressions"
+            subValue="---"
           />
         </View>
 
@@ -122,7 +123,7 @@ export default function AdminDashboard() {
 
           <TouchableOpacity
             style={[styles.actionBtn, { backgroundColor: theme.colors.heading }]}
-            onPress={() => router.push('/admin/add-scholarship')}
+            onPress={() => router.push('/add-scholarship')}
           >
             <View style={styles.actionIconCircle}>
               <MaterialIcons name="add" size={24} color={theme.colors.heading} />
@@ -147,11 +148,7 @@ export default function AdminDashboard() {
             <TouchableOpacity onPress={() => showToast('Viewing all applications')}><Text style={styles.seeAll}>See All</Text></TouchableOpacity>
           </View>
 
-          {[
-            { user: 'Rahat Islam', program: 'MEXT Japan 2025', date: '2 mins ago', status: 'New' },
-            { user: 'Sultana Ahmed', program: 'Chevening UK', date: '1 hour ago', status: 'Reviewing' },
-            { user: 'Tanvir Hossain', program: 'DAAD Germany', date: '3 hours ago', status: 'New' },
-          ].map((item, i) => (
+          {[].map((item, i) => (
             <TouchableOpacity
               key={i}
               style={[styles.activityCard, theme.shadows.soft]}
@@ -176,6 +173,7 @@ export default function AdminDashboard() {
               </View>
             </TouchableOpacity>
           ))}
+          <Text style={{ textAlign: 'center', color: theme.colors.textSecondary, marginTop: 10 }}>No recent applications.</Text>
         </View>
 
         <TouchableOpacity

@@ -192,7 +192,7 @@ export default function ManageScholarships() {
 
         <TouchableOpacity
           style={styles.addButton}
-          onPress={() => router.push('/admin/add-scholarship')}
+          onPress={() => router.push('/add-scholarship')}
         >
           <MaterialIcons name="add" size={22} color="white" />
         </TouchableOpacity>

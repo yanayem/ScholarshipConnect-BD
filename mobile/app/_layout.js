@@ -15,6 +15,24 @@ import {
 } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
+import { initializeApp, getApps } from 'firebase/app';
+
+// Firebase configuration for Web fallback
+const firebaseConfig = {
+  apiKey: "AIzaSyB2nt8ujKLj6rDUN6GwyOK36BZaJ_dxBwM",
+  authDomain: "scholarships-bd.firebaseapp.com",
+  projectId: "scholarships-bd",
+  storageBucket: "scholarships-bd.firebasestorage.app",
+  messagingSenderId: "1092212923801",
+  appId: "1:1092212923801:web:230adde622f8daecf0c708",
+  measurementId: "G-FX0EV392R7"
+};
+
+// Initialize Firebase for all platforms (Native fallback to Web SDK)
+if (getApps().length === 0) {
+  initializeApp(firebaseConfig);
+}
 
 SplashScreen.preventAutoHideAsync();
 

@@ -176,6 +176,26 @@ FIREBASE_SERVICE_ACCOUNT_KEY=path/to/your/firebase-service-account.json
 
 ---
 
+## 🔒 Security & Verification
+
+### 🛡️ Scholarship Verification System
+To maintain the quality and authenticity of data, the platform implements a dual-layer verification flow:
+1. **User Submission**: Any registered user can contribute by submitting a scholarship. These are initially marked as **`Pending`**.
+2. **Admin Review**: Staff members review pending submissions in the **Admin Portal**.
+3. **Activation**: Only after admin approval does a scholarship become **`Active`** and visible to the global community.
+
+### 🔑 Advanced Admin Security
+The Admin Portal (`/admin`) features a secondary layer of protection:
+- **Session Verification**: Accessing administrative routes requires a dedicated **Security Password** login.
+- **Role-based UI**: The Admin Dashboard and "Approve/Reject" controls are only visible and accessible to verified staff accounts.
+
+### 🔥 Firebase Authentication
+The app uses **Firebase SDK** for robust cross-platform authentication:
+- **Real-time Sync**: Automatic profile creation in the Django backend upon Firebase signup.
+- **ID Token Verification**: The backend verifies Firebase-issued JWT tokens for every API request, ensuring top-tier security.
+
+---
+
 ## 🤝 Team
 - **Developer**: ScholarshipConnectBD Team
 - **Status**: Phase 2 Complete (Advanced Features & Modern UI)

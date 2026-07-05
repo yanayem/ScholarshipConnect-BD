@@ -21,30 +21,11 @@ export default function ProfileScreen() {
       if (res && res.ok) {
         setUser(res.data);
       } else {
-        setUser({
-          username: 'admin',
-          email: 'admin@scholarshipconnect.bd',
-          full_name: 'Administrator (Test)',
-          phone_number: '017XXXXXXXX',
-          university: 'ScholarshipConnect Institute',
-          department: 'Development',
-          cgpa: '4.00',
-          academic_level: 'Masters',
-          profile_picture: null,
-        });
+        setUser(null);
       }
     } catch (error) {
-      setUser({
-        username: 'admin',
-        email: 'admin@scholarshipconnect.bd',
-        full_name: 'Administrator (Offline)',
-        phone_number: '017XXXXXXXX',
-        university: 'Local Host University',
-        department: 'Computer Science',
-        cgpa: '3.90',
-        academic_level: 'Bachelors',
-        profile_picture: null,
-      });
+      console.error('Failed to fetch profile', error);
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -240,6 +221,21 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
+
+        {user?.is_staff && (
+          <TouchableOpacity
+            style={[styles.adminBtn, theme.shadows.soft]}
+            onPress={() => router.push('/admin')}
+          >
+            <MaterialIcons name="admin-panel-settings" size={24} color="#fff" />
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <Text style={styles.adminBtnTitle}>Admin Portal</Text>
+              <Text style={styles.adminBtnSub}>System Management & Controls</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={24} color="#fff" />
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity
           style={styles.logoutBtn}
           onPress={async () => {
@@ -311,6 +307,24 @@ const styles = StyleSheet.create({
   },
   socialIconDisabled: { opacity: 0.6 },
   socialText: { fontSize: 12, fontWeight: '600', color: theme.colors.textPrimary },
+  adminBtn: {
+    backgroundColor: theme.colors.heading,
+    borderRadius: theme.borderRadius.base,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  adminBtnTitle: {
+    color: '#fff',
+    fontFamily: theme.typography.fontFamily.bold,
+    fontSize: 16,
+  },
+  adminBtnSub: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 12,
+    marginTop: 2,
+  },
   logoutBtn: {
     backgroundColor: theme.colors.surface, borderRadius: theme.borderRadius.base, paddingVertical: 18,
     flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10,

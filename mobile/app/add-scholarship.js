@@ -5,12 +5,12 @@ import {
   Platform, Alert, Modal, TouchableOpacity,
   ToastAndroid
 } from 'react-native';
-import { theme } from '../../theme';
+import { theme } from '../theme';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
 
-import { apiService } from '../../services/api';
+import { apiService } from '../services/api';
 
 const InputField = ({ label, value, onChangeText, name, placeholder, multiline = false, numberOfLines = 1, keyboardType = 'default' }) => (
   <View style={styles.inputContainer}>
@@ -57,29 +57,38 @@ export default function AddScholarship() {
       return;
     }
     try {
-      // Prepare data for submission
-      const payload = {
-        ...formData,
-        min_cgpa: formData.min_cgpa === '' ? 0.00 : parseFloat(formData.min_cgpa)
-      };
+      // Prepare data for submission: clean up empty strings for optional fields
+      const payload = {};
+      Object.keys(formData).forEach(key => {
+        if (formData[key] !== '' || key === 'title' || key === 'deadline') {
+           payload[key] = formData[key];
+        }
+      });
+
+      // Handle min_cgpa conversion
+      if (payload.min_cgpa) {
+        payload.min_cgpa = parseFloat(payload.min_cgpa);
+      } else {
+        payload.min_cgpa = 0.00;
+      }
 
       const res = await apiService.addScholarship(payload);
       if (res.ok) {
         if (Platform.OS === 'android') {
-          ToastAndroid.show('Scholarship added successfully!', ToastAndroid.LONG);
+          ToastAndroid.show('Scholarship submitted for review!', ToastAndroid.LONG);
         } else {
-          Alert.alert('Success', 'Scholarship added successfully');
+          Alert.alert('Success', 'Scholarship submitted for review');
         }
 
-        // Return to the previous screen (Admin Dashboard)
+        // Return to the previous screen
         if (router.canGoBack()) {
           router.back();
         } else {
-          router.replace('/(tabs)');
+          router.replace('/(tabs)/scholarships');
         }
       } else {
         // More robust error handling
-        let errorMsg = 'Failed to add scholarship';
+        let errorMsg = 'Failed to submit scholarship';
         if (res.data) {
           if (typeof res.data === 'object') {
             errorMsg = Object.entries(res.data)
@@ -104,13 +113,15 @@ export default function AddScholarship() {
     >
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Pressable onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')} style={styles.backButton}>
+          <Pressable onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/scholarships')} style={styles.backButton}>
             <MaterialIcons name="arrow-back" size={24} color={theme.colors.textPrimary} />
           </Pressable>
-          <Text style={styles.headerTitle}>Add New Scholarship</Text>
+          <Text style={styles.headerTitle}>Submit Scholarship</Text>
         </View>
 
         <View style={styles.formCard}>
+          <Text style={styles.hintText}>Shared scholarships will be reviewed by admins before becoming public.</Text>
+
           <InputField
             label="Scholarship Title *"
             name="title"
@@ -166,9 +177,9 @@ export default function AddScholarship() {
             animationType="slide"
             onRequestClose={() => setShowCalendar(false)}
           >
-            <TouchableOpacity 
-              style={styles.modalOverlay} 
-              activeOpacity={1} 
+            <TouchableOpacity
+              style={styles.modalOverlay}
+              activeOpacity={1}
               onPress={() => setShowCalendar(false)}
             >
               <View style={styles.calendarModalContent}>
@@ -294,7 +305,7 @@ export default function AddScholarship() {
             ]}
             onPress={handleSubmit}
           >
-            <Text style={styles.submitButtonText}>Create Scholarship</Text>
+            <Text style={styles.submitButtonText}>Submit Scholarship</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -329,6 +340,13 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.xl,
     padding: theme.spacing.xl,
     ...theme.shadows.premium,
+  },
+  hintText: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    fontFamily: theme.typography.fontFamily.medium,
+    marginBottom: 20,
+    fontStyle: 'italic',
   },
   inputContainer: {
     marginBottom: theme.spacing.lg,

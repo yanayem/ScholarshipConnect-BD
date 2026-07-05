@@ -40,21 +40,21 @@ const networkError = (error, context) => {
 };
 
 export const apiService = {
-  async login(username, password) {
-    // Note: User login should be handled by Firebase SDK on the frontend.
-    // After getting the idToken from Firebase, call apiService.setToken(idToken)
-    console.warn('apiService.login is deprecated. Use Firebase SDK to sign in.');
-    return { ok: false, data: { detail: 'Please use Firebase Authentication' } };
-  },
-
-  async register(userData) {
-    // Note: User registration should be handled by Firebase SDK on the frontend.
-    console.warn('apiService.register is deprecated. Use Firebase SDK to sign up.');
-    return { ok: false, data: { detail: 'Please use Firebase Authentication' } };
-  },
-
   async setToken(token) {
     await AsyncStorage.setItem('token', token);
+  },
+
+  async adminLogin(username, password) {
+    try {
+      const response = await fetch(`${API_URL}/accounts/admin-login/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Admin Login');
+    }
   },
 
   async getProfile() {
@@ -170,7 +170,17 @@ export const apiService = {
 
   async logout() {
     await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('admin_verified');
     // If using Firebase SDK, also call auth().signOut() or similar
+  },
+
+  async isStaff() {
+    try {
+      const res = await this.getProfile();
+      return res.ok && res.data.is_staff === true;
+    } catch (e) {
+      return false;
+    }
   },
 
   // — Blog / Success Stories —

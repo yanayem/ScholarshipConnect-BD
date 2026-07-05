@@ -5,8 +5,12 @@ class ScholarshipSerializer(serializers.ModelSerializer):
     class Meta:
         model = Scholarship
         fields = '__all__'
+        read_only_fields = ['submitted_by', 'status', 'created_at', 'updated_at']
 
     def validate_min_cgpa(self, value):
-        if value == '':
-            return None
-        return value
+        try:
+            if value is None or value == '':
+                return 0.00
+            return float(value)
+        except (ValueError, TypeError):
+            return 0.00

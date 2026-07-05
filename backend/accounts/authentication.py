@@ -5,30 +5,11 @@ FIREBASE AUTH: Custom authentication backend for DRF.
 - Automatically creates profiles and handles admin promotion.
 - Connected to: accounts.models.Profile, settings.REST_FRAMEWORK.
 """
-import firebase_admin
-from firebase_admin import auth, credentials
-from django.conf import settings
+from firebase_admin import auth
 from django.contrib.auth.models import User
 from rest_framework import authentication
 from rest_framework import exceptions
 import os
-
-# Initialize Firebase Admin SDK
-# You need to provide the path to your service account key JSON file
-# For now, we assume it's set in an environment variable or a default path
-firebase_creds_path = os.environ.get('FIREBASE_SERVICE_ACCOUNT_KEY')
-
-if not firebase_admin._apps:
-    if firebase_creds_path and os.path.exists(firebase_creds_path):
-        cred = credentials.Certificate(firebase_creds_path)
-        firebase_admin.initialize_app(cred)
-    else:
-        # Default initialization (works if running on GCP or with GOOGLE_APPLICATION_CREDENTIALS)
-        try:
-            firebase_admin.initialize_app()
-        except Exception:
-            # For development, we might not want to crash if Firebase is not yet configured
-            print("Firebase Admin SDK not initialized: FIREBASE_SERVICE_ACCOUNT_KEY not found.")
 
 class FirebaseAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
@@ -39,17 +20,11 @@ class FirebaseAuthentication(authentication.BaseAuthentication):
         id_token = auth_header.split(' ').pop()
         
         try:
-            # Bypass Firebase verification for development/testing if using the mock token
-            if settings.DEBUG and id_token == 'mock-admin-token':
-                user, created = User.objects.get_or_create(
-                    username='admin_test', 
-                    defaults={'email': 'admin@scholarshipconnect.bd', 'is_staff': True, 'is_superuser': True}
-                )
-                return (user, None)
-
             decoded_token = auth.verify_id_token(id_token)
-        except Exception as e:
-            raise exceptions.AuthenticationFailed('Invalid Firebase token')
+        except Exception:
+            # If Firebase verification fails, return None so other 
+            # authentication classes (like SimpleJWT) can try.
+            return None
 
         if not id_token or not decoded_token:
             return None

@@ -1,8 +1,10 @@
-import { View, StyleSheet, useWindowDimensions, Text, Pressable } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, useWindowDimensions, Text, Pressable, ActivityIndicator } from 'react-native';
 import { Stack, useRouter, usePathname } from 'expo-router';
 import { theme } from '../../theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function AdminSidebar() {
   const router = useRouter();
@@ -56,14 +58,63 @@ function AdminSidebar() {
 export default function AdminLayout() {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isVerified, setIsVerified] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const checkSecurity = async () => {
+      try {
+        const verified = await AsyncStorage.getItem('admin_verified');
+        if (!isMounted) return;
+
+        if (verified === 'true') {
+          setIsVerified(true);
+        } else if (pathname !== '/admin/login') {
+          // Only redirect if we are not already on the login page
+          router.replace('/admin/login');
+        }
+      } catch (e) {
+        console.error('Security check failed', e);
+      } finally {
+        if (isMounted) setChecking(false);
+      }
+    };
+
+    checkSecurity();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [pathname]); // Still watch pathname to catch manual navigation
+
+  if (checking) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.background }}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
+
+  // Allow rendering the Stack if we are on the login page OR if we are verified.
+  // This prevents the "null" return which can sometimes confuse the router's state.
+  const isAtLogin = pathname === '/admin/login';
+  if (!isVerified && !isAtLogin) {
+    return (
+      <View style={{ flex: 1, backgroundColor: theme.colors.background }} />
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.wrapper}>
-        {isDesktop && <AdminSidebar />}
+        {isDesktop && pathname !== '/admin/login' && <AdminSidebar />}
         <View style={styles.mainContent}>
           <Stack screenOptions={{
-            headerShown: !isDesktop,
+            headerShown: !isDesktop && pathname !== '/admin/login',
             headerStyle: { backgroundColor: theme.colors.surface },
             headerTitleStyle: {
               fontFamily: theme.typography.fontFamily.bold,
@@ -73,8 +124,8 @@ export default function AdminLayout() {
             contentStyle: { backgroundColor: theme.colors.background }
           }}>
             <Stack.Screen name="index" options={{ title: 'Admin Dashboard' }} />
+            <Stack.Screen name="login" options={{ title: 'Security Login', headerShown: false }} />
             <Stack.Screen name="scholarships" options={{ title: 'Manage Scholarships' }} />
-            <Stack.Screen name="add-scholarship" options={{ title: 'Add Scholarship' }} />
             <Stack.Screen name="users" options={{ title: 'User Management' }} />
             <Stack.Screen name="settings" options={{ title: 'Admin Settings' }} />
           </Stack>
