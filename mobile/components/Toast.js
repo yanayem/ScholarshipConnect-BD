@@ -42,9 +42,9 @@ const TYPES = {
 
 export function useToast() {
   const [toast, setToast] = useState(null);
-  const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(-30)).current;
-  const scale = useRef(new Animated.Value(0.95)).current;
+  const [opacity] = useState(() => new Animated.Value(0));
+  const [translateY] = useState(() => new Animated.Value(-30));
+  const [scale] = useState(() => new Animated.Value(0.95));
   const timerRef = useRef(null);
 
   const showToast = useCallback((message, type = 'info') => {
@@ -69,40 +69,34 @@ export function useToast() {
     }, TOAST_DURATION);
   }, [opacity, translateY, scale]);
 
-  const ToastComponent = toast ? (() => {
-    const config = TYPES[toast.type] || TYPES.info;
-    return (
-      <Animated.View
-        style={[
-          styles.container,
-          {
-            opacity,
-            transform: [{ translateY }, { scale }],
-            borderLeftColor: config.borderColor,
-          },
-        ]}
-        pointerEvents="none"
-      >
-        {/* Icon */}
-        <View style={[styles.iconWrapper, { backgroundColor: config.iconColor + '18' }]}>
-          <MaterialIcons name={config.icon} size={20} color={config.iconColor} />
-        </View>
+  const ToastComponent = toast ? (
+    <Animated.View
+      style={[
+        styles.container,
+        {
+          opacity,
+          transform: [{ translateY }, { scale }],
+          borderLeftColor: (TYPES[toast.type] || TYPES.info).borderColor,
+        },
+      ]}
+      pointerEvents="none"
+    >
+      <View style={[styles.iconWrapper, { backgroundColor: (TYPES[toast.type] || TYPES.info).iconColor + '18' }]}>
+        <MaterialIcons name={(TYPES[toast.type] || TYPES.info).icon} size={20} color={(TYPES[toast.type] || TYPES.info).iconColor} />
+      </View>
 
-        {/* Text */}
-        <View style={styles.textWrapper}>
-          <Text style={[styles.label, { color: config.labelColor }]}>{config.label}</Text>
-          <Text style={styles.message} numberOfLines={2}>{toast.message}</Text>
-        </View>
+      <View style={styles.textWrapper}>
+        <Text style={[styles.label, { color: (TYPES[toast.type] || TYPES.info).labelColor }]}>{(TYPES[toast.type] || TYPES.info).label}</Text>
+        <Text style={styles.message}>{toast.message}</Text>
+      </View>
 
-        {/* Progress bar */}
-        <View style={styles.progressTrack}>
-          <Animated.View
-            style={[styles.progressBar, { backgroundColor: config.borderColor }]}
-          />
-        </View>
-      </Animated.View>
-    );
-  })() : null;
+      <View style={styles.progressTrack}>
+        <Animated.View
+          style={[styles.progressBar, { backgroundColor: (TYPES[toast.type] || TYPES.info).borderColor }]}
+        />
+      </View>
+    </Animated.View>
+  ) : null;
 
   return { showToast, ToastComponent };
 }
