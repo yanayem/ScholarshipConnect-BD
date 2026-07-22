@@ -108,11 +108,13 @@ Welcome to the official documentation for **ScholarshipConnectBD**. This guide p
 - **Engine**: React Native with Expo (SDK 56).
 - **Styling**: A dual-layer system. **Global Theme** (`theme.js`) handles brand colors, while **Independent Styling** ensures professional educational aesthetics.
 - **Routing**: Expo Router for stable file-based navigation.
+- **State Management**: React Hooks and Context API for global user state.
 
 ### Backend (API)
-- **Framework**: Django REST Framework (Python).
-- **Database**: **MongoDB Atlas** (via Djongo) for flexible scholarship schemas.
-- **Authentication**: Firebase Admin SDK for token verification.
+- **Framework**: Django REST Framework (Python 3.10+).
+- **Database**: **MongoDB Atlas** (via Djongo). We use a custom `SafeDecimalField` to handle seamless conversion between Python's `Decimal` and MongoDB's `Decimal128`.
+- **Authentication**: Firebase Admin SDK for decentralized identity management.
+- **Media**: Secure file handling with Django-Storage, supporting multi-format academic documents.
 
 ---
 
@@ -141,14 +143,34 @@ The platform integrates advanced AI capabilities to assist students in their app
 ---
 
 ## 📊 Database & Schema
-ScholarshipConnectBD uses **MongoDB Atlas** for its flexibility in handling varying scholarship structures.
+ScholarshipConnectBD uses **MongoDB Atlas** for its flexibility in handling varying scholarship structures and community data.
 
-### Major Collections
--   **Users & Profiles**: Stores authentication pointers and academic metadata (CGPA, Education, Points).
--   **Scholarships**: Contains title, provider, criteria, country, and status fields.
--   **Applications**: Maps users to scholarships with status tracking (Submitted/Approved/Rejected).
--   **Discussions**: Stores community posts, comments, and solved status.
--   **Documents**: Metadata for user-uploaded files stored in the Media Server.
+### Major Collections & Fields
+
+#### 1. Users & Profiles
+- `user`: Link to Django Auth User.
+- `cgpa` & `academic_level`: Critical for the Eligibility Checker.
+- `scholar_points`: Gamification system tracking student helpfulness.
+- `target_countries` & `preferred_fields`: Used for personalized scholarship discovery.
+- `is_mentor`: Boolean flag for verified student-mentors.
+
+#### 2. Scholarships
+- `min_cgpa`: Automated requirement matching.
+- `level`: (Bachelors, Masters, PhD).
+- `amount`: Categorized as Full-funded, Partial, or Fixed-amount.
+- `status`: Lifecycle management (Pending -> Active -> Rejected).
+- `is_featured`: Boosted visibility on the Home Dashboard.
+
+#### 3. Applications & Vault
+- `submitted_at`: Timestamp for tracking.
+- `status`: (Submitted, In-Review, Approved, Rejected).
+- `documents`: References to files stored in the user's secure vault.
+
+#### 4. Community & Interactions
+- **Discussions**: Stores content, categories (Visa, Test Prep, etc.), and `is_solved` status.
+- **Polls**: Integrated questions and multi-choice options with real-time vote counts.
+- **Stories**: Ephemeral media content with reactions (Like, Love, Fire, Clap).
+- **Mentorship Sessions**: Structured requests mapping mentees to mentors with status tracking.
 
 ---
 
@@ -162,27 +184,62 @@ To run the system locally, ensure the following keys are configured in your `.en
 - `FIREBASE_SERVICE_ACCOUNT_KEY`: Path to your Firebase JSON key.
 - `ADMIN_EMAILS`: Comma-separated list of emails with automatic staff access.
 
-### Frontend (`/mobile/constants/Config.js`)
-- `API_URL`: The IP address of your running Django server (e.g., `http://192.168.0.105:8000/api`).
+### Running the Project
+
+#### 🐍 Backend (Django)
+1.  **Environment**: Navigate to `/backend` and create a virtual environment (`python -m venv venv`).
+2.  **Dependencies**: Install required packages: `pip install -r requirements.txt`.
+3.  **Database**: Ensure your MongoDB URI is correct in `.env`, then run `python manage.py migrate`.
+4.  **Launch**: Start the development server: `python manage.py runserver 0.0.0.0:8000`.
+
+#### 📱 Frontend (Expo)
+1.  **Setup**: Navigate to `/mobile` and install dependencies: `npm install`.
+2.  **Config**: Ensure `constants/Config.js` points to your backend IP.
+3.  **Launch**: Run `npm run android` to start on an emulator or physical device.
+4.  **Troubleshooting**: If the device shows as "offline", use the **Cold Boot** option in Android Studio's Device Manager.
 
 ---
 
 ## 🌐 API Endpoints Overview
-The backend provides a RESTful interface for all mobile operations.
+The backend provides a RESTful interface for all mobile operations. Every request (except public ones) requires a Firebase ID Token in the `Authorization` header.
 
 ### Accounts
-- `POST /api/accounts/admin-login/`: Secure staff authentication.
-- `GET /api/accounts/profile/`: Retrieve current user's academic profile.
-- `GET /api/accounts/users/`: (Admin Only) List all registered scholars.
+- `GET /api/accounts/profile/`: Retrieve current user's academic profile and reputation points.
+- `POST /api/accounts/admin-login/`: Secure staff authentication for the Admin Portal.
+- `POST /api/accounts/change-password/`: Update account security credentials.
+- `GET /api/accounts/users/`: (Admin Only) List all registered scholars with search functionality.
+- `GET /api/accounts/leaderboard/`: See the top-ranked students in the community.
 
 ### Scholarships
-- `GET /api/scholarships/`: List active programs with filtering.
-- `POST /api/scholarships/`: (Admin/Verified User) Submit a new program.
-- `POST /api/scholarships/{id}/approve/`: (Admin Only) Make a pending program live.
+- `GET /api/scholarships/`: Fetch active programs. Supports query params: `?country=...`, `?level=...`, `?search=...`.
+- `POST /api/scholarships/`: Submit a new program for review.
+- `GET /api/scholarships/{id}/`: Detailed view of a scholarship including eligibility criteria.
+- `POST /api/scholarships/{id}/approve/`: (Admin Only) Move a scholarship from 'pending' to 'live'.
 
-### Community
-- `GET /api/community/`: Fetch discussion feed.
-- `POST /api/community/{id}/vote/`: Participate in active polls.
+### Applications & The Vault
+- `GET /api/applications/saved/`: View bookmarked scholarships.
+- `POST /api/applications/apply/`: Submit a structured application linked to Vault documents.
+- `GET /api/applications/documents/`: Access the list of files in the user's secure storage.
+- `POST /api/applications/documents/`: Upload new academic records (PDF/Images).
+- `DELETE /api/applications/documents/{id}/`: Remove a document from the Vault.
+
+### Community & Engagement
+- `GET /api/community/`: Fetch discussion feed. Use `?filter=solved` or `?filter=open`.
+- `POST /api/community/{id}/vote/`: Participate in community polls.
+- `POST /api/community/{id}/comment/`: Reply to a student's question.
+- `GET /api/community/stories/`: Fetch 24-hour visual updates and success snippets.
+- `GET /api/community/mentors/`: Browse verified mentors for 1-on-1 assistance.
+
+### AI Suite
+- `POST /api/ai/write-sop/`: AI-powered drafting of Statements of Purpose.
+- `POST /api/ai/review-sop/`: Grammar, tone, and alignment analysis for existing SOPs.
+- `POST /api/ai/review-cv/`: Tailored suggestions for academic CV improvement.
+- `POST /api/ai/check-eligibility/`: Detailed AI analysis of user profile vs scholarship requirements.
+
+### Blog & Notifications
+- `GET /api/blog/`: List academic articles, guidebooks, and success stories.
+- `GET /api/notifications/`: Personalized alerts for application updates and global broadcasts.
+- `POST /api/notifications/{id}/read/`: Dismiss or mark notifications as read.
 
 ---
 
@@ -193,16 +250,26 @@ A detailed breakdown of the file organization for both the mobile frontend and t
 The mobile application uses **Expo Router** for file-based navigation.
 
 -   **`mobile/app/`**: Root navigation directory.
-    -   **`(auth)/`**: Handles authentication flow (Login, Registration, Forgot Password).
-    -   **`(tabs)/`**: The main user experience (Dashboard, Discovery, Community, Profile).
+    -   **`(auth)/`**: Handles authentication flow (Login, Registration, Password Reset).
+    -   **`(tabs)/`**: The main navigation hub (Dashboard, Discovery, Community, Profile).
     -   **`admin/`**: The Material 3 Admin suite.
-        -   `index.js`: Main metrics dashboard.
-        -   `moderation.js`: Report management.
-        -   `mentors.js`: Mentor approval system.
-        -   `analytics.js`: Data visualization.
-        -   `logs.js`: Admin audit trail.
-    -   **`scholarships/`**: Contains `[id].js` for dynamic scholarship detail pages.
-    -   **`ai-tools/`**: Screens for SOP and CV AI assistance.
+        -   `index.js`: Dashboard with live metrics and system health.
+        -   `login.js`: Secondary security gate for staff members.
+        -   `users.js`: Database of all registered scholars.
+        -   `scholarships.js`: Management of live and pending scholarship programs.
+        -   `applications.js`: Interface for reviewing and approving student applications.
+        -   `moderation.js`: Tools for managing reported community content.
+        -   `mentors.js`: Onboarding and verification for community mentors.
+        -   `broadcast.js`: Global messaging and alert system.
+        -   `analytics.js`: Data visualization for user growth and trends.
+        -   `logs.js`: Comprehensive audit trail of all administrative actions.
+    -   **`scholarships/`**: Contains dynamic routing for scholarship details.
+    -   **`blog/`**: Repository of academic guides and success stories.
+    -   **`ai-tools/`**: Dedicated suite for SOP drafting and CV optimization.
+    -   **`mentorship/`**: Handling 1-on-1 session requests and expertise matching.
+    -   **`add-scholarship.js`**: The student-contribution portal for new opportunities.
+    -   **`documents.js`**: The "Vault" interface for secure document management.
+    -   **`edit-profile.js`**: Detailed form for updating academic and personal metadata.
 -   **`mobile/components/`**: Reusable Material UI components like Custom Buttons, Input fields, and Toast notifications.
 -   **`mobile/services/`**:
     -   `api.js`: Centralized API service using Fetch with interceptors for auth tokens.
@@ -210,19 +277,21 @@ The mobile application uses **Expo Router** for file-based navigation.
 -   **`mobile/theme.js`**: The dual-layer styling engine that powers the "Warm Teal" professional aesthetic.
 
 ### ⚙️ Backend (Django API)
-The backend follows a modular Django app architecture.
+The backend follows a modular Django app architecture, designed for scalability and clear separation of concerns.
 
--   **`backend/core/`**: Project configuration, global URL routing, and security settings.
+-   **`backend/core/`**: Project configuration, global URL routing, and security middleware.
 -   **`backend/accounts/`**:
     -   `authentication.py`: Firebase ID token verification logic.
     -   `models.py`: Custom User Profile and academic point system.
--   **`backend/scholarships/`**: Manages the scholarship database, search indexing, and status verification.
--   **`backend/applications/`**: Logic for student application submissions, document linking, and status workflows.
+-   **`backend/scholarships/`**: Manages the scholarship database, advanced search indexing, and status verification.
+-   **`backend/applications/`**: Logic for student application submissions, document linking (The Vault), and status workflows.
 -   **`backend/community/`**:
     -   Handles Discussions, Comments, Stories, and the Solved-badge system.
     -   Manages Mentorship requests and Mentor profiles.
--   **`backend/notifications/`**: Logic for the Global Broadcast tool and real-time alerts.
--   **`backend/media/`**: Local storage for user-uploaded documents and profile pictures (mirrored to cloud in production).
+-   **`backend/blog/`**: Academic articles and success story management system.
+-   **`backend/ai_assistant/`**: Integration with AI models for SOP/CV generation and eligibility analysis.
+-   **`backend/notifications/`**: Logic for the Global Broadcast tool and real-time user alerts.
+-   **`backend/media/`**: Secure local storage for user-uploaded documents (Passports, Transcripts).
 
 ---
 
@@ -314,4 +383,4 @@ ScholarshipConnectBD stands as a robust bridge between local talent and global e
 
 ---
 
-*Created with ❤️ for Bangladeshi Scholars. Last Updated: February 2025*
+*Created with ❤️ for Bangladeshi Scholars. Last Updated: July 2026*
