@@ -17,14 +17,63 @@ ScholarshipConnectBD is a specialized mobile application built with **React Nati
 - [x] **Deadline Calendar**: Visual tracking of upcoming application deadlines.
 - [x] **Personalized Profiles**: Manage academic history, CGPA, and preferences.
 - [x] **Firebase Authentication**: Secure login and registration with social auth support.
-- [x] **Admin Panel**: Robust dashboard for managing scholarships and user data.
-- [x] **Community Discussion**: Interactive forum for students to share tips.
-- [x] **Mentor Network**: Verified network of past scholars to guide new applicants via community discussions.
-- [x] **Document Vault**: Secure storage for certificates, SOPs, and LORs.
+- [x] **Material 3 Admin Console**: Professional Android-style dashboard for system management.
+- [x] **Community Discussion**: Interactive forum for students to share tips and solutions.
+- [x] **Stories & Polls**: Share academic journeys through visual stories and participate in community polls.
+- [x] **Mentorship Program**: Connect with experienced mentors for personalized scholarship guidance, book sessions, and track status.
+- [x] **Student App Manager**: Oversee and approve scholarship submissions from the community.
+- [x] **Global Broadcast**: Send instant notifications and alerts to all registered users.
+- [x] **Moderation Center**: Protect community standards by managing reported content.
+- [x] **Admin Analytics**: Visualize system performance with data-driven insights and KPIs.
+- [x] **Activity History**: Audit trail for tracking all administrative actions.
+- [x] **Document Vault**: Secure storage for certificates, SOPs, and LORs with image fallback.
 - [x] **Deadline Tracker**: Real-time progress tracking for application deadlines.
 - [x] **Smart Reminders**: Push notification integration for upcoming deadlines.
 - [x] **Scholarship Blog**: Curated articles, success stories, and application guides.
-- [x] **Application Management**: Track the status of all your scholarship applications in one place.
+
+---
+
+## 🌟 Phase 2 - Professional Redesign (Latest Updates)
+Recently, the platform underwent a significant UI/UX overhaul to meet global academic standards:
+
+### 📱 Premium UX & Branding
+- **Branded Splash Screen**: A professional logo entrance page with a 1.5s visibility delay, mimicking high-end apps like Facebook.
+- **Vibrant Onboarding**: A redesigned 3-step intro flow using brand-specific colors (Teal, Lavender, Warning Orange) to educate new users.
+- **Educational Layout**: Scholarship details redesigned with a focus on high-readability and professional hierarchy.
+- **Independent Styling**: Decoupled CSS for the details page to ensure a unique, academic look.
+- **Quick-Stat Grid**: Modern icons for Location, Program, Funding, and Deadlines.
+- **Immersive Header**: Branded teal background with glass-morphic controls.
+- **Pro-Tip Integration**: Contextual advice for students within scholarship pages.
+
+### 🛡️ Android-Native Admin Console (Full Management Suite)
+- **Material 3 Dashboard**: Centralized metrics for scholarships, users, applications, and mentorship sessions.
+- **Moderation Center**: A dedicated system to review reported posts and comments to ensure a safe community.
+- **Mentor Approval System**: Evaluate and approve expert mentors to guide younger students.
+- **Advanced Analytics**: Interactive charts and progress bars showing user trends, top scholarship countries, and engagement rates.
+- **Activity Logs**: A transparent audit trail tracking every admin action for accountability.
+- **Student App Tracking**: Manage student applications with "Submitted", "Approved", and "Rejected" status workflows.
+- **Broadcast Tool**: Send instant announcements to the entire student community.
+- **Floating Action Button (FAB)**: Native Android experience for adding new records.
+- **Simplified Language**: UI updated with common, easy-to-understand terms like "Live Now", "Waiting", and "Working Now".
+
+---
+
+## 💎 Business & Monetization Model
+ScholarshipConnectBD operates on a **Hybrid-Contribution Model** designed to foster community growth while providing premium academic value.
+
+### 1. Gamified Ecosystem (ScholarPoints)
+- **Contribution Earning**: Users earn **50 points** for contributing verified scholarships and **20 points** for solving community problems.
+- **Community Driven**: This crowdsourcing ensures the database is always updated with the latest niche opportunities.
+
+### 2. ScholarConnect Pro (Freemium)
+Users can "buy" a Pro membership using their earned **ScholarPoints (200 pts)**, unlocking:
+- **AI Application Suite**: Unlimited SOP drafting and CV optimization.
+- **Priority Matching**: AI-driven alerts for scholarships that perfectly match the user's CGPA and goals.
+- **Verification Badge**: Increased visibility in the community and mentorship hubs.
+
+### 3. Mentorship Marketplace
+- **Verified Expertise**: Mentors are vetted by admins and can build a professional reputation within the platform.
+- **1-on-1 Guidance**: A structured system for booking and managing personalized scholarship strategy sessions.
 
 ---
 
@@ -32,15 +81,14 @@ ScholarshipConnectBD is a specialized mobile application built with **React Nati
 
 ### 📱 Frontend (Mobile App)
 - **Core**: React Native & Expo (SDK 56)
-- **Navigation**: **Expo Router** (Next.js-style file-based routing)
-- **Styling**: Native StyleSheet with a centralized **Theme Engine** (Custom JSON system)
+- **Navigation**: **Expo Router** (Refined with stable history management for Admin tabs)
+- **Styling**: Native StyleSheet with a **Dual-Layer Theme Engine** (Global + Page-Specific professional CSS)
 - **Animations**: **React Native Reanimated** for premium fluid transitions
 - **UI Components**:
   - `react-native-calendars`: For scholarship deadline tracking
   - `@expo/vector-icons`: Material & Ionicons integration
-  - `expo-glass-effect`: Modern frosted-glass UI elements
+  - `expo-image-picker`: Reliable document capture and upload (Fallback for DocumentPicker)
 - **Persistence**: **AsyncStorage** for session and token management
-- **Fonts**: `@expo-google-fonts` (Inter & Poppins)
 
 ### ⚙️ Backend (API & Data)
 - **Framework**: **Django 3.2** (Robust & Scalable Python Framework)
@@ -48,33 +96,22 @@ ScholarshipConnectBD is a specialized mobile application built with **React Nati
 - **Database**: **MongoDB Atlas** (NoSQL Cloud Database for flexible data schemas)
 - **Database Connector**: **Djongo** (Seamlessly maps Django ORM to MongoDB)
 - **Authentication**: **Firebase Auth** (Cross-platform secure authentication)
-- **Deployment**: Prepared for Docker and cloud hosting
-
-### 🛠️ Tools & DevOps
-- **Version Control**: Git & GitHub
-- **API Testing**: Postman / Insomnia
-- **Design**: Figma (Modern Warm Teal design language)
-- **Environment**: Dotenv for secure credential management
 
 ---
 
 ## 🗄️ Database Architecture
-ScholarshipConnectBD utilizes a **hybrid relational-document approach** by leveraging **MongoDB Atlas** via the **Djongo** connector. This allows the project to maintain Django's robust authentication system while benefiting from NoSQL's flexibility for scholarship data.
+ScholarshipConnectBD utilizes a **hybrid relational-document approach** by leveraging **MongoDB Atlas** via the **Djongo** connector.
 
 ### 👤 User & Profile Schema (Relational)
 The core user data follows a structured relational pattern:
 - **User Model**: Standard Django Auth user (Username, Email, Password).
-- **Profile Model**: A `OneToOne` extension of the User model containing:
-  - **Academic Records**: CGPA (Decimal), Study Level (HSC/Bachelors/Masters/PhD), Department, and University.
-  - **Personal Details**: Full Name, Phone, Date of Birth, and Bio.
-  - **Preferences**: Target countries and preferred scholarship fields.
-  - **Document Links**: References to files stored in the Document Vault.
+- **Profile Model**: A `OneToOne` extension of the User model containing academic records, personal details, and preferences.
 
 ### 🎓 Scholarship Schema (Document-based)
-Scholarship entries are stored as flexible JSON-like documents, allowing for varying fields across different programs:
+Scholarship entries are stored as flexible JSON-like documents:
 - **Basic Info**: Title, Provider, Country, Amount, and Category.
-- **Dynamic Criteria**: Custom eligibility fields (e.g., "Research Proposal Required", "Japanese Proficiency") that vary between MEXT, Chevening, etc.
-- **Tracking Data**: Application deadlines, status, and user bookmarks.
+- **Academic Criteria**: Minimum CGPA, Study Level, and Field requirements.
+- **Tracking Data**: Application deadlines, status (Active/Pending/Rejected), and user bookmarks.
 
 ---
 
@@ -83,20 +120,14 @@ The application follows a **Premium, Minimal, and Modern** design system focused
 
 ### 🎨 Color Palette
 - **Primary**: Sophisticated Warm Teal (`#2A9D8F`) - Main branding and CTAs.
-- **Secondary**: Accent Lavender (`#8E7DF5`) - Highlight accents and data visualization.
 - **Background**: Warm Cream (`#F8F2E7`) - A soft, academic backdrop for high readability.
+- **Secondary**: Light Lavender (`#F2ECFF`) - Subtle section highlighting.
 - **Surface**: Pure White (`#FFFFFF`) - For cards, modals, and input fields.
 
 ### 🔤 Typography & Spacing
 - **Font Family**: `Inter` (Regular, Medium, SemiBold, Bold) for maximum readability.
 - **Base Spacing**: 16px (md) grid system.
-- **Border Radius**: Standardized **12px** (base) for all UI components.
-
-### 🌈 Visual Elements
-- **Shadows**:
-  - `Soft`: Low-elevation subtle shadows for list items.
-  - `Premium`: High-depth shadows for featured cards and modals.
-- **Pastel Accents**: Specialized soft colors (Teal, Lavender, Peach, Mint) for scholarship category badges.
+- **Border Radius**: Professional **24px-36px** for cards and buttons.
 
 ---
 
@@ -104,23 +135,46 @@ The application follows a **Premium, Minimal, and Modern** design system focused
 
 ```text
 ScholarshipConnectBD/
-├── mobile/               # Frontend (React Native + Expo Router)
-│   ├── app/              # Navigation and Screen components
-│   ├── components/       # Reusable UI components
-│   ├── services/         # API service layer
-│   ├── constants/        # Config and Global constants
-│   ├── theme.js          # Centralized Theme Engine
-│   └── package.json      # Mobile dependencies and scripts
-├── backend/              # Backend (Django REST Framework)
-│   ├── core/             # Project settings and root URL routing
-│   ├── accounts/         # User models, profiles, and authentication logic
-│   ├── scholarships/     # Scholarship database management
-│   ├── blog/             # Success stories and articles
-│   ├── applications/     # Scholarship applications tracker
-│   ├── notifications/    # User notification system
-│   ├── manage.py         # Django management CLI
-│   └── .env              # Environment variables (API Keys, DB URI)
-└── README.md             # Project documentation
+├── mobile/                   # Frontend (React Native + Expo Router)
+│   ├── app/                  # Application Screens (File-based Routing)
+│   │   ├── (auth)/           # Authentication Flow (Login, Register, Forgot)
+│   │   ├── (tabs)/           # Main App Navigation (Dashboard, Search, Saved, Profile)
+│   │   ├── admin/            # Android-Style Admin Console
+│   │   │   ├── _layout.js    # Bottom Tab Navigation for Admins
+│   │   │   ├── index.js      # Admin Home (System Summary & Analytics)
+│   │   │   ├── moderation.js # Community Standards & Report Management
+│   │   │   ├── mentors.js    # Mentor Application Review
+│   │   │   ├── analytics.js  # Data Visualization & KPI Tracking
+│   │   │   ├── logs.js       # Activity History & Audit Trail
+│   │   │   ├── applications.js # Student App Manager
+│   │   │   ├── scholarships.js # Scholarship Audit Log
+│   │   │   ├── broadcast.js    # Global Announcement Tool
+│   │   │   └── users.js        # User Management & Reports
+│   │   ├── scholarships/     # Scholarship Details ([id].js)
+│   │   ├── apply/            # Application Submission Forms
+│   │   ├── blog/             # Success Stories & Blog Views
+│   │   ├── documents.js      # Document Vault (CV/LOR Management)
+│   │   ├── reminders.js      # Deadline Tracker & Reminders
+│   │   └── _layout.js        # Root Navigation Setup
+│   ├── components/           # Reusable UI Components (Cards, Buttons, Inputs)
+│   ├── services/             # API Layer (Fetch wrappers, Auth interceptors)
+│   │   └── api.js            # Central API Service
+│   ├── constants/            # App Config, Colors, and Global Constants
+│   ├── theme.js              # Centralized Dual-Layer Theme Engine
+│   └── package.json          # Project Dependencies & Scripts
+├── backend/                  # Backend (Django REST Framework)
+│   ├── core/                 # Project Settings & Root URL routing
+│   ├── accounts/             # Firebase Authentication, Profiles & JWT
+│   │   ├── authentication.py # Custom Firebase ID Token Verifier
+│   │   └── models.py         # User Profile & Academic Data
+│   ├── scholarships/         # Scholarship Database & Audit Logic
+│   ├── blog/                 # Success Stories & Educational Content
+│   ├── applications/         # Student Scholarship Applications Manager
+│   ├── notifications/        # System Alerts & Broadcast Logic
+│   ├── media/                # User Uploaded Documents (CVs, Photos)
+│   ├── manage.py             # Django Management CLI
+│   └── .env                  # Secure Credentials (DB URI, Firebase Keys)
+└── README.md                 # Project Documentation
 ```
 
 ---
@@ -130,48 +184,18 @@ ScholarshipConnectBD/
 ### 1. Frontend (Mobile) Setup
 ```bash
 cd mobile
-
-# Install dependencies
 npm install
-
-# Start Expo
 npx expo start
 ```
 
 ### 2. Backend Setup
 ```bash
 cd backend
-
-# Create & Activate Virtual Environment
 python -m venv venv
-.\venv\Scripts\activate  # Windows
-source venv/bin/activate # macOS/Linux
-
-# Install Python packages
+.\venv\Scripts\activate
 pip install -r requirements.txt
-
-# Run Migrations
 python manage.py migrate
-
-# Start Server
 python manage.py runserver
-```
-
-### 3. Integrated Development
-You can run both servers simultaneously using the scripts in the `mobile/package.json`:
-```bash
-cd mobile
-npm run dev  # Runs backend and starts Android Emulator
-```
-
-### 4. Environment Variables
-Create a `.env` file in the `backend/` directory:
-```env
-DEBUG=True
-SECRET_KEY=your_secret_key
-MONGODB_URI=your_mongodb_atlas_uri
-DATABASE_NAME=scholarship_db
-FIREBASE_SERVICE_ACCOUNT_KEY=path/to/your/firebase-service-account.json
 ```
 
 ---
@@ -181,13 +205,8 @@ FIREBASE_SERVICE_ACCOUNT_KEY=path/to/your/firebase-service-account.json
 ### 🛡️ Scholarship Verification System
 To maintain the quality and authenticity of data, the platform implements a dual-layer verification flow:
 1. **User Submission**: Any registered user can contribute by submitting a scholarship. These are initially marked as **`Pending`**.
-2. **Admin Review**: Staff members review pending submissions in the **Admin Portal**.
-3. **Activation**: Only after admin approval does a scholarship become **`Active`** and visible to the global community.
-
-### 🔑 Advanced Admin Security
-The Admin Portal (`/admin`) features a secondary layer of protection:
-- **Session Verification**: Accessing administrative routes requires a dedicated **Security Password** login.
-- **Role-based UI**: The Admin Dashboard and "Approve/Reject" controls are only visible and accessible to verified staff accounts.
+2. **Admin Review**: Staff members review pending submissions in the **Admin Home**.
+3. **Activation**: Only after admin approval does a scholarship become **`Live`** and visible to the community.
 
 ### 🔥 Firebase Authentication
 The app uses **Firebase SDK** for robust cross-platform authentication:
@@ -196,20 +215,20 @@ The app uses **Firebase SDK** for robust cross-platform authentication:
 
 ---
 
-## 🤝 Team
-- **Developer**: ScholarshipConnectBD Team
-- **Status**: Phase 2 Complete (Advanced Features & Modern UI)
-- **UI Theme**: Warm Teal & Cream (#2A9D8F / #F8F2E7)
+## 🤝 Meet the Team
+
+| Student ID | Name | Designation | GitHub |
+| :--- | :--- | :--- | :--- |
+| 20245103-160 | **Yeasin Arafat Nayem** | Team Leader / Frontend Dev | [yanayem](https://github.com/yanayem) |
+| 20245103-133 | **S.M. Azman Sikder Durjay** | Co-Leader / Backend Dev | [azmansikder](https://github.com/azmansikder) |
+| 20245103-139 | **Mostar-Shid Billah** | Frontend Developer | [mostarshid](https://github.com/mostarshid) |
+| 20245103-151 | **Shudipto Ghosh** | Backend Developer | [yanayem](https://github.com/yanayem) |
+| 20245103-143 | **Dipta Dey** | QA Engineer / DB Admin | [Dipto-04](https://github.com/Dipto-04) |
+
+### 🎓 Supervised By:
+**Jahid Tanvir**  
+Lecturer, Dept. of CSE  
+Bangladesh University of Business and Technology (BUBT)
 
 ---
 *Created with ❤️ for Bangladeshi Scholars.*
-
----
-
-## 🌟 v2 - The Next Evolution (Upcoming)
-In this version, we are enhancing the user experience and expanding the platform's capabilities:
-- **AI-Powered Recommendation Engine**: Suggesting scholarships based on user profiles and past application behavior.
-- **In-App Document Verification**: Built-in verification for academic documents to speed up application processes.
-- **Multilingual Support**: Providing content in both Bengali and English for better accessibility.
-- **Offline Mode**: Allowing students to browse saved scholarships and application guides without an internet connection.
-- **Push Notification 2.0**: Highly personalized alerts for deadlines, status updates, and new blog posts.
