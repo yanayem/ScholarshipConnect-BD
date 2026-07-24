@@ -20,7 +20,7 @@ ScholarshipConnectBD is a specialized mobile application built with **React Nati
 - [x] **Material 3 Admin Console**: Professional Android-style dashboard for system management.
 - [x] **Community Discussion**: Interactive forum for students to share tips and solutions.
 - [x] **Stories & Polls**: Share academic journeys through visual stories and participate in community polls.
-- [x] **Mentorship Program**: Connect with experienced mentors for personalized scholarship guidance.
+- [x] **Mentorship Program**: Connect with experienced mentors for personalized scholarship guidance, book sessions, and track status.
 - [x] **Student App Manager**: Oversee and approve scholarship submissions from the community.
 - [x] **Global Broadcast**: Send instant notifications and alerts to all registered users.
 - [x] **Moderation Center**: Protect community standards by managing reported content.
@@ -36,8 +36,10 @@ ScholarshipConnectBD is a specialized mobile application built with **React Nati
 ## 🌟 Phase 2 - Professional Redesign (Latest Updates)
 Recently, the platform underwent a significant UI/UX overhaul to meet global academic standards:
 
-### 📱 Premium Scholarship Details
-- **Educational Layout**: Redesigned with a focus on high-readability and professional hierarchy.
+### 📱 Premium UX & Branding
+- **Branded Splash Screen**: A professional logo entrance page with a 1.5s visibility delay, mimicking high-end apps like Facebook.
+- **Vibrant Onboarding**: A redesigned 3-step intro flow using brand-specific colors (Teal, Lavender, Warning Orange) to educate new users.
+- **Educational Layout**: Scholarship details redesigned with a focus on high-readability and professional hierarchy.
 - **Independent Styling**: Decoupled CSS for the details page to ensure a unique, academic look.
 - **Quick-Stat Grid**: Modern icons for Location, Program, Funding, and Deadlines.
 - **Immersive Header**: Branded teal background with glass-morphic controls.
@@ -53,6 +55,25 @@ Recently, the platform underwent a significant UI/UX overhaul to meet global aca
 - **Broadcast Tool**: Send instant announcements to the entire student community.
 - **Floating Action Button (FAB)**: Native Android experience for adding new records.
 - **Simplified Language**: UI updated with common, easy-to-understand terms like "Live Now", "Waiting", and "Working Now".
+
+---
+
+## 💎 Business & Monetization Model
+ScholarshipConnectBD operates on a **Hybrid-Contribution Model** designed to foster community growth while providing premium academic value.
+
+### 1. Gamified Ecosystem (ScholarPoints)
+- **Contribution Earning**: Users earn **50 points** for contributing verified scholarships and **20 points** for solving community problems.
+- **Community Driven**: This crowdsourcing ensures the database is always updated with the latest niche opportunities.
+
+### 2. ScholarConnect Pro (Freemium)
+Users can "buy" a Pro membership using their earned **ScholarPoints (200 pts)**, unlocking:
+- **AI Application Suite**: Unlimited SOP drafting and CV optimization.
+- **Priority Matching**: AI-driven alerts for scholarships that perfectly match the user's CGPA and goals.
+- **Verification Badge**: Increased visibility in the community and mentorship hubs.
+
+### 3. Mentorship Marketplace
+- **Verified Expertise**: Mentors are vetted by admins and can build a professional reputation within the platform.
+- **1-on-1 Guidance**: A structured system for booking and managing personalized scholarship strategy sessions.
 
 ---
 
@@ -194,10 +215,20 @@ The app uses **Firebase SDK** for robust cross-platform authentication:
 
 ---
 
-## 🤝 Team
-- **Developer**: ScholarshipConnectBD Team
-- **Status**: Phase 2 Complete (Professional Redesign & Stability)
-- **UI Theme**: Warm Teal & Cream (#2A9D8F / #F8F2E7)
+## 🤝 Meet the Team
+
+| Student ID | Name | Designation | GitHub |
+| :--- | :--- | :--- | :--- |
+| 20245103-160 | **Yeasin Arafat Nayem** | Team Leader / Frontend Dev | [yanayem](https://github.com/yanayem) |
+| 20245103-133 | **S.M. Azman Sikder Durjay** | Co-Leader / Backend Dev | [azmansikder](https://github.com/azmansikder) |
+| 20245103-139 | **Mostar-Shid Billah** | Frontend Developer | [mostarshid](https://github.com/mostarshid) |
+| 20245103-151 | **Shudipto Ghosh** | Backend Developer | [yanayem](https://github.com/yanayem) |
+| 20245103-143 | **Dipta Dey** | QA Engineer / DB Admin | [Dipto-04](https://github.com/Dipto-04) |
+
+### 🎓 Supervised By:
+**Jahid Tanvir**  
+Lecturer, Dept. of CSE  
+Bangladesh University of Business and Technology (BUBT)
 
 ---
 *Created with ❤️ for Bangladeshi Scholars.*
