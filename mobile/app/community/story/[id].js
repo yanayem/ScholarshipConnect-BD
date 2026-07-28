@@ -240,9 +240,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     marginBottom: 20,
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 5,
   },
   actionRow: {
     flexDirection: 'row',
@@ -281,7 +278,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 30,
     padding: 10,
-    elevation: 5,
+    elevation: 0,
     alignItems: 'center',
   },
   hoveredLabelContainer: {

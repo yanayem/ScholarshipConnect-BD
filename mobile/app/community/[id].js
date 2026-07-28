@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, StatusBar, Image, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform, Alert
+  StyleSheet, StatusBar, Image, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform, Alert, Modal, Pressable
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { theme } from '../../theme';
 import { apiService } from '../../services/api';
 import { useToast } from '../../components/Toast';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 export default function DiscussionDetailScreen() {
   const { showToast, ToastComponent } = useToast();
@@ -19,6 +20,8 @@ export default function DiscussionDetailScreen() {
   const [submittingComment, setSubmittingComment] = useState(false);
   const [activeTab, setActiveTab] = useState('info'); // 'info' or 'discussion'
   const [editingCommentId, setEditingCommentId] = useState(null);
+  const [commentActionModalVisible, setCommentActionModalVisible] = useState(false);
+  const [selectedComment, setSelectedComment] = useState(null);
 
   const loadPost = async () => {
     try {
@@ -122,12 +125,53 @@ export default function DiscussionDetailScreen() {
               showToast('Comment deleted', 'success');
               loadPost();
             } else {
-              showToast('Failed to delete comment', 'error');
+              showToast(res.data?.error || 'Failed to delete comment', 'error');
             }
           }
         }
       ]
     );
+  };
+
+  const handleReportComment = (commentObj) => {
+    setSelectedComment(commentObj);
+    setCommentActionModalVisible(true);
+  };
+
+  const renderCommentActionItem = (icon, label, onPress, color = theme.colors.textPrimary, isDestructive = false) => (
+    <TouchableOpacity
+      style={styles.actionItem}
+      onPress={() => {
+        setCommentActionModalVisible(false);
+        onPress();
+      }}
+    >
+      <View style={[styles.actionIconBox, isDestructive && { backgroundColor: theme.colors.errorLight }]}>
+        <MaterialIcons name={icon} size={22} color={isDestructive ? theme.colors.error : color} />
+      </View>
+      <Text style={[styles.actionLabel, isDestructive && { color: theme.colors.error }]}>{label}</Text>
+    </TouchableOpacity>
+  );
+
+  const submitCommentReport = async (commentObj, reason) => {
+    try {
+      const res = await apiService.createReport({
+        reported_user: commentObj.user,
+        content_type: 'Comment',
+        content_id: commentObj.id,
+        reason: reason,
+        description: `User reported comment: "${commentObj.content.substring(0, 50)}..."`
+      });
+
+      if (res.ok) {
+        Alert.alert('Report Received', 'Thank you for helping us maintain a healthy community. Admins will review this comment soon.');
+      } else {
+        console.log('[REPORT ERROR] Response:', res.data);
+        showToast(res.data?.error || 'Could not submit report', 'error');
+      }
+    } catch (e) {
+      showToast('Connection failed', 'error');
+    }
   };
 
   const handleToggleSolved = async () => {
@@ -357,7 +401,7 @@ export default function DiscussionDetailScreen() {
                       <View style={{ flex: 1 }}>
                         <View style={styles.commentNameRow}>
                           <Text style={styles.commentAuthor}>{c.author_full_name || c.author_name}</Text>
-                          {currentUser && (c.user === currentUser.user_id || currentUser.is_staff) && (
+                          {currentUser && (c.user === currentUser.user_id || currentUser.is_staff) ? (
                             <View style={styles.commentActions}>
                               <TouchableOpacity onPress={() => startEditComment(c)}>
                                 <MaterialIcons name="edit" size={14} color={theme.colors.primary} />
@@ -366,6 +410,10 @@ export default function DiscussionDetailScreen() {
                                 <MaterialIcons name="delete-outline" size={14} color={theme.colors.error} />
                               </TouchableOpacity>
                             </View>
+                          ) : (
+                            <TouchableOpacity onPress={() => handleReportComment(c)} style={styles.commentReportBtn}>
+                               <MaterialIcons name="report-problem" size={14} color={theme.colors.textSecondary} />
+                            </TouchableOpacity>
                           )}
                         </View>
                         <Text style={styles.commentEmail}>{c.author_email}</Text>
@@ -425,6 +473,44 @@ export default function DiscussionDetailScreen() {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Comment Action Bottom Sheet */}
+      <Modal
+        visible={commentActionModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setCommentActionModalVisible(false)}
+      >
+        <Pressable
+          style={styles.sheetOverlay}
+          onPress={() => setCommentActionModalVisible(false)}
+        >
+          <Animated.View
+            entering={FadeInDown.duration(300)}
+            style={styles.sheetContent}
+          >
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>Comment Options</Text>
+
+            {selectedComment && (
+              <View style={styles.actionList}>
+                <Text style={styles.sheetSubTitle}>Report this comment</Text>
+                {renderCommentActionItem('report-problem', 'Spam / Misleading', () => submitCommentReport(selectedComment, 'Spam'))}
+                {renderCommentActionItem('security', 'Abusive Content', () => submitCommentReport(selectedComment, 'Abusive Content'))}
+                {renderCommentActionItem('info-outline', 'Harassment', () => submitCommentReport(selectedComment, 'Harassment'))}
+              </View>
+            )}
+
+            <TouchableOpacity
+              style={styles.sheetCloseBtn}
+              onPress={() => setCommentActionModalVisible(false)}
+            >
+              <Text style={styles.sheetCloseText}>Cancel</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </Pressable>
+      </Modal>
+
     </KeyboardAvoidingView>
   );
 }
@@ -556,6 +642,7 @@ const styles = StyleSheet.create({
   smallAvatarText: { fontSize: 14, fontWeight: 'bold', color: theme.colors.primary },
   commentNameRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   commentActions: { flexDirection: 'row', gap: 10 },
+  commentReportBtn: { padding: 4 },
   commentAuthor: { fontSize: 14, fontWeight: 'bold', color: theme.colors.textPrimary },
   commentEmail: { fontSize: 11, color: theme.colors.primary, marginTop: -2, marginBottom: 2 },
   commentDate: { fontSize: 11, color: theme.colors.textSecondary },
@@ -585,5 +672,76 @@ const styles = StyleSheet.create({
   sendBtn: {
     width: 44, height: 44, borderRadius: 12, backgroundColor: theme.colors.primary,
     alignItems: 'center', justifyContent: 'center', ...theme.shadows.soft
+  },
+  // — Bottom Sheet Styles —
+  sheetOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  sheetContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    padding: 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+  },
+  sheetHandle: {
+    width: 40,
+    height: 5,
+    backgroundColor: theme.colors.divider,
+    borderRadius: 2.5,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  sheetTitle: {
+    fontSize: 18,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: theme.colors.heading,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  sheetSubTitle: {
+    fontSize: 12,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: theme.colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 12,
+    marginTop: 8,
+  },
+  actionList: {
+    gap: 8,
+  },
+  actionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    gap: 16,
+  },
+  actionIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: theme.colors.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionLabel: {
+    fontSize: 16,
+    fontFamily: theme.typography.fontFamily.medium,
+    color: theme.colors.textPrimary,
+  },
+  sheetCloseBtn: {
+    marginTop: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    backgroundColor: theme.colors.background,
+    borderRadius: 16,
+  },
+  sheetCloseText: {
+    fontSize: 16,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: theme.colors.textSecondary,
   }
 });
