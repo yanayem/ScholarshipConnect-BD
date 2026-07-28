@@ -7,37 +7,59 @@ Welcome to the official documentation for **ScholarshipConnectBD**. This guide p
 ## 📑 Table of Contents
 1. [🌟 Introduction](#introduction)
 2. [🎓 Student User Manual](#student-user-manual)
+   - [First Launch & Branding](#first-launch--branding)
    - [Getting Started & Profile Setup](#getting-started--profile-setup)
    - [Finding & Applying for Scholarships](#finding--applying-for-scholarships)
    - [Community Engagement & Mentorship](#community-engagement--mentorship)
    - [Document Management (The Vault)](#document-management-the-vault)
-3. [🛡️ Admin Management Manual](#admin-management-manual)
+3. [💎 Hybrid Business Model](#hybrid-business-model)
+4. [🛡️ Admin Management Manual](#admin-management-manual)
    - [Accessing the Admin Portal](#accessing-the-admin-portal)
    - [Content Moderation & Safety](#content-moderation--safety)
    - [Application Workflow & Verification](#application-workflow--verification)
    - [System Analytics & Communications](#system-analytics--communications)
-4. [⚙️ Technical Architecture](#technical-architecture)
-5. [🔒 Security & Authentication](#security--authentication)
-6. [❓ FAQ & Troubleshooting](#faq--troubleshooting)
-7. [🤖 AI Assistant Guide](#ai-assistant-guide)
-8. [📊 Database & Schema](#database--schema)
-9. [🔑 Environment Setup](#environment-setup)
-10. [🌐 API Endpoints Overview](#api-endpoints-overview)
-11. [📂 Project Structure Details](#project-structure-details)
-12. [🚀 Roadmap (Phase 3)](#roadmap-phase-3)
-13. [🧪 Testing & Quality Assurance](#testing--quality-assurance)
-14. [🚢 Deployment & Scaling](#deployment--scaling)
-15. [🤝 Contribution Guidelines](#contribution-guidelines)
-16. [📊 Project Report & Impact](#project-report--impact)
+5. [📊 System Analysis (DFD Details)](#system-analysis-dfd-details)
+6. [⚙️ Technical Architecture](#technical-architecture)
+7. [🔒 Security & Authentication](#security--authentication)
+8. [❓ FAQ & Troubleshooting](#faq--troubleshooting)
+9. [🤖 AI Assistant Guide](#ai-assistant-guide)
+10. [📊 Database & Schema](#database--schema)
+11. [🔑 Environment Setup](#environment-setup)
+12. [🌐 API Endpoints Overview](#api-endpoints-overview)
+13. [📂 Project Structure Details](#project-structure-details)
+14. [🚀 Roadmap (Phase 3)](#roadmap-phase-3)
+15. [🧪 Testing & Quality Assurance](#testing--quality-assurance)
+16. [🚢 Deployment & Scaling](#deployment--scaling)
+17. [🤝 Contribution Guidelines](#contribution-guidelines)
+18. [📊 Project Report & Impact](#project-report--impact)
 
 ---
 
 ## 🌟 Introduction
 **ScholarshipConnectBD** is a high-performance mobile ecosystem designed to help Bangladeshi students secure international funding. It bridges the gap between complex global opportunities and student readiness through a data-driven, academic-first interface.
 
+### Problem Statement
+Bangladeshi students often struggle with:
+- Fragmented scholarship information across thousands of websites.
+- Lack of clarity on eligibility for international grading systems.
+- Difficulty in drafting professional Statements of Purpose (SOP).
+- Limited access to experienced mentors who have already secured funding.
+
+### Project Objectives
+- To centralize international scholarship data specifically relevant to Bangladeshi scholars.
+- To provide AI-driven tools for document optimization (SOP/CV).
+- To foster a supportive community through peer-to-peer discussions and verified mentorship.
+- To simplify the document management process with a secure "Vault" system.
+
 ---
 
 ## 🎓 Student User Manual
+
+### First Launch & Branding
+When you first open ScholarshipConnectBD, you are greeted by:
+1.  **Branded Splash Screen**: A high-end logo entrance that establishes our professional academic identity.
+2.  **Interactive Onboarding**: A 3-slide introduction explaining our core values: *Discovery*, *Tracking*, and *Mentorship*. 
+    - *Note*: If the app undergoes a major update, you may see these slides again to ensure you're aware of new features (Forced Reset v4).
 
 ### Getting Started & Profile Setup
 1.  **Sign Up/Login**: Open the app and create an account using your email. We use Firebase for secure authentication.
@@ -60,12 +82,38 @@ Welcome to the official documentation for **ScholarshipConnectBD**. This guide p
 1.  **Community Discussions**: Go to the **Community Tab**. You can post questions about SOPs, LORs, or Visa interviews. 
     - *Pro Tip*: If someone gives you a great answer, mark your post as "Solved" to reward them with reputation points.
 2.  **Stories & Polls**: View short visual updates in the "Stories Bar" at the top of the Community or Home tab. Participating in polls helps the community understand application trends.
-3.  **Mentorship**: If you need one-on-one help, go to the **Mentorship** section. Find a mentor who matches your goal and send a "Mentorship Request". You'll be notified when they accept.
+3.  **Mentorship**: If you need one-on-one help, go to the **Mentorship** section (accessible from the "Find Mentor" button in Community). 
+    - Find a mentor who matches your goal and send a "Mentorship Request" with a preferred date and time.
+    - Track your requests in **Profile > My Mentorship Sessions**.
+    - If you are a mentor, manage incoming requests from your **Mentor Dashboard**.
 
 ### Document Management (The Vault)
 1.  **Upload Documents**: Go to **Profile > My Documents**. 
 2.  **Scan/Upload**: Use your camera or gallery to upload your Passport, Academic Transcripts, CV, and SOP.
 3.  **Security**: Your documents are securely stored and only accessible to you and the admin team when you specifically attach them to an application.
+
+---
+
+## 💎 Hybrid Business Model
+ScholarshipConnectBD operates on a **Hybrid-Contribution Model** designed to foster community growth while providing premium academic value through a gamified ecosystem.
+
+### 1. ScholarPoints System (Gamified Economy)
+- **Contribution (Submit & Earn)**: Users earn **50 points** for every unique scholarship they submit that is approved by the admin team. This crowdsourcing ensures the database is populated with niche opportunities.
+- **Helpfulness (Solve & Earn)**: Users earn **20 points** when their answer is marked as "Solved" in community discussions, encouraging high-quality peer support.
+
+### 2. ScholarConnect Pro (Freemium Tier)
+The platform offers a premium tier that users can unlock via two methods:
+1.  **ScholarPoints**: Cost 200 points earned through community contributions.
+2.  **Direct Payment**: Cost 500 BDT (One-time) via the integrated **SSLCommerz** gateway.
+
+- **Premium Benefits**:
+    - **Unlimited AI Suite**: Unlimited access to SOP drafting and CV optimization tools.
+    - **Priority Matching**: AI-driven alerts for scholarships matching the user's specific profile.
+    - **Verified Pro Badge**: A golden "Verified" badge to increase trust in the community.
+
+### 3. Mentorship Marketplace
+- **Value Exchange**: Mentorship is a value-added service where experienced scholars guide students.
+- **Mentorship Portfolio**: Mentors build a verifiable portfolio within the platform, demonstrating leadership and community contribution for their own future applications.
 
 ---
 
@@ -102,7 +150,39 @@ Welcome to the official documentation for **ScholarshipConnectBD**. This guide p
 
 ---
 
+## 📊 System Analysis (DFD Details)
+The following diagrams describe the logical flow of data within the ScholarshipConnectBD ecosystem, ranging from high-level interactions to specific feature workflows.
+
+### DFD Level 0: Context Diagram
+This diagram represents the boundary of the system and its interactions with external entities.
+-   **System**: ScholarshipConnectBD (0.0).
+-   **Entities**:
+    -   **Student**: Provides profile data, search queries, and application documents. Receives filtered scholarship lists, eligibility status, and AI-generated documents.
+    -   **Admin**: Provides content moderation actions and verification approvals. Receives system analytics, user reports, and audit logs.
+    -   **Mentor**: Provides expertise areas and availability. Receives mentorship requests from students.
+
+### DFD Level 2: Detailed Application Workflow (Process 3.0)
+A deep dive into how a student moves from a discovered scholarship to a completed application using AI tools.
+-   **3.1 Document Upload**: Data flows from the student's local device to the **Secure Vault (D5)** after being tokenized for security.
+-   **3.2 AI Eligibility Check & Matchmaker (NLP)**: Data from **User Profiles (D1)** and **Scholarship DB (D2)** is fetched. The system utilizes an advanced Machine Learning algorithm (**TF-IDF Vectorization** with **Cosine Similarity** via `scikit-learn`) to perform Natural Language Processing (NLP) on the student's Bio, Skills, and Preferences against the Scholarship's Description. This determines a dynamic and highly accurate "Match %" for the student.
+-   **3.3 AI SOP Generation**: The system pulls academic context from the student's profile and program requirements from the scholarship database to generate a tailored draft.
+-   **3.4 Final Submission**: Links the tokenized documents from the Vault to a new record in the **Applications (D3)** store.
+
+---
+
 ## ⚙️ Technical Architecture
+
+### System Requirements
+
+#### Hardware Requirements
+- **Development**: 8GB+ RAM, i5 Processor or equivalent, 20GB Free Disk Space.
+- **Client (Android)**: Android 8.0 (Oreo) or higher, 2GB RAM.
+
+#### Software Requirements
+- **Frontend**: React Native, Expo SDK 56, Node.js.
+- **Backend**: Python 3.10+, Django 3.2, Django REST Framework.
+- **Database**: MongoDB Atlas.
+- **Authentication**: Firebase Admin SDK.
 
 ### Frontend (Mobile)
 - **Engine**: React Native with Expo (SDK 56).
@@ -122,6 +202,23 @@ Welcome to the official documentation for **ScholarshipConnectBD**. This guide p
 - **ID Token Verification**: Every request is verified via Firebase JWT tokens.
 - **Admin Hierarchy**: Standard staff (`is_staff`) and superuser (`is_superuser`) roles define access levels.
 - **Data Privacy**: All student documents are stored using unique hash identifiers.
+
+---
+
+## 📋 System Requirements & Features
+
+### Functional Requirements
+- **User Authentication**: Secure signup, login, and password management via Firebase.
+- **Scholarship Management**: CRUD operations for scholarships with admin audit workflows.
+- **AI Suite**: Automated SOP generation and CV review based on user profiles.
+- **Community Hub**: Discussion forums with "Solved" status tracking and reputation points.
+- **Vault System**: Encrypted storage and linking of academic documents.
+
+### Non-Functional Requirements
+- **Performance**: Splash screen load under 2 seconds; API responses under 500ms.
+- **Scalability**: MongoDB Atlas handles unstructured data growth seamlessly.
+- **Usability**: Professional "Warm Teal" UI designed for educational focus.
+- **Security**: 256-bit encryption for sensitive student documents.
 
 ---
 
@@ -204,11 +301,19 @@ To run the system locally, ensure the following keys are configured in your `.en
 The backend provides a RESTful interface for all mobile operations. Every request (except public ones) requires a Firebase ID Token in the `Authorization` header.
 
 ### Accounts
-- `GET /api/accounts/profile/`: Retrieve current user's academic profile and reputation points.
-- `POST /api/accounts/admin-login/`: Secure staff authentication for the Admin Portal.
-- `POST /api/accounts/change-password/`: Update account security credentials.
-- `GET /api/accounts/users/`: (Admin Only) List all registered scholars with search functionality.
-- `GET /api/accounts/leaderboard/`: See the top-ranked students in the community.
+- `GET /api/accounts/profile/`: Retrieve current user's academic profile.
+- `PATCH /api/accounts/profile/`: Update profile (supports partial updates & photo uploads).
+- `POST /api/accounts/upgrade-pro/`: Unlock Pro tier using 200 ScholarPoints.
+- `GET /api/accounts/autocomplete/`: Real-time suggestions for countries/fields.
+
+### Payments
+- `POST /api/payments/checkout/`: Initiate SSLCommerz payment for Pro upgrade.
+- `POST /api/payments/success/`: Webhook for successful payment verification.
+- `GET /api/payments/history/`: View previous transactions.
+
+### AI Suite
+- `POST /api/ai/generate-bio/`: Generate a professional profile bio using LLM.
+- `GET /api/ai/matchmaker/`: NLP-powered matching for student profiles.
 
 ### Scholarships
 - `GET /api/scholarships/`: Fetch active programs. Supports query params: `?country=...`, `?level=...`, `?search=...`.
@@ -229,6 +334,14 @@ The backend provides a RESTful interface for all mobile operations. Every reques
 - `POST /api/community/{id}/comment/`: Reply to a student's question.
 - `GET /api/community/stories/`: Fetch 24-hour visual updates and success snippets.
 - `GET /api/community/mentors/`: Browse verified mentors for 1-on-1 assistance.
+- `GET /api/community/mentorships/`: List mentorship sessions for the current user.
+- `POST /api/community/mentorships/`: Request a new mentorship session.
+- `PATCH /api/community/mentorships/{id}/`: Update session status (Mentor only).
+
+### Payments
+- `POST /api/payments/checkout/`: Initiate SSLCommerz payment for Pro upgrade.
+- `POST /api/payments/success/`: Webhook for successful payment verification.
+- `GET /api/payments/history/`: View previous transactions.
 
 ### AI Suite
 - `POST /api/ai/write-sop/`: AI-powered drafting of Statements of Purpose.
