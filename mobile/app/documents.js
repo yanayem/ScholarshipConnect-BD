@@ -1,20 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, StatusBar, Alert
+  StyleSheet, StatusBar, Alert, Image, ActivityIndicator, Modal, TextInput, Platform, KeyboardAvoidingView
 } from 'react-native';
 import { router } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
 import { theme } from '../theme';
-
-const INITIAL_DOCS = [
-  { id: '1', name: 'Resume_2024.pdf', type: 'CV/Resume', size: '1.2 MB', date: 'Oct 12, 2024' },
-  { id: '2', name: 'Undergrad_Transcript.pdf', type: 'Transcript', size: '2.5 MB', date: 'Oct 15, 2024' },
-  { id: '3', name: 'Passport_Scan.jpg', type: 'ID Proof', size: '800 KB', date: 'Nov 02, 2024' },
-];
+import { apiService } from '../services/api';
+import { Loader } from '../components/Loader';
 
 export default function DocumentManagement() {
-  const [docs, setDocs] = useState(INITIAL_DOCS);
+  const [docs, setDocs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Upload Modal State
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [docName, setDocName] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
+  const [uploading, setUploading] = useState(false);
+
+  const loadDocuments = async () => {
+    setLoading(true);
+    try {
+      const res = await apiService.getDocuments();
+      if (res.ok) {
+        setDocs(res.data);
+      }
+    } catch (e) {
+      console.log(e);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadDocuments();
+  }, []);
 
   const handleDelete = (id, name) => {
     Alert.alert(
@@ -25,19 +47,79 @@ export default function DocumentManagement() {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => setDocs(docs.filter(d => d.id !== id))
+          onPress: async () => {
+            const res = await apiService.deleteDocument(id);
+            if (res.ok) {
+              setDocs(docs.filter(d => d.id !== id));
+            } else {
+              Alert.alert('Error', 'Failed to delete document');
+            }
+          }
         }
       ]
     );
   };
 
-  const handleUpload = () => {
-    Alert.alert('Upload', 'File picker would open here in a real device.');
+  const handlePickFile = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/pdf', 'image/*'],
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled) {
+        const asset = result.assets[0];
+        setSelectedFile(asset);
+        setDocName(asset.name || 'My Document');
+        setModalVisible(true);
+      }
+    } catch (err) {
+      console.log('Error picking document:', err);
+      Alert.alert('Error', 'Failed to pick document');
+    }
+  };
+
+  const handleConfirmUpload = async () => {
+    if (!docName.trim()) {
+      Alert.alert('Required', 'Please enter a document name.');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const typeStr = docName.toLowerCase().includes('passport') ? 'Identity' :
+                     docName.toLowerCase().includes('transcript') ? 'Academic' : 'Other';
+
+      const res = await apiService.uploadDocument(selectedFile, docName, typeStr, expiryDate);
+      
+      if (res.ok) {
+        setModalVisible(false);
+        setDocName('');
+        setExpiryDate('');
+        setSelectedFile(null);
+        loadDocuments();
+        Alert.alert('Success', 'Document added to vault!');
+      } else {
+        Alert.alert('Error', 'Failed to upload document.');
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Something went wrong.');
+    }
+    setUploading(false);
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Expired': return theme.colors.error;
+      case 'Expiring Soon': return theme.colors.warning;
+      case 'Valid': return theme.colors.success;
+      default: return theme.colors.textSecondary;
+    }
   };
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
       {/* Header */}
       <View style={styles.header}>
@@ -50,48 +132,52 @@ export default function DocumentManagement() {
         <Text style={styles.headerTitle}>Document Vault</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={[styles.uploadBanner, { backgroundColor: theme.colors.primaryLight }]}>
-          <MaterialIcons name="cloud-upload" size={40} color={theme.colors.primary} />
-          <Text style={styles.uploadTitle}>Upload New Document</Text>
-          <Text style={styles.uploadSub}>PDF, JPG or PNG (Max 5MB)</Text>
-          <TouchableOpacity style={styles.uploadActionBtn} onPress={handleUpload}>
-            <Text style={styles.uploadActionText}>Select File</Text>
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <View style={styles.summaryCard}>
+          <View style={styles.summaryInfo}>
+            <Text style={styles.summaryTitle}>Storage Status</Text>
+            <Text style={styles.summarySub}>{docs.length} Documents stored safely</Text>
+          </View>
+          <TouchableOpacity style={styles.addBtn} onPress={handlePickFile}>
+            <Ionicons name="add" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Your Documents ({docs.length})</Text>
-          <MaterialIcons name="filter-list" size={20} color={theme.colors.textSecondary} />
+          <Text style={styles.sectionTitle}>All Documents</Text>
+          <MaterialIcons name="sort" size={20} color={theme.colors.textSecondary} />
         </View>
 
-        {docs.length === 0 ? (
+        {loading ? (
+          <Loader message="Accessing vault..." />
+        ) : docs.length === 0 ? (
           <View style={styles.emptyState}>
-            <MaterialIcons name="folder-open" size={60} color={theme.colors.placeholder} />
-            <Text style={styles.emptyText}>No documents uploaded yet.</Text>
+            <MaterialIcons name="folder-zip" size={80} color={theme.colors.divider} />
+            <Text style={styles.emptyText}>Vault is empty</Text>
+            <TouchableOpacity style={styles.emptyAction} onPress={handlePickFile}>
+                <Text style={styles.emptyActionText}>Upload First Document</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           docs.map(doc => (
-            <View key={doc.id} style={styles.docCard}>
-              <View style={[styles.docIconWrap, {backgroundColor: theme.colors.secondaryBackground}]}>
-                <MaterialIcons
-                  name={doc.name.endsWith('.pdf') ? 'picture-as-pdf' : 'insert-photo'}
-                  size={28}
-                  color={doc.name.endsWith('.pdf') ? theme.colors.error : theme.colors.primary}
-                />
+            <View key={doc.id} style={[styles.docCard, theme.shadows.soft]}>
+              <View style={styles.docIconBox}>
+                 <MaterialIcons name="description" size={24} color={theme.colors.primary} />
               </View>
 
-              <View style={styles.docInfo}>
+              <View style={styles.docMain}>
                 <Text style={styles.docName} numberOfLines={1}>{doc.name}</Text>
-                <Text style={styles.docMeta}>{doc.type} • {doc.size}</Text>
-                <Text style={styles.docDate}>Uploaded on {doc.date}</Text>
+                <View style={styles.statusRow}>
+                  <View style={[styles.statusDot, { backgroundColor: getStatusColor(doc.status) }]} />
+                  <Text style={[styles.statusText, { color: getStatusColor(doc.status) }]}>{doc.status}</Text>
+                  {doc.expiry_date && (
+                    <Text style={styles.expiryText}> • Exp: {doc.expiry_date}</Text>
+                  )}
+                </View>
               </View>
 
               <View style={styles.docActions}>
-                <TouchableOpacity style={styles.actionIcon} onPress={() => Alert.alert('View', 'Opening document...')}>
-                  <MaterialIcons name="visibility" size={20} color={theme.colors.textSecondary} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.actionIcon} onPress={() => handleDelete(doc.id, doc.name)}>
+                <TouchableOpacity style={styles.actionBtn} onPress={() => handleDelete(doc.id, doc.name)}>
                   <MaterialIcons name="delete-outline" size={20} color={theme.colors.error} />
                 </TouchableOpacity>
               </View>
@@ -99,14 +185,63 @@ export default function DocumentManagement() {
           ))
         )}
 
-        <View style={[styles.infoTip, { backgroundColor: theme.colors.yellowCard }]}>
-          <MaterialIcons name="info-outline" size={18} color={theme.colors.warning} />
-          <Text style={styles.infoTipText}>
-            Documents uploaded here can be easily attached when applying for scholarships.
-          </Text>
+        <View style={styles.infoBox}>
+           <MaterialIcons name="security" size={20} color={theme.colors.primary} />
+           <Text style={styles.infoBoxText}>Your documents are encrypted and only accessible by you.</Text>
         </View>
-        <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* Upload Modal */}
+      <Modal visible={modalVisible} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.modalContent}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Upload Document</Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <MaterialIcons name="close" size={24} color={theme.colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.previewBox}>
+               {selectedFile?.mimeType?.includes('image') ? (
+                 <Image source={{ uri: selectedFile.uri }} style={styles.previewImage} />
+               ) : (
+                 <View style={styles.pdfPreview}>
+                   <FontAwesome5 name="file-pdf" size={50} color={theme.colors.error} />
+                   <Text style={styles.pdfName}>{selectedFile?.name}</Text>
+                 </View>
+               )}
+            </View>
+
+            <Text style={styles.label}>Document Name</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. Passport, IELTS Result"
+              value={docName}
+              onChangeText={setDocName}
+            />
+
+            <Text style={styles.label}>Expiry Date (Optional)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="YYYY-MM-DD"
+              value={expiryDate}
+              onChangeText={setExpiryDate}
+            />
+
+            <TouchableOpacity
+              style={styles.confirmBtn}
+              onPress={handleConfirmUpload}
+              disabled={uploading}
+            >
+              {uploading ? <ActivityIndicator color="#fff" /> : <Text style={styles.confirmBtnText}>Save to Vault</Text>}
+            </TouchableOpacity>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -114,46 +249,63 @@ export default function DocumentManagement() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.colors.background },
   header: {
-    height: 100, backgroundColor: theme.colors.background,
-    flexDirection: 'row', alignItems: 'center',
-    paddingTop: 40, paddingHorizontal: 20, gap: 12,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 10 : 50,
+    paddingHorizontal: 20, paddingBottom: 15, backgroundColor: '#fff',
+    flexDirection: 'row', alignItems: 'center', gap: 12
   },
-  headerTitle: { color: theme.colors.heading, fontSize: 18, fontWeight: 'bold' },
+  headerTitle: { fontSize: 20, fontWeight: 'bold', color: theme.colors.heading },
   backBtn: { padding: 4 },
   scroll: { padding: 20 },
-  uploadBanner: {
-    borderRadius: 24, padding: 32,
-    alignItems: 'center', marginBottom: 32
+  summaryCard: {
+    backgroundColor: theme.colors.primary, borderRadius: 24, padding: 24,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    marginBottom: 32
   },
-  uploadTitle: { fontSize: 18, fontWeight: 'bold', color: theme.colors.heading, marginTop: 16 },
-  uploadSub: { fontSize: 14, color: theme.colors.textSecondary, marginTop: 6, marginBottom: 20 },
-  uploadActionBtn: {
-    backgroundColor: theme.colors.primary, paddingHorizontal: 28, paddingVertical: 12,
-    borderRadius: 12, ...theme.shadows.soft
+  summaryTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  summarySub: { color: 'rgba(255,255,255,0.8)', fontSize: 13, marginTop: 4 },
+  addBtn: {
+    width: 48, height: 48, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center', justifyContent: 'center'
   },
-  uploadActionText: { color: '#fff', fontWeight: 'bold' },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, paddingHorizontal: 4 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: theme.colors.heading },
   docCard: {
-    backgroundColor: theme.colors.surface, borderRadius: 20, padding: 16,
-    flexDirection: 'row', alignItems: 'center', marginBottom: 14,
-    ...theme.shadows.soft
+    backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 12,
+    flexDirection: 'row', alignItems: 'center'
   },
-  docIconWrap: {
-    width: 52, height: 52, borderRadius: 14,
-    alignItems: 'center', justifyContent: 'center', marginRight: 16
+  docIconBox: {
+    width: 44, height: 44, borderRadius: 12, backgroundColor: theme.colors.primaryLight,
+    alignItems: 'center', justifyContent: 'center'
   },
-  docInfo: { flex: 1 },
-  docName: { fontSize: 15, fontWeight: '700', color: theme.colors.heading },
-  docMeta: { fontSize: 12, color: theme.colors.textSecondary, marginTop: 4 },
-  docDate: { fontSize: 11, color: theme.colors.placeholder, marginTop: 4 },
-  docActions: { flexDirection: 'row', gap: 10 },
-  actionIcon: { padding: 10, borderRadius: 12, backgroundColor: theme.colors.secondaryBackground },
-  emptyState: { alignItems: 'center', paddingVertical: 48 },
-  emptyText: { fontSize: 15, color: theme.colors.placeholder, marginTop: 12 },
-  infoTip: {
-    flexDirection: 'row',
-    padding: 16, borderRadius: 16, marginTop: 16, gap: 12, alignItems: 'center',
+  docMain: { flex: 1, marginLeft: 16 },
+  docName: { fontSize: 15, fontWeight: 'bold', color: theme.colors.heading },
+  statusRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+  statusDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
+  statusText: { fontSize: 12, fontWeight: '600' },
+  expiryText: { fontSize: 12, color: theme.colors.textSecondary },
+  actionBtn: { padding: 8 },
+  emptyState: { alignItems: 'center', paddingVertical: 60 },
+  emptyText: { color: theme.colors.placeholder, marginTop: 12, fontSize: 16 },
+  emptyAction: { marginTop: 20, backgroundColor: theme.colors.primaryLight, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12 },
+  emptyActionText: { color: theme.colors.primary, fontWeight: 'bold' },
+  infoBox: {
+    flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 20,
+    backgroundColor: '#fff', padding: 16, borderRadius: 16, borderStyle: 'dashed', borderWidth: 1, borderColor: theme.colors.divider
   },
-  infoTipText: { flex: 1, fontSize: 13, color: theme.colors.textSecondary, lineHeight: 20 }
+  infoBoxText: { flex: 1, fontSize: 12, color: theme.colors.textSecondary },
+
+  pdfPreview: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC' },
+  pdfName: { marginTop: 10, fontSize: 12, color: theme.colors.textSecondary, textAlign: 'center', paddingHorizontal: 20 },
+
+  // Modal
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, paddingBottom: 40 },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', color: theme.colors.heading },
+  previewBox: { height: 150, width: '100%', borderRadius: 16, backgroundColor: theme.colors.background, marginBottom: 20, overflow: 'hidden' },
+  previewImage: { width: '100%', height: '100%', resizeMode: 'cover' },
+  label: { fontSize: 14, fontWeight: 'bold', color: theme.colors.heading, marginBottom: 8, marginTop: 12 },
+  input: { backgroundColor: theme.colors.background, borderRadius: 12, padding: 14, fontSize: 15, borderWidth: 1, borderColor: theme.colors.divider },
+  confirmBtn: { backgroundColor: theme.colors.primary, borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 32 },
+  confirmBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 }
 });

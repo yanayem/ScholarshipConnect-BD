@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, StatusBar, Switch
@@ -6,19 +6,38 @@ import {
 import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { theme } from '../theme';
-
-const UPCOMING_DEADLINES = [
-  { id: '1', title: 'MEXT (Japan)', deadline: 'May 15, 2025', daysLeft: 5, category: 'Full Funded' },
-  { id: '2', title: 'Chevening (UK)', deadline: 'Nov 1, 2025', daysLeft: 140, category: 'Masters' },
-  { id: '3', title: 'Erasmus Mundus', deadline: 'Jan 10, 2026', daysLeft: 210, category: 'Europe' },
-];
+import { apiService } from '../services/api';
 
 export default function RemindersScreen() {
-  const [reminders, setReminders] = useState({
-    '1': true,
-    '2': false,
-    '3': true,
-  });
+  const [notifications, setNotifications] = useState([]);
+  const [reminders, setReminders] = useState({});
+
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        const res = await apiService.getNotifications();
+        if (res.ok) {
+          const formatted = res.data.map(n => ({
+            id: n.id.toString(),
+            title: n.title,
+            deadline: new Date(n.created_at).toLocaleDateString(), // using created_at as a proxy if no deadline
+            daysLeft: 0, // Mocked for now since backend doesn't have daysLeft directly
+            message: n.message,
+            isRead: n.is_read
+          }));
+          setNotifications(formatted);
+          
+          // Initializing switch state
+          const initialSwitches = {};
+          formatted.forEach(n => initialSwitches[n.id] = true);
+          setReminders(initialSwitches);
+        }
+      } catch (error) {
+        console.error('Failed to load notifications', error);
+      }
+    };
+    loadNotifications();
+  }, []);
 
   const toggleReminder = (id) => {
     setReminders(prev => ({ ...prev, [id]: !prev[id] }));
@@ -50,18 +69,16 @@ export default function RemindersScreen() {
 
         <Text style={styles.sectionTitle}>Upcoming Deadlines</Text>
 
-        {UPCOMING_DEADLINES.map(item => (
+        {notifications.length === 0 ? (
+          <Text style={{ textAlign: 'center', color: theme.colors.textSecondary, marginTop: 20 }}>No notifications right now.</Text>
+        ) : notifications.map(item => (
           <View key={item.id} style={styles.reminderCard}>
             <View style={styles.cardInfo}>
               <Text style={styles.cardTitle}>{item.title}</Text>
               <Text style={styles.cardDeadline}>
-                <MaterialIcons name="event" size={14} color={theme.colors.textSecondary} /> Ends: {item.deadline}
+                <MaterialIcons name="event" size={14} color={theme.colors.textSecondary} /> {item.deadline}
               </Text>
-              <View style={[styles.daysBadge, item.daysLeft < 7 ? {backgroundColor: 'rgba(232, 93, 117, 0.1)'} : {backgroundColor: theme.colors.secondaryBackground}]}>
-                <Text style={[styles.daysText, item.daysLeft < 7 && {color: theme.colors.error}]}>
-                  {item.daysLeft} days left
-                </Text>
-              </View>
+              <Text style={{ fontSize: 12, color: theme.colors.textSecondary, marginTop: 4 }}>{item.message}</Text>
             </View>
 
             <View style={styles.actionArea}>

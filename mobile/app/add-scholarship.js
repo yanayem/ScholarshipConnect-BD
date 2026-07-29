@@ -3,14 +3,15 @@ import {
   View, Text, StyleSheet, ScrollView,
   TextInput, Pressable, KeyboardAvoidingView,
   Platform, Alert, Modal, TouchableOpacity,
-  ToastAndroid
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { theme } from '../theme';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
 
 import { apiService } from '../services/api';
+import { useToast } from '../components/Toast';
 
 const InputField = ({ label, value, onChangeText, name, placeholder, multiline = false, numberOfLines = 1, keyboardType = 'default' }) => (
   <View style={styles.inputContainer}>
@@ -30,6 +31,7 @@ const InputField = ({ label, value, onChangeText, name, placeholder, multiline =
 
 export default function AddScholarship() {
   const router = useRouter();
+  const { showToast, ToastComponent } = useToast();
   const [showCalendar, setShowCalendar] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -57,7 +59,6 @@ export default function AddScholarship() {
       return;
     }
     try {
-      // Prepare data for submission: clean up empty strings for optional fields
       const payload = {};
       Object.keys(formData).forEach(key => {
         if (formData[key] !== '' || key === 'title' || key === 'deadline') {
@@ -65,7 +66,6 @@ export default function AddScholarship() {
         }
       });
 
-      // Handle min_cgpa conversion
       if (payload.min_cgpa) {
         payload.min_cgpa = parseFloat(payload.min_cgpa);
       } else {
@@ -74,20 +74,18 @@ export default function AddScholarship() {
 
       const res = await apiService.addScholarship(payload);
       if (res.ok) {
-        if (Platform.OS === 'android') {
-          ToastAndroid.show('Scholarship submitted for review!', ToastAndroid.LONG);
-        } else {
-          Alert.alert('Success', 'Scholarship submitted for review');
-        }
+        showToast('Scholarship submitted for review!', 'success');
 
-        // Return to the previous screen
-        if (router.canGoBack()) {
-          router.back();
-        } else {
-          router.replace('/(tabs)/scholarships');
-        }
+        const isStaff = await apiService.isStaff();
+
+        setTimeout(() => {
+          if (isStaff) {
+            router.replace('/admin/scholarships');
+          } else {
+            router.replace('/(tabs)/scholarships');
+          }
+        }, 1500);
       } else {
-        // More robust error handling
         let errorMsg = 'Failed to submit scholarship';
         if (res.data) {
           if (typeof res.data === 'object') {
@@ -98,11 +96,19 @@ export default function AddScholarship() {
             errorMsg = res.data.toString();
           }
         }
-        Alert.alert('Error', errorMsg);
+        showToast(errorMsg, 'error');
       }
     } catch (error) {
       console.error(error);
-      Alert.alert('Error', 'An unexpected error occurred: ' + error.message);
+      showToast('An unexpected error occurred', 'error');
+    }
+  };
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)/scholarships');
     }
   };
 
@@ -113,15 +119,16 @@ export default function AddScholarship() {
     >
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Pressable onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/scholarships')} style={styles.backButton}>
+          <Pressable onPress={handleBack} style={styles.backButton}>
             <MaterialIcons name="arrow-back" size={24} color={theme.colors.textPrimary} />
           </Pressable>
           <Text style={styles.headerTitle}>Submit Scholarship</Text>
         </View>
 
-        <View style={styles.formCard}>
-          <Text style={styles.hintText}>Shared scholarships will be reviewed by admins before becoming public.</Text>
-
+        <Animated.View
+          entering={FadeInDown.duration(600)}
+          style={styles.formCard}
+        >
           <InputField
             label="Scholarship Title *"
             name="title"
@@ -170,7 +177,6 @@ export default function AddScholarship() {
             </View>
           </View>
 
-          {/* Calendar Modal */}
           <Modal
             visible={showCalendar}
             transparent={true}
@@ -307,8 +313,9 @@ export default function AddScholarship() {
           >
             <Text style={styles.submitButtonText}>Submit Scholarship</Text>
           </Pressable>
-        </View>
+        </Animated.View>
       </ScrollView>
+      {ToastComponent}
     </KeyboardAvoidingView>
   );
 }
@@ -317,18 +324,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+    marginTop: Platform.OS === 'android' ? 10 : 0,
   },
   scrollContent: {
     padding: theme.spacing.lg,
+    paddingTop: 30,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: theme.spacing.xl,
+    marginBottom: theme.spacing.md,
     gap: theme.spacing.md,
   },
   backButton: {
-    padding: theme.spacing.xs,
+    padding: theme.spacing.sm,
+    marginLeft: -theme.spacing.sm,
   },
   headerTitle: {
     fontSize: theme.typography.sizes.xxl,

@@ -14,29 +14,17 @@ import {
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import { Platform } from 'react-native';
-import { initializeApp, getApps } from 'firebase/app';
-
-// Firebase configuration for Web fallback
-const firebaseConfig = {
-  apiKey: "AIzaSyB2nt8ujKLj6rDUN6GwyOK36BZaJ_dxBwM",
-  authDomain: "scholarships-bd.firebaseapp.com",
-  projectId: "scholarships-bd",
-  storageBucket: "scholarships-bd.firebasestorage.app",
-  messagingSenderId: "1092212923801",
-  appId: "1:1092212923801:web:230adde622f8daecf0c708",
-  measurementId: "G-FX0EV392R7"
-};
-
-// Initialize Firebase for all platforms (Native fallback to Web SDK)
-if (getApps().length === 0) {
-  initializeApp(firebaseConfig);
-}
+import React, { useEffect, useState } from 'react';
+import { View, Text, Platform } from 'react-native';
+import { useToast } from '../components/Toast';
+import Constants from 'expo-constants';
+import { firebaseAuth } from '../services/firebase';
+import { MentorModeProvider } from '../context/MentorModeContext';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const { showToast, ToastComponent } = useToast();
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': Inter_400Regular,
     'Inter-Medium': Inter_500Medium,
@@ -45,9 +33,22 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded || fontError) {
+    // Hide splash screen immediately if there's an error
+    if (fontError) {
+      console.error('Font loading error:', fontError);
       SplashScreen.hideAsync();
     }
+
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+
+    // Safety timeout: Ensure splash screen hides even if everything fails
+    const timer = setTimeout(() => {
+      SplashScreen.hideAsync();
+    }, 3000);
+
+    return () => clearTimeout(timer);
   }, [fontsLoaded, fontError]);
 
   if (!fontsLoaded && !fontError) {
@@ -55,17 +56,19 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="admin" />
-      <Stack.Screen name="scholarships/[id]" />
-      <Stack.Screen name="apply/[id]" />
-      <Stack.Screen name="reminders" />
-      <Stack.Screen name="documents" />
-      <Stack.Screen name="settings" />
-      <Stack.Screen name="edit-profile" options={{ presentation: 'modal' }} />
-    </Stack>
+    <MentorModeProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="scholarships/[id]" />
+        <Stack.Screen name="apply/[id]" />
+        <Stack.Screen name="reminders" />
+        <Stack.Screen name="documents" />
+        <Stack.Screen name="settings" />
+        <Stack.Screen name="edit-profile" options={{ presentation: 'modal' }} />
+      </Stack>
+      {ToastComponent}
+    </MentorModeProvider>
   );
 }
