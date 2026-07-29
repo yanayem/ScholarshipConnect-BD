@@ -4,38 +4,38 @@ Welcome to the official documentation for **ScholarshipConnectBD**. This guide p
 
 ---
 
-## 📑 Table of Contents
-1. [🌟 Introduction](#introduction)
-2. [🎓 Student User Manual](#student-user-manual)
+## Table of Contents
+1. [Introduction](#introduction)
+2. [Student User Manual](#student-user-manual)
    - [First Launch & Branding](#first-launch--branding)
    - [Getting Started & Profile Setup](#getting-started--profile-setup)
    - [Finding & Applying for Scholarships](#finding--applying-for-scholarships)
    - [Community Engagement & Mentorship](#community-engagement--mentorship)
    - [Document Management (The Vault)](#document-management-the-vault)
-3. [💎 Hybrid Business Model](#hybrid-business-model)
-4. [🛡️ Admin Management Manual](#admin-management-manual)
+3. [Hybrid Business Model](#hybrid-business-model)
+4. [Admin Management Manual](#admin-management-manual)
    - [Accessing the Admin Portal](#accessing-the-admin-portal)
    - [Content Moderation & Safety](#content-moderation--safety)
    - [Application Workflow & Verification](#application-workflow--verification)
    - [System Analytics & Communications](#system-analytics--communications)
-5. [📊 System Analysis (DFD Details)](#system-analysis-dfd-details)
-6. [⚙️ Technical Architecture](#technical-architecture)
-7. [🔒 Security & Authentication](#security--authentication)
-8. [❓ FAQ & Troubleshooting](#faq--troubleshooting)
-9. [🤖 AI Assistant Guide](#ai-assistant-guide)
-10. [📊 Database & Schema](#database--schema)
-11. [🔑 Environment Setup](#environment-setup)
-12. [🌐 API Endpoints Overview](#api-endpoints-overview)
-13. [📂 Project Structure Details](#project-structure-details)
-14. [🚀 Roadmap (Phase 3)](#roadmap-phase-3)
-15. [🧪 Testing & Quality Assurance](#testing--quality-assurance)
-16. [🚢 Deployment & Scaling](#deployment--scaling)
-17. [🤝 Contribution Guidelines](#contribution-guidelines)
-18. [📊 Project Report & Impact](#project-report--impact)
+5. [System Analysis (DFD Details)](#system-analysis-dfd-details)
+6. [Technical Architecture](#technical-architecture)
+7. [Security & Authentication](#security--authentication)
+8. [FAQ & Troubleshooting](#faq--troubleshooting)
+9. [AI Assistant Guide](#ai-assistant-guide)
+10. [Database & Schema](#database--schema)
+11. [Environment Setup](#environment-setup)
+12. [API Endpoints Overview](#api-endpoints-overview)
+13. [Project Structure Details](#project-structure-details)
+14. [Roadmap (Phase 3)](#roadmap-phase-3)
+15. [Testing & Quality Assurance](#testing--quality-assurance)
+16. [Deployment & Scaling](#deployment--scaling)
+17. [Contribution Guidelines](#contribution-guidelines)
+18. [Project Report & Impact](#project-report--impact)
 
 ---
 
-## 🌟 Introduction
+## Introduction
 **ScholarshipConnectBD** is a high-performance mobile ecosystem designed to help Bangladeshi students secure international funding. It bridges the gap between complex global opportunities and student readiness through a data-driven, academic-first interface.
 
 ### Problem Statement
@@ -53,7 +53,7 @@ Bangladeshi students often struggle with:
 
 ---
 
-## 🎓 Student User Manual
+## Student User Manual
 
 ### First Launch & Branding
 When you first open ScholarshipConnectBD, you are greeted by:
@@ -94,7 +94,7 @@ When you first open ScholarshipConnectBD, you are greeted by:
 
 ---
 
-## 💎 Hybrid Business Model
+## Hybrid Business Model
 ScholarshipConnectBD operates on a **Hybrid-Contribution Model** designed to foster community growth while providing premium academic value through a gamified ecosystem.
 
 ### 1. ScholarPoints System (Gamified Economy)
@@ -117,7 +117,7 @@ The platform offers a premium tier that users can unlock via two methods:
 
 ---
 
-## 🛡️ Admin Management Manual
+## Admin Management Manual
 
 ### Accessing the Admin Portal
 1.  **Security Lock**: Only users with `is_staff` permission can access the portal.
@@ -150,7 +150,7 @@ The platform offers a premium tier that users can unlock via two methods:
 
 ---
 
-## 📊 System Analysis (DFD Details)
+## System Analysis (DFD Details)
 The following diagrams describe the logical flow of data within the ScholarshipConnectBD ecosystem, ranging from high-level interactions to specific feature workflows.
 
 ### DFD Level 0: Context Diagram
@@ -170,7 +170,7 @@ A deep dive into how a student moves from a discovered scholarship to a complete
 
 ---
 
-## ⚙️ Technical Architecture
+## Technical Architecture
 
 ### System Requirements
 
@@ -198,14 +198,14 @@ A deep dive into how a student moves from a discovered scholarship to a complete
 
 ---
 
-## 🔒 Security & Authentication
+## Security & Authentication
 - **ID Token Verification**: Every request is verified via Firebase JWT tokens.
 - **Admin Hierarchy**: Standard staff (`is_staff`) and superuser (`is_superuser`) roles define access levels.
 - **Data Privacy**: All student documents are stored using unique hash identifiers.
 
 ---
 
-## 📋 System Requirements & Features
+## System Requirements & Features
 
 ### Functional Requirements
 - **User Authentication**: Secure signup, login, and password management via Firebase.
@@ -224,7 +224,7 @@ A deep dive into how a student moves from a discovered scholarship to a complete
 
 ---
 
-## 🤖 AI Assistant Guide
+## AI Assistant Guide
 The platform integrates advanced AI capabilities to assist students in their application journey.
 
 ### SOP Writing & Review
@@ -239,7 +239,7 @@ The platform integrates advanced AI capabilities to assist students in their app
 
 ---
 
-## 📊 Database & Schema
+## Database & Schema
 ScholarshipConnectBD uses **MongoDB Atlas** for its flexibility in handling varying scholarship structures and community data.
 
 ### Major Collections & Fields
@@ -271,7 +271,7 @@ ScholarshipConnectBD uses **MongoDB Atlas** for its flexibility in handling vary
 
 ---
 
-## 🔑 Environment Setup
+## Environment Setup
 To run the system locally, ensure the following keys are configured in your `.env` files.
 
 ### Backend (`/backend/.env`)
@@ -283,13 +283,13 @@ To run the system locally, ensure the following keys are configured in your `.en
 
 ### Running the Project
 
-#### 🐍 Backend (Django)
+#### Backend (Django)
 1.  **Environment**: Navigate to `/backend` and create a virtual environment (`python -m venv venv`).
 2.  **Dependencies**: Install required packages: `pip install -r requirements.txt`.
 3.  **Database**: Ensure your MongoDB URI is correct in `.env`, then run `python manage.py migrate`.
 4.  **Launch**: Start the development server: `python manage.py runserver 0.0.0.0:8000`.
 
-#### 📱 Frontend (Expo)
+#### Frontend (Expo)
 1.  **Setup**: Navigate to `/mobile` and install dependencies: `npm install`.
 2.  **Config**: Ensure `constants/Config.js` points to your backend IP.
 3.  **Launch**: Run `npm run android` to start on an emulator or physical device.
@@ -297,7 +297,7 @@ To run the system locally, ensure the following keys are configured in your `.en
 
 ---
 
-## 🌐 API Endpoints Overview
+## API Endpoints Overview
 The backend provides a RESTful interface for all mobile operations. Every request (except public ones) requires a Firebase ID Token in the `Authorization` header.
 
 ### Accounts
@@ -356,10 +356,10 @@ The backend provides a RESTful interface for all mobile operations. Every reques
 
 ---
 
-## 📂 Project Structure Details
+## Project Structure Details
 A detailed breakdown of the file organization for both the mobile frontend and the Django backend.
 
-### 📱 Frontend (Mobile/App)
+### Frontend (Mobile/App)
 The mobile application uses **Expo Router** for file-based navigation.
 
 -   **`mobile/app/`**: Root navigation directory.
@@ -389,7 +389,7 @@ The mobile application uses **Expo Router** for file-based navigation.
 -   **`mobile/constants/`**: App-wide configuration, color palettes, and standard spacing.
 -   **`mobile/theme.js`**: The dual-layer styling engine that powers the "Warm Teal" professional aesthetic.
 
-### ⚙️ Backend (Django API)
+### Backend (Django API)
 The backend follows a modular Django app architecture, designed for scalability and clear separation of concerns.
 
 -   **`backend/core/`**: Project configuration, global URL routing, and security middleware.
@@ -408,7 +408,7 @@ The backend follows a modular Django app architecture, designed for scalability 
 
 ---
 
-## 🚀 Roadmap (Phase 3)
+## Roadmap (Phase 3)
 Future enhancements planned for the ScholarshipConnectBD ecosystem.
 
 -   **Multi-language Support**: Full Bengali (Bangla) localization for better rural accessibility.
@@ -419,7 +419,7 @@ Future enhancements planned for the ScholarshipConnectBD ecosystem.
 
 ---
 
-## 🧪 Testing & Quality Assurance
+## Testing & Quality Assurance
 To maintain high standards, we follow a multi-tier testing approach.
 
 -   **Manual UI Testing**: Verified across 10+ Android emulators and physical devices (Pixel 7, Samsung A-series).
@@ -429,7 +429,7 @@ To maintain high standards, we follow a multi-tier testing approach.
 
 ---
 
-## 🚢 Deployment & Scaling
+## Deployment & Scaling
 How we transition from development to production.
 
 ### Backend Deployment
@@ -444,7 +444,7 @@ How we transition from development to production.
 
 ---
 
-## 🤝 Contribution Guidelines
+## Contribution Guidelines
 We welcome contributions from the Bangladeshi developer community!
 
 1.  **Fork & Clone**: Create a copy of the repository.
@@ -454,7 +454,7 @@ We welcome contributions from the Bangladeshi developer community!
 
 ---
 
-## ❓ FAQ & Troubleshooting
+## FAQ & Troubleshooting
 
 **Q: I can't see the Admin Portal button.**
 *A: Ensure your email is added to the `ADMIN_EMAILS` list in the backend `.env` file or `is_staff` is set to True in the Django Admin panel.*
@@ -467,7 +467,7 @@ We welcome contributions from the Bangladeshi developer community!
 
 ---
 
-## 📊 Project Report & Impact
+## Project Report & Impact
 This section summarizes the development journey, the problem solved, and the overall impact of the ScholarshipConnectBD platform.
 
 ### Executive Summary
@@ -496,4 +496,4 @@ ScholarshipConnectBD stands as a robust bridge between local talent and global e
 
 ---
 
-*Created with ❤️ for Bangladeshi Scholars. Last Updated: July 2026*
+*Created for Bangladeshi Scholars. Last Updated: July 2026*
