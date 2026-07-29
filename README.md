@@ -5,12 +5,12 @@
 
 ---
 
-## 📌 Project Overview
+## Project Overview
 ScholarshipConnectBD is a specialized mobile application built with **React Native & Expo** and powered by a **Django REST Framework** backend. It serves as a central hub for students in Bangladesh to find prestigious scholarships like MEXT, Chevening, Fulbright, and DAAD.
 
 ---
 
-## 🚀 Core Features
+## Core Features
 - [x] **Smart Dashboard**: Real-time announcements and featured scholarships.
 - [x] **Scholarship Discovery**: Advanced search and multi-layer filtering (Country, Level, Field).
 - [x] **Eligibility Checker**: Instant matching based on CGPA and academic background.
@@ -35,30 +35,30 @@ ScholarshipConnectBD is a specialized mobile application built with **React Nati
 
 ---
 
-## 🌟 Phase 2 - Professional Redesign (Latest Updates)
+## Phase 2 - Professional Redesign (Latest Updates)
 Recently, the platform underwent a significant UI/UX overhaul to meet global academic standards:
 
-### 📱 Premium UX & Branding
+### Premium UX & Branding
 - **Branded Splash Screen**: A professional logo entrance page with a 1.5s visibility delay, mimicking high-end apps like Facebook.
 - **Cross-Platform Support (Expo Web)**: Seamless accessibility via desktop and mobile browsers, optimized for **Vercel** hosting.
 - **Vibrant Onboarding**: A redesigned 3-step intro flow using brand-specific colors (Teal, Lavender, Warning Orange) to educate new users.
 - **Educational Layout**: Scholarship details redesigned with a focus on high-readability and professional hierarchy.
 - **Immersive Header**: Branded teal background with glass-morphic controls.
 
-### 🎓 Professional Scholar Profiles
+### Professional Scholar Profiles
 - **Academic Precision**: Dedicated fields for **Major / Course** and **Research Interests** for better AI matching.
 - **Researcher Integration**: Direct integration with **Google Scholar** to showcase academic publications.
 - **Smart Autocomplete**: Real-time suggestions for Degrees and Sub-fields based on global academic trends.
 - **Profile Readiness**: Interactive progress bar indicating profile completion for AI Matchmaking.
 
-### 💬 Advanced Mentorship Chat
+### Advanced Mentorship Chat
 - **Real-time Messaging**: Direct 1-on-1 communication between students and verified mentors.
 - **Modern Controls**: Support for **Message Editing** and **Unsending** (Delete for Everyone) for full user control.
 - **Read/Unread Status**: Instant visual feedback with single and double-check icons.
 - **Session-Based UI**: Clean, session-grouped timestamps for a natural conversation flow.
 - **Booking Integration**: Seamlessly transition from a chat conversation to a formal session booking.
 
-### 🛡️ Android-Native Admin Console (Full Management Suite)
+### Android-Native Admin Console (Full Management Suite)
 - **Material 3 Dashboard**: Centralized metrics for scholarships, users, applications, and mentorship sessions.
 - **Bulk Upload Tool**: Specialized endpoint for admins to upload 100+ scholarships via a single JSON payload.
 - **Moderation Center**: A dedicated system to review reported posts and comments to ensure a safe community.
@@ -76,14 +76,14 @@ Recently, the platform underwent a significant UI/UX overhaul to meet global aca
     - **Verified Pro Badge**: Golden badge for increased visibility and trust.
 - **Gamified Upgrade**: Active community members can still unlock Pro using **200 ScholarPoints**.
 
-### 🤝 Scholar Network (LinkedIn Style)
+### Scholar Network (LinkedIn Style)
 - **Dual-Tab Feed**: Redesigned community hub with "Feed" (Discussions) and "Network" (Mentors).
 - **AI Bio Assistant**: Instant profile bio generation using LLM models (Groq/Gemini).
 - **Smart Autocomplete**: Real-time suggestions for Countries and Fields based on global database trends.
 
 ---
 
-## 💎 Business & Monetization Model
+## Business & Monetization Model
 ScholarshipConnectBD operates on a **Hybrid-Contribution Model** designed to foster community growth while providing premium academic value.
 
 ### 1. Gamified Ecosystem (ScholarPoints)
@@ -111,9 +111,9 @@ The platform offers a premium tier that users can unlock via two methods:
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
-### 📱 Frontend (Mobile & Web)
+### Frontend (Mobile & Web)
 - **Core**: React Native & Expo (SDK 56) with **Expo Web** support.
 - **Web Runtime**: `react-native-web` & `react-dom` (Vercel optimized).
 - **Navigation**: **Expo Router** (Refined with stable history management for Admin tabs)
@@ -126,7 +126,7 @@ The platform offers a premium tier that users can unlock via two methods:
   - `expo-image-picker`: Reliable document capture and profile photo uploads.
 - **Persistence**: **AsyncStorage** (Cross-platform local storage).
 
-### ⚙️ Backend (API & Data)
+### Backend (API & Data)
 - **Framework**: **Django 3.2** (Robust & Scalable Python Framework).
 - **Architecture**: **RESTful API** powered by Django REST Framework (DRF).
 - **Database**: **MongoDB Atlas** (NoSQL Cloud Database for flexible data schemas).
@@ -135,15 +135,15 @@ The platform offers a premium tier that users can unlock via two methods:
 
 ---
 
-## 🗄️ Database Architecture
+## Database Architecture
 ScholarshipConnectBD utilizes a **hybrid relational-document approach** by leveraging **MongoDB Atlas** via the **Djongo** connector. For a full technical overview, see the [Entity-Relationship Diagram (ERD)](erdigram.md).
 
-### 👤 User & Profile Schema (Relational)
+### User & Profile Schema (Relational)
 The core user data follows a structured relational pattern:
 - **User Model**: Standard Django Auth user (Username, Email, Password).
 - **Profile Model**: A `OneToOne` extension of the User model containing academic records, personal details, and preferences.
 
-### 🎓 Scholarship Schema (Document-based)
+### Scholarship Schema (Document-based)
 Scholarship entries are stored as flexible JSON-like documents:
 - **Basic Info**: Title, Provider, Country, Amount, and Category.
 - **Academic Criteria**: Minimum CGPA, Study Level, and Field requirements.
@@ -151,23 +151,23 @@ Scholarship entries are stored as flexible JSON-like documents:
 
 ---
 
-## 🎨 UI & Design Theme
+## UI & Design Theme
 The application follows a **Premium, Minimal, and Modern** design system focused on clarity and scholar focus.
 
-### 🎨 Color Palette
+### Color Palette
 - **Primary**: Sophisticated Warm Teal (`#2A9D8F`) - Main branding and CTAs.
 - **Background**: Warm Cream (`#F8F2E7`) - A soft, academic backdrop for high readability.
 - **Secondary**: Light Lavender (`#F2ECFF`) - Subtle section highlighting.
 - **Surface**: Pure White (`#FFFFFF`) - For cards, modals, and input fields.
 
-### 🔤 Typography & Spacing
+### Typography & Spacing
 - **Font Family**: `Inter` (Regular, Medium, SemiBold, Bold) for maximum readability.
 - **Base Spacing**: 16px (md) grid system.
 - **Border Radius**: Professional **24px-36px** for cards and buttons.
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```text
 ScholarshipConnectBD/
@@ -217,7 +217,7 @@ ScholarshipConnectBD/
 
 ---
 
-## 📥 Getting Started
+## Getting Started
 
 ### 1. Frontend (Mobile) Setup
 ```bash
@@ -246,22 +246,22 @@ eas build -p android --profile preview
 
 ---
 
-## 🔒 Security & Verification
+## Security & Verification
 
-### 🛡️ Scholarship Verification System
+### Scholarship Verification System
 To maintain the quality and authenticity of data, the platform implements a dual-layer verification flow:
 1. **User Submission**: Any registered user can contribute by submitting a scholarship. These are initially marked as **`Pending`**.
 2. **Admin Review**: Staff members review pending submissions in the **Admin Home**.
 3. **Activation**: Only after admin approval does a scholarship become **`Live`** and visible to the community.
 
-### 🔥 Firebase Authentication
+### Firebase Authentication
 The app uses **Firebase SDK** for robust cross-platform authentication:
 - **Real-time Sync**: Automatic profile creation in the Django backend upon Firebase signup.
 - **ID Token Verification**: The backend verifies Firebase-issued JWT tokens for every API request, ensuring top-tier security.
 
 ---
 
-## 🤝 Meet the Team
+## Meet the Team
 
 | Student ID | Name | Designation | GitHub |
 | :--- | :--- | :--- | :--- |
@@ -277,4 +277,4 @@ Lecturer, Dept. of CSE
 Bangladesh University of Business and Technology (BUBT)
 
 ---
-*Created with ❤️ for Bangladeshi Scholars.*
+*Created for Bangladeshi Scholars.*
