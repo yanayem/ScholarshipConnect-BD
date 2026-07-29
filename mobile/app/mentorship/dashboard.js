@@ -228,10 +228,28 @@ export default function MentorDashboardScreen() {
 
         <TouchableOpacity
           style={styles.editProfileBanner}
+          onPress={() => router.push('/messages')}
+        >
+          <View style={styles.bannerInfo}>
+            <View style={[styles.iconCircle, { backgroundColor: theme.colors.primaryLight }]}>
+               <MaterialIcons name="chat" size={20} color={theme.colors.primary} />
+            </View>
+            <View style={{ marginLeft: 12 }}>
+              <Text style={styles.bannerTitle}>Messages & Inbox</Text>
+              <Text style={styles.bannerSub}>Reply to students and manage your conversations.</Text>
+            </View>
+          </View>
+          <MaterialIcons name="chevron-right" size={24} color={theme.colors.divider} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.editProfileBanner}
           onPress={() => router.push('/edit-profile')}
         >
           <View style={styles.bannerInfo}>
-            <MaterialIcons name="edit" size={20} color={theme.colors.primary} />
+            <View style={[styles.iconCircle, { backgroundColor: '#f0f0f0' }]}>
+               <MaterialIcons name="edit" size={20} color={theme.colors.textSecondary} />
+            </View>
             <View style={{ marginLeft: 12 }}>
               <Text style={styles.bannerTitle}>Edit Mentorship Profile</Text>
               <Text style={styles.bannerSub}>Update your expertise and bio to attract more students.</Text>
@@ -352,6 +370,10 @@ const styles = StyleSheet.create({
     ...theme.shadows.soft
   },
   bannerInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  iconCircle: {
+    width: 40, height: 40, borderRadius: 20,
+    alignItems: 'center', justifyContent: 'center'
+  },
   bannerTitle: { fontSize: 14, fontWeight: 'bold', color: theme.colors.heading },
   bannerSub: { fontSize: 11, color: theme.colors.textSecondary, marginTop: 2 },
   sectionHeaderRow: {

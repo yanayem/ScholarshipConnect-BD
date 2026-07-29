@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator, StatusBar, Platform, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator, StatusBar, Platform, Linking, Modal, TextInput, Alert } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { MaterialIcons, FontAwesome5, Ionicons, Feather } from '@expo/vector-icons';
 import { theme } from '../../theme';
@@ -10,26 +10,57 @@ export default function MentorProfileScreen() {
   const { id } = useLocalSearchParams();
   const [mentor, setMentor] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [reviews, setReviews] = useState([]);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [userRating, setUserRating] = useState(5);
+  const [userComment, setUserComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+
+  const fetchMentorDetails = async () => {
+    try {
+      const res = await apiService.getMentors();
+      if (res.ok) {
+        const found = res.data.find(m => (m.user_id || m.user || m.id).toString() === id.toString());
+        setMentor(found);
+
+        // Fetch reviews
+        const reviewsRes = await apiService.getMentorReviews(id);
+        if (reviewsRes.ok) {
+          setReviews(reviewsRes.data);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load mentor profile', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchMentorDetails = async () => {
-      // Since we don't have a specific getMentorById, we'll find him in the list
-      // Or if the backend profile returns a user, we use that.
-      // For now, let's try to get profile of that user id.
-      try {
-        const res = await apiService.getMentors();
-        if (res.ok) {
-          const found = res.data.find(m => (m.user_id || m.user || m.id).toString() === id.toString());
-          setMentor(found);
-        }
-      } catch (error) {
-        console.error('Failed to load mentor profile', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchMentorDetails();
   }, [id]);
+
+  const handleSubmitReview = async () => {
+    if (userRating < 1) {
+      Alert.alert('Error', 'Please select at least 1 star.');
+      return;
+    }
+    setSubmittingReview(true);
+    try {
+      const res = await apiService.submitMentorReview(id, userRating, userComment);
+      if (res.ok) {
+        Alert.alert('Success', 'Thank you for your review!');
+        setShowRatingModal(false);
+        fetchMentorDetails(); // Refresh to show new rating/review
+      } else {
+        Alert.alert('Error', res.data.error || 'Failed to submit review.');
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Connection failed.');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   if (loading) return <Loader message="Loading mentor profile..." />;
   if (!mentor) return (
@@ -68,7 +99,7 @@ export default function MentorProfileScreen() {
 
           <View style={styles.statsRow}>
             <View style={styles.statBox}>
-              <Text style={styles.statVal}>4.9</Text>
+              <Text style={styles.statVal}>{mentor.rating || '0.0'}</Text>
               <Text style={styles.statLab}>Rating</Text>
             </View>
             <View style={styles.statDivider} />
@@ -78,13 +109,20 @@ export default function MentorProfileScreen() {
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statBox}>
-              <Text style={styles.statVal}>12</Text>
+              <Text style={styles.statVal}>{mentor.reviews_count || 0}</Text>
               <Text style={styles.statLab}>Reviews</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.content}>
+          <TouchableOpacity
+            style={styles.rateMentorBtn}
+            onPress={() => setShowRatingModal(true)}
+          >
+            <MaterialIcons name="star-rate" size={20} color={theme.colors.primary} />
+            <Text style={styles.rateMentorBtnText}>Rate this Mentor</Text>
+          </TouchableOpacity>
           <Text style={styles.sectionTitle}>About Mentor</Text>
           <Text style={styles.bioText}>
             {mentor.mentorship_bio || mentor.bio || "Hello! I am a verified mentor on ScholarshipConnectBD. I specialize in helping students navigate their higher education journey."}
@@ -133,10 +171,95 @@ export default function MentorProfileScreen() {
               </TouchableOpacity>
             )}
           </View>
+
+          {/* Reviews List */}
+          <View style={styles.reviewsSection}>
+            <Text style={styles.sectionTitle}>Reviews ({reviews.length})</Text>
+            {reviews.length === 0 ? (
+              <Text style={styles.noReviews}>No reviews yet. Be the first to rate!</Text>
+            ) : (
+              reviews.map((rev, idx) => (
+                <View key={idx} style={styles.reviewCard}>
+                  <View style={styles.reviewHeader}>
+                    <Image
+                      source={{ uri: rev.user_avatar || theme.images.avatar + rev.user_name }}
+                      style={styles.reviewAvatar}
+                    />
+                    <View style={styles.reviewInfo}>
+                      <Text style={styles.reviewName}>{rev.user_name}</Text>
+                      <View style={styles.starsRow}>
+                        {[1,2,3,4,5].map(s => (
+                          <MaterialIcons
+                            key={s}
+                            name={s <= rev.rating ? "star" : "star-outline"}
+                            size={14}
+                            color="#FFD700"
+                          />
+                        ))}
+                      </View>
+                    </View>
+                    <Text style={styles.reviewDate}>{new Date(rev.created_at).toLocaleDateString()}</Text>
+                  </View>
+                  {rev.comment ? <Text style={styles.reviewComment}>{rev.comment}</Text> : null}
+                </View>
+              ))
+            )}
+          </View>
         </View>
 
         <View style={{ height: 100 }} />
       </ScrollView>
+
+      {/* Rating Modal */}
+      <Modal
+        visible={showRatingModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowRatingModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Rate {mentor.full_name}</Text>
+
+            <View style={styles.ratingPicker}>
+              {[1,2,3,4,5].map(star => (
+                <TouchableOpacity key={star} onPress={() => setUserRating(star)}>
+                  <MaterialIcons
+                    name={star <= userRating ? "star" : "star-outline"}
+                    size={40}
+                    color="#FFD700"
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <TextInput
+              style={styles.reviewInput}
+              placeholder="Write your feedback (optional)..."
+              multiline
+              numberOfLines={4}
+              value={userComment}
+              onChangeText={setUserComment}
+            />
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.cancelBtn]}
+                onPress={() => setShowRatingModal(false)}
+              >
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.submitBtn]}
+                onPress={handleSubmitReview}
+                disabled={submittingReview}
+              >
+                {submittingReview ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>Submit</Text>}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <View style={styles.bottomBar}>
         <TouchableOpacity
@@ -202,5 +325,38 @@ const styles = StyleSheet.create({
   messageBtnText: { color: theme.colors.primary, fontWeight: 'bold', fontSize: 16 },
   bookBtn: { flex: 2, height: 55, borderRadius: 15, backgroundColor: theme.colors.primary, alignItems: 'center', justifyContent: 'center', ...theme.shadows.teal },
   bookBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  errorContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' }
+  errorContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  rateMentorBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: theme.colors.primaryLight, paddingVertical: 12, borderRadius: 15,
+    marginBottom: 20, borderWidth: 1, borderColor: theme.colors.primary,
+  },
+  rateMentorBtnText: { color: theme.colors.primary, fontWeight: 'bold', fontSize: 15 },
+  reviewsSection: { marginTop: 30 },
+  noReviews: { color: theme.colors.textSecondary, fontStyle: 'italic', textAlign: 'center', marginTop: 10 },
+  reviewCard: {
+    backgroundColor: '#fff', borderRadius: 15, padding: 15, marginBottom: 15,
+    ...theme.shadows.soft, borderWidth: 1, borderColor: theme.colors.divider
+  },
+  reviewHeader: { flexDirection: 'row', alignItems: 'center' },
+  reviewAvatar: { width: 40, height: 40, borderRadius: 20, marginRight: 12 },
+  reviewInfo: { flex: 1 },
+  reviewName: { fontSize: 14, fontWeight: 'bold', color: theme.colors.heading },
+  starsRow: { flexDirection: 'row', marginTop: 2 },
+  reviewDate: { fontSize: 10, color: theme.colors.textSecondary },
+  reviewComment: { fontSize: 13, color: theme.colors.textPrimary, marginTop: 10, lineHeight: 18 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
+  modalContainer: { backgroundColor: '#fff', borderRadius: 25, padding: 25, ...theme.shadows.premium },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', color: theme.colors.heading, textAlign: 'center', marginBottom: 20 },
+  ratingPicker: { flexDirection: 'row', justifyContent: 'center', gap: 10, marginBottom: 20 },
+  reviewInput: {
+    backgroundColor: theme.colors.background, borderRadius: 15, padding: 15,
+    height: 100, textAlignVertical: 'top', marginBottom: 20, color: theme.colors.textPrimary
+  },
+  modalActions: { flexDirection: 'row', gap: 15 },
+  modalBtn: { flex: 1, height: 50, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  cancelBtn: { backgroundColor: theme.colors.background },
+  cancelBtnText: { color: theme.colors.textSecondary, fontWeight: 'bold' },
+  submitBtn: { backgroundColor: theme.colors.primary },
+  submitBtnText: { color: '#fff', fontWeight: 'bold' },
 });
