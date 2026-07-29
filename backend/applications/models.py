@@ -46,3 +46,36 @@ class ScholarshipApplication(models.Model):
 
     def _str_(self):
         return f"{self.full_name} - {self.scholarship.title}"
+        
+    class UserDocument(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='documents')
+    name = models.CharField(max_length=255)
+    doc_type = models.CharField(max_length=100)
+    file = models.FileField(upload_to='documents/')
+    size = models.CharField(max_length=50, blank=True)
+    
+    # ENHANCED FEATURES: Expiry Tracking
+    expiry_date = models.DateField(null=True, blank=True)
+    reminder_sent = models.BooleanField(default=False)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def _str_(self):
+        return f"{self.name} ({self.user.username})"
+
+    @property
+    def status(self):
+        from django.utils import timezone
+        if not self.expiry_date:
+            return 'Permanent'
+        
+        today = timezone.now().date()
+        if self.expiry_date < today:
+            return 'Expired'
+        
+        diff = (self.expiry_date - today).days
+        if diff <= 30:
+            return 'Expiring Soon'
+        
+        return 'Valid'
