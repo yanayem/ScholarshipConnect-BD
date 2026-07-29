@@ -22,7 +22,7 @@ export const theme = {
     primaryDark:    '#1F6F66',   // Dark variant for contrast
 
     // — Backgrounds ——————————————————————————————————————————————————————————
-    background:          '#FAFAFA',   // Main app background — offwhite
+    background:          '#F8F2E7',   // Main app background — Warm Cream
     secondaryBackground: '#F5F5F5',   // Section / secondary areas
     surface:             '#FFFFFF',   // Cards, modals, sheets
     sidebar:             '#FFFFFF',   // Navigation sidebar
@@ -78,6 +78,16 @@ export const theme = {
     white:       '#FFFFFF',
     black:       '#000000',
     transparent: 'transparent',
+  },
+
+  // ---------------------------------------------------------------------------
+  // PLACEHOLDERS (Standard images for missing data)
+  // ---------------------------------------------------------------------------
+  images: {
+    avatar:      'https://ui-avatars.com/api/?background=2A9D8F&color=fff&name=',
+    scholarship: 'https://images.unsplash.com/photo-1523050335456-c38a70c7ef21?w=800&q=80',
+    blog:        'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&q=80',
+    mentor:      'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&q=80',
   },
 
   // ---------------------------------------------------------------------------
@@ -155,39 +165,39 @@ export const theme = {
       elevation: 0,
     },
     xs: {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.03,
-      shadowRadius: 3,
-      elevation: 1,
+      shadowColor: 'transparent',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0,
+      shadowRadius: 0,
+      elevation: 0,
     },
     soft: {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.04,
-      shadowRadius: 6,
-      elevation: 2,
+      shadowColor: 'transparent',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0,
+      shadowRadius: 0,
+      elevation: 0,
     },
     card: {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.06,
-      shadowRadius: 12,
-      elevation: 3,
+      shadowColor: 'transparent',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0,
+      shadowRadius: 0,
+      elevation: 0,
     },
     premium: {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 0.06,
-      shadowRadius: 30,
-      elevation: 6,
+      shadowColor: 'transparent',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0,
+      shadowRadius: 0,
+      elevation: 0,
     },
     teal: {
-      shadowColor: '#2A9D8F',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
-      shadowRadius: 12,
-      elevation: 4,
+      shadowColor: 'transparent',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0,
+      shadowRadius: 0,
+      elevation: 0,
     },
   },
 
