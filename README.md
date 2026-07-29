@@ -66,7 +66,7 @@ Recently, the platform underwent a significant UI/UX overhaul to meet global aca
 - **Advanced Analytics**: Interactive charts and progress bars showing user trends, top scholarship countries, and engagement rates.
 - **Activity Logs**: A transparent audit trail tracking every admin action for accountability.
 
-### 💎 Hybrid Monetization & Pro Tier (New)
+### Hybrid Monetization & Pro Tier (New)
 - **ScholarConnect Pro**: A premium subscription model inspired by LinkedIn.
 - **In-App Payments**: Integrated **SSLCommerz** gateway allowing students to upgrade via **bKash**, Rocket, Nagad, or Cards.
 - **In-App WebView**: A seamless, secure payment experience that remains entirely within the mobile application.
@@ -271,7 +271,7 @@ The app uses **Firebase SDK** for robust cross-platform authentication:
 | 20245103-151 | **Shudipto Ghosh** | Backend Developer | [shudiptoghosh](https://github.com/shudiptoghosh) |
 | 20245103-143 | **Dipta Dey** | QA Engineer / DB Admin | [Dipto-04](https://github.com/Dipto-04) |
 
-### 🎓 Supervised By:
+### Supervised By:
 **Jahid Tanvir**  
 Lecturer, Dept. of CSE  
 Bangladesh University of Business and Technology (BUBT)
