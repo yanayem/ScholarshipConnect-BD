@@ -39,6 +39,8 @@ To view the in-depth system architecture, Data Flow Diagrams (DFD), Entity-Relat
 ## Phase 2 - Professional Redesign (Latest Updates)
 Recently, the platform underwent a significant UI/UX overhaul to meet global academic standards:
 
+---
+
 ### Premium UX & Branding
 - **Branded Splash Screen**: A professional logo entrance page with a 1.5s visibility delay, mimicking high-end apps like Facebook.
 - **Cross-Platform Support (Expo Web)**: Seamless accessibility via desktop and mobile browsers, optimized for **Vercel** hosting.
