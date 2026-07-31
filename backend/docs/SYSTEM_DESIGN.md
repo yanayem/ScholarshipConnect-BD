@@ -39,4 +39,36 @@ The team reviews the completed work with stakeholders and reflects on the develo
 *   **Continuous Improvement:** Feedback and lessons learned (e.g., optimizing API load times, fixing UI layout shifts) are added back to the product backlog for future sprints.
 
 ---
+## 2. Data Flow Diagram (DFD)
+
+The Data Flow Diagram maps out the flow of information for any process or system. Below is the **Level-1 DFD** for ScholarshipConnectBD, which provides a detailed breakdown of the main system processes, external entities, data stores, and how data moves between them.
+
+### DFD Level-1 Diagram
+
+![DFD Level-1](./diagrams/02_dfd_level_1.png)
+*(Figure: Data Flow Diagram Level-1 of ScholarshipConnectBD)*
+
+### Component Breakdown:
+
+#### External Entities (Sources/Sinks)
+*   **Student (E1):** The primary user who searches for scholarships, uploads documents, requests mentorships, and applies for programs.
+*   **Mentor (E2):** Verified users who provide guidance, manage their availability, and interact via chat.
+*   **Admin (E3):** System managers who approve scholarships, moderate the community, and monitor analytics.
+*   **External APIs (E4):** Third-party integrations handling secure authentication (Firebase) and payment processing (SSLCommerz).
+
+#### Core Processes
+*   **1.1 User Authentication & Profile Management:** Processes login requests via Firebase, handles session tokens, and updates user profiles.
+*   **1.2 Scholarship Discovery & AI Matchmaker:** Takes student criteria (CGPA, Level) and runs the NLP matchmaking algorithm against the scholarship database.
+*   **1.3 Application & Document Vault Management:** Securely tokenizes and stores uploaded PDFs/Images into the Vault and tracks application status.
+*   **1.4 Community Forum & Mentorship Booking:** Manages the routing of forum posts, polls, chat messages, and mentorship scheduling.
+*   **1.5 Admin Moderation & System Monitoring:** An overarching process that allows admins to read/write across all data stores for approval, moderation, and analytics.
+
+#### Data Stores
+*   **D1 - User Profile Store:** Stores student/mentor metadata, points, and Pro-tier status.
+*   **D2 - Scholarship Store:** Contains all active, pending, and rejected scholarship data.
+*   **D3 - Document Vault Store:** Secure repository for academic documents (SOPs, Transcripts).
+*   **D4 - Application Store:** Tracks the state (Submitted/Reviewed/Decision) of each student's application.
+*   **D5 - Community & Logs Store:** Houses forum discussions, chat history, mentorship sessions, and system audit logs.
+
+---
 *(Note: Additional diagrams like DFD, ERD, Use Case, Sequence, and Class diagrams will be added below in subsequent phases).*
