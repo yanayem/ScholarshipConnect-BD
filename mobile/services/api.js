@@ -7,16 +7,58 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../constants/Config';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
+import { firebaseAuth } from './firebase';
+
+const isExpoGo = Constants.executionEnvironment === 'storeClient';
 
 const handleResponse = async (response) => {
   const text = await response.text();
+  console.log(`[API] Response ${response.status} from ${response.url}`);
+
   let data;
   try {
-    data = text ? JSON.parse(text) : {};
+    if (text && (text.trim().startsWith('{') || text.trim().startsWith('['))) {
+      data = JSON.parse(text);
+    } else {
+      data = text ? { message: text } : {};
+    }
   } catch (e) {
-    console.error('[API] Parse Error. Raw response:', text);
+    console.error(`[API] Parse Error (${response.status}) from ${response.url}. Raw response snippet:`, text.substring(0, 200));
     data = { error: 'Invalid JSON response from server', details: text };
   }
+
+  if (response.status === 401) {
+    console.warn('[API] Unauthorized request detected. Token may be invalid or expired.');
+    if (!isExpoGo) {
+      try {
+        console.log('[API] Attempting to refresh token from Firebase...');
+        const newToken = await firebaseAuth.getIdToken(true);
+        if (newToken) {
+            await AsyncStorage.setItem('token', newToken);
+            console.log('[API] Token refreshed successfully.');
+        }
+      } catch (e) {
+        console.error('[API] Failed to auto-refresh token:', e.message);
+      }
+    }
+  }
+
+  // Post-process data to ensure URLs are absolute if they are relative media paths
+  if (data && typeof data === 'object') {
+    const processUrls = (obj) => {
+      for (const key in obj) {
+        if (typeof obj[key] === 'string' && obj[key].startsWith('/media/')) {
+          const baseUrl = API_URL.replace('/api', '');
+          obj[key] = `${baseUrl}${obj[key]}`;
+        } else if (obj[key] && typeof obj[key] === 'object') {
+          processUrls(obj[key]);
+        }
+      }
+    };
+    processUrls(data);
+  }
+
   return { ok: response.ok, status: response.status, data };
 };
 
@@ -28,6 +70,8 @@ const getHeaders = async (includeToken = true) => {
     const token = await AsyncStorage.getItem('token');
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
+    } else {
+      console.log('[API] No token found in AsyncStorage');
     }
   }
   return headers;
@@ -36,7 +80,25 @@ const getHeaders = async (includeToken = true) => {
 const networkError = (error, context) => {
   console.warn(`[API] ${context} Connection Issue:`, error.message);
   let msg = 'Network request failed. Ensure your Django server is running and your Android device can reach the server IP.';
+  if (error.message.includes('timeout')) msg = 'Request timed out. Server might be slow.';
   return { ok: false, data: { error: msg, details: error.message } };
+};
+
+// Generic fetch with timeout
+const fetchWithTimeout = async (url, options = {}, timeout = 10000) => {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(id);
+    return response;
+  } catch (e) {
+    clearTimeout(id);
+    throw e;
+  }
 };
 
 export const apiService = {
@@ -46,7 +108,7 @@ export const apiService = {
 
   async adminLogin(username, password) {
     try {
-      const response = await fetch(`${API_URL}/accounts/admin-login/`, {
+      const response = await fetchWithTimeout(`${API_URL}/accounts/admin-login/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -59,7 +121,7 @@ export const apiService = {
 
   async getProfile() {
     try {
-      const response = await fetch(`${API_URL}/accounts/profile/`, {
+      const response = await fetchWithTimeout(`${API_URL}/accounts/profile/`, {
         method: 'GET',
         headers: await getHeaders(true),
       });
@@ -71,30 +133,62 @@ export const apiService = {
 
   async updateProfile(profileData) {
     try {
-      const isFormData = profileData instanceof FormData;
-      const headers = await getHeaders(true);
+      const token = await AsyncStorage.getItem('token');
+      const isFormData = !!profileData && typeof profileData.append === 'function';
 
       if (isFormData) {
-        delete headers['Content-Type']; // Let the browser/native set it with boundary
+        return new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('PATCH', `${API_URL}/accounts/profile/`);
+          if (token) {
+            xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+          }
+          xhr.onload = () => {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status, data });
+            } catch (e) {
+              resolve({ ok: false, data: { error: 'Invalid response from server' } });
+            }
+          };
+          xhr.onerror = () => {
+            resolve({ ok: false, data: { error: 'Network request failed' } });
+          };
+          xhr.send(profileData);
+        });
       }
 
       const response = await fetch(`${API_URL}/accounts/profile/`, {
         method: 'PATCH',
-        headers: headers,
-        body: isFormData ? profileData : JSON.stringify(profileData),
+        headers: await getHeaders(true),
+        body: JSON.stringify(profileData),
       });
       return await handleResponse(response);
     } catch (error) {
+      console.error('[API ERROR] Update Profile:', error);
       return networkError(error, 'Update Profile');
+    }
+  },
+
+  async changePassword(old_password, new_password) {
+    try {
+      const response = await fetch(`${API_URL}/accounts/change-password/`, {
+        method: 'PUT',
+        headers: await getHeaders(true),
+        body: JSON.stringify({ old_password, new_password }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Change Password');
     }
   },
 
   async getScholarships(params = '') {
     try {
       const url = `${API_URL}/scholarships/${params ? '?' + params : ''}`;
-      const response = await fetch(url, {
+      const response = await fetchWithTimeout(url, {
         method: 'GET',
-        headers: await getHeaders(true), // Include token to see non-active ones if admin
+        headers: await getHeaders(true),
         mode: 'cors',
       });
       return await handleResponse(response);
@@ -107,7 +201,7 @@ export const apiService = {
     try {
       const response = await fetch(`${API_URL}/scholarships/${id}/`, {
         method: 'GET',
-        headers: await getHeaders(false),
+        headers: await getHeaders(true),
         mode: 'cors',
       });
       return await handleResponse(response);
@@ -118,7 +212,6 @@ export const apiService = {
 
   async addScholarship(scholarshipData) {
     try {
-      console.log('[API] Posting Scholarship Data:', JSON.stringify(scholarshipData, null, 2));
       const response = await fetch(`${API_URL}/scholarships/`, {
         method: 'POST',
         headers: await getHeaders(),
@@ -133,7 +226,7 @@ export const apiService = {
   async updateScholarship(id, scholarshipData) {
     try {
       const response = await fetch(`${API_URL}/scholarships/${id}/`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: await getHeaders(),
         body: JSON.stringify(scholarshipData),
       });
@@ -168,27 +261,255 @@ export const apiService = {
     }
   },
 
-  async logout() {
-    await AsyncStorage.removeItem('token');
-    await AsyncStorage.removeItem('admin_verified');
-    // If using Firebase SDK, also call auth().signOut() or similar
-  },
-
   async isStaff() {
     try {
+      const cached = await AsyncStorage.getItem('is_staff');
+      if (cached !== null) return cached === 'true';
       const res = await this.getProfile();
-      return res.ok && res.data.is_staff === true;
+      if (res.ok) {
+        const status = res.data.is_staff === true;
+        await AsyncStorage.setItem('is_staff', status.toString());
+        return status;
+      }
+      return false;
     } catch (e) {
       return false;
     }
   },
 
-  // — Blog / Success Stories —
-  async getBlogPosts() {
+  async getUsers() {
     try {
-      const response = await fetch(`${API_URL}/blog/`, {
+      const response = await fetch(`${API_URL}/accounts/users/`, {
         method: 'GET',
-        headers: await getHeaders(false),
+        headers: await getHeaders(true),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Users');
+    }
+  },
+
+  async getAdminStats() {
+    try {
+      const response = await fetch(`${API_URL}/scholarships/admin-stats/`, {
+        method: 'GET',
+        headers: await getHeaders(true),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Admin Stats');
+    }
+  },
+
+  async getReportedContent() {
+    try {
+      const response = await fetch(`${API_URL}/community/reports/`, {
+        method: 'GET',
+        headers: await getHeaders(true),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Reported Content');
+    }
+  },
+
+  async resolveReport(reportId, action) {
+    try {
+      const response = await fetch(`${API_URL}/community/reports/${reportId}/resolve/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify({ action }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Resolve Report');
+    }
+  },
+
+  async getMentorApplications() {
+    try {
+      const response = await fetch(`${API_URL}/community/mentor-applications/`, {
+        method: 'GET',
+        headers: await getHeaders(true),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Mentor Applications');
+    }
+  },
+
+  async approveMentor(id, status) {
+    try {
+      const response = await fetch(`${API_URL}/community/mentor-applications/${id}/`, {
+        method: 'PATCH',
+        headers: await getHeaders(),
+        body: JSON.stringify({ status }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Approve Mentor');
+    }
+  },
+
+  async getLeaderboard() {
+    try {
+      const response = await fetch(`${API_URL}/accounts/leaderboard/`, {
+        method: 'GET',
+        headers: await getHeaders(true),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Leaderboard');
+    }
+  },
+
+  async logout() {
+    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('admin_verified');
+    await AsyncStorage.removeItem('is_staff');
+    try {
+      await firebaseAuth.signOut();
+    } catch (e) {
+      console.warn('Firebase logout failed:', e.message);
+    }
+  },
+
+  // — Community Discussions —
+  async getDiscussions(params = '') {
+    try {
+      const url = `${API_URL}/community/${params ? '?' + params : ''}`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: await getHeaders(true),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Discussions');
+    }
+  },
+
+  async getDiscussionDetail(id) {
+    try {
+      const response = await fetch(`${API_URL}/community/${id}/`, {
+        method: 'GET',
+        headers: await getHeaders(true),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Discussion Detail');
+    }
+  },
+
+  async createDiscussion(data) {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const formData = new FormData();
+      if (data.title) formData.append('title', data.title);
+      if (data.content) formData.append('content', data.content);
+      if (data.category) formData.append('category', data.category);
+      if (data.poll_question) formData.append('poll_question', data.poll_question);
+      if (data.image) {
+        formData.append('image', {
+          uri: Platform.OS === 'ios' ? data.image.uri.replace('file://', '') : data.image.uri,
+          name: data.image.fileName || 'discussion_image.jpg',
+          type: data.image.mimeType || 'image/jpeg'
+        });
+      }
+      if (data.poll_options && data.poll_options.length > 0) {
+        formData.append('poll_options', JSON.stringify(data.poll_options));
+      }
+      const response = await fetch(`${API_URL}/community/`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData,
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Create Discussion');
+    }
+  },
+
+  async voteDiscussion(id, optionId) {
+    try {
+      const response = await fetch(`${API_URL}/community/${id}/vote/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify({ option_id: optionId }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Vote Discussion');
+    }
+  },
+
+  async likeDiscussion(id) {
+    try {
+      const response = await fetch(`${API_URL}/community/${id}/like/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Like Discussion');
+    }
+  },
+
+  async commentDiscussion(id, content) {
+    try {
+      const response = await fetch(`${API_URL}/community/${id}/comment/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify({ content }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Comment Discussion');
+    }
+  },
+
+  // — Community Stories —
+  async getStories() {
+    try {
+      const response = await fetch(`${API_URL}/community/stories/`, {
+        method: 'GET',
+        headers: await getHeaders(true),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Stories');
+    }
+  },
+
+  async createStory(data) {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const formData = new FormData();
+      if (data.caption) formData.append('caption', data.caption);
+      if (data.media) {
+        formData.append('media', {
+          uri: Platform.OS === 'ios' ? data.media.uri.replace('file://', '') : data.media.uri,
+          name: data.media.fileName || 'story.jpg',
+          type: data.media.mimeType || 'image/jpeg'
+        });
+      }
+      const response = await fetch(`${API_URL}/community/stories/`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData,
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Create Story');
+    }
+  },
+
+  // — Blog / Success Stories —
+  async getBlogPosts(type = '') {
+    try {
+      const url = `${API_URL}/blog/${type ? '?type=' + type : ''}`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: await getHeaders(true),
       });
       return await handleResponse(response);
     } catch (error) {
@@ -196,16 +517,105 @@ export const apiService = {
     }
   },
 
-  async createBlogPost(blogData) {
+  async getBlogPostDetail(id) {
     try {
+      const response = await fetch(`${API_URL}/blog/${id}/`, {
+        method: 'GET',
+        headers: await getHeaders(true),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Blog Detail');
+    }
+  },
+
+  async createBlogPost(formData) {
+    try {
+      const token = await AsyncStorage.getItem('token');
       const response = await fetch(`${API_URL}/blog/`, {
         method: 'POST',
-        headers: await getHeaders(),
-        body: JSON.stringify(blogData),
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData,
       });
       return await handleResponse(response);
     } catch (error) {
       return networkError(error, 'Create Blog');
+    }
+  },
+
+  async updateBlogPost(id, data) {
+    try {
+      const response = await fetch(`${API_URL}/blog/${id}/`, {
+        method: 'PATCH',
+        headers: await getHeaders(),
+        body: JSON.stringify(data)
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Update Blog');
+    }
+  },
+
+  async deleteBlogPost(id) {
+    try {
+      const response = await fetch(`${API_URL}/blog/${id}/`, {
+        method: 'DELETE',
+        headers: await getHeaders()
+      });
+      return { ok: response.ok };
+    } catch (error) {
+      return networkError(error, 'Delete Blog');
+    }
+  },
+
+  async reactToBlogPost(id, reaction) {
+    try {
+      const response = await fetch(`${API_URL}/blog/${id}/like/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify({ reaction_type: reaction })
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'React to Blog');
+    }
+  },
+
+  async commentBlogPost(id, content) {
+    try {
+      const response = await fetch(`${API_URL}/blog/${id}/comment/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify({ content })
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Comment Blog');
+    }
+  },
+
+  async deleteComment(commentId) {
+    try {
+      const response = await fetch(`${API_URL}/community/comments/${commentId}/`, {
+        method: 'DELETE',
+        headers: await getHeaders()
+      });
+      return { ok: response.ok };
+    } catch (error) {
+      return networkError(error, 'Delete Comment');
+    }
+  },
+
+  async updateComment(commentId, content) {
+    try {
+      const response = await fetch(`${API_URL}/community/comments/${commentId}/`, {
+        method: 'PATCH',
+        headers: await getHeaders(),
+        body: JSON.stringify({ content })
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Update Comment');
     }
   },
 
@@ -219,6 +629,18 @@ export const apiService = {
       return await handleResponse(response);
     } catch (error) {
       return networkError(error, 'Get Saved');
+    }
+  },
+
+  async getApplications() {
+    try {
+      const response = await fetch(`${API_URL}/applications/apply/`, {
+        method: 'GET',
+        headers: await getHeaders(),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Applications');
     }
   },
 
@@ -248,6 +670,28 @@ export const apiService = {
     }
   },
 
+  async uploadDocument(fileData, name, type, expiryDate = null) {
+    try {
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('doc_type', type);
+      if (expiryDate) formData.append('expiry_date', expiryDate);
+      formData.append('file', {
+        uri: Platform.OS === 'ios' ? fileData.uri.replace('file://', '') : fileData.uri,
+        name: fileData.name || 'document.pdf',
+        type: fileData.mimeType || 'application/pdf'
+      });
+      const response = await fetch(`${API_URL}/applications/documents/`, {
+        method: 'POST',
+        headers: await getHeaders(true),
+        body: formData,
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Upload Document');
+    }
+  },
+
   async deleteDocument(id) {
     try {
       const response = await fetch(`${API_URL}/applications/documents/${id}/`, {
@@ -270,6 +714,453 @@ export const apiService = {
       return await handleResponse(response);
     } catch (error) {
       return networkError(error, 'Get Notifications');
+    }
+  },
+
+  // — AI Assistant —
+  async aiWriteSOP(scholarshipId) {
+    try {
+      const response = await fetch(`${API_URL}/ai/write-sop/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify({ scholarship_id: scholarshipId }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'AI Write SOP');
+    }
+  },
+
+  async aiCheckEligibility(scholarshipId) {
+    try {
+      const response = await fetch(`${API_URL}/ai/check-eligibility/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify({ scholarship_id: scholarshipId }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'AI Check Eligibility');
+    }
+  },
+
+  async aiLiveSupport(message, history = []) {
+    try {
+      const response = await fetch(`${API_URL}/ai/live-support/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify({ message, history }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'AI Live Support');
+    }
+  },
+
+  async aiGenerateBio() {
+    try {
+      const response = await fetch(`${API_URL}/ai/generate-bio/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'AI Generate Bio');
+    }
+  },
+
+  async getScholarshipMatches() {
+    try {
+      const response = await fetch(`${API_URL}/ai/matchmaker/`, {
+        method: 'GET',
+        headers: await getHeaders(),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Matchmaker');
+    }
+  },
+
+  // — Mentorship —
+  async getMentors() {
+    try {
+      const response = await fetch(`${API_URL}/community/mentors/`, {
+        method: 'GET',
+        headers: await getHeaders(true),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Mentors');
+    }
+  },
+
+  async requestMentorship(mentorId, topic, message, scheduledDate = null, scheduledTime = null) {
+    try {
+      const response = await fetch(`${API_URL}/community/mentorships/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify({
+          mentor: mentorId,
+          topic,
+          message,
+          scheduled_date: scheduledDate,
+          scheduled_time: scheduledTime
+        }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Request Mentorship');
+    }
+  },
+
+  async getMentorships() {
+    try {
+      const response = await fetch(`${API_URL}/community/mentorships/`, {
+        method: 'GET',
+        headers: await getHeaders(),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Mentorships');
+    }
+  },
+
+  async updateMentorshipStatus(id, status) {
+    try {
+      const response = await fetch(`${API_URL}/community/mentorships/${id}/`, {
+        method: 'PATCH',
+        headers: await getHeaders(),
+        body: JSON.stringify({ status }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Update Mentorship Status');
+    }
+  },
+
+  async submitMentorReview(mentorId, rating, comment) {
+    try {
+      const response = await fetch(`${API_URL}/community/reviews/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify({ mentor: mentorId, rating, comment }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Submit Review');
+    }
+  },
+
+  async getMentorReviews(mentorId) {
+    try {
+      const response = await fetch(`${API_URL}/community/reviews/?mentor=${mentorId}`, {
+        method: 'GET',
+        headers: await getHeaders(true),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Reviews');
+    }
+  },
+
+  async getAutocomplete(type, query) {
+    try {
+      const response = await fetch(`${API_URL}/accounts/autocomplete/?type=${type}&q=${query}`, {
+        method: 'GET',
+        headers: await getHeaders(true),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Autocomplete');
+    }
+  },
+
+  // — Payments & Pro Tier —
+  async initiateCheckout(paymentMethod = 'Generic') {
+    try {
+      const response = await fetch(`${API_URL}/payments/checkout/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify({ payment_method: paymentMethod }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Initiate Checkout');
+    }
+  },
+
+  async createStripeIntent() {
+    try {
+      const response = await fetch(`${API_URL}/payments/stripe/create-intent/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Create Stripe Intent');
+    }
+  },
+
+  async createBKashPayment() {
+    try {
+      const response = await fetch(`${API_URL}/payments/bkash/create/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Create bKash');
+    }
+  },
+
+  async executeBKashPayment(paymentID, otp, pin) {
+    try {
+      const response = await fetch(`${API_URL}/payments/bkash/execute/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify({ paymentID, otp, pin }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Execute bKash');
+    }
+  },
+
+  async getPaymentHistory() {
+    try {
+      const response = await fetch(`${API_URL}/payments/history/`, {
+        method: 'GET',
+        headers: await getHeaders(),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Payment History');
+    }
+  },
+
+  async upgradeWithPoints() {
+    try {
+      const response = await fetch(`${API_URL}/accounts/upgrade-pro/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Upgrade with Points');
+    }
+  },
+
+  async forgotPassword(email) {
+    try {
+      const response = await fetch(`${API_URL}/accounts/forgot-password/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Forgot Password');
+    }
+  },
+
+  async getUserActivity() {
+    try {
+      const response = await fetch(`${API_URL}/accounts/activity/`, {
+        method: 'GET',
+        headers: await getHeaders(),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get User Activity');
+    }
+  },
+
+  async getStudentAnalytics() {
+    try {
+      const response = await fetch(`${API_URL}/accounts/analytics/`, {
+        method: 'GET',
+        headers: await getHeaders(),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Student Analytics');
+    }
+  },
+
+  // — Admin APIs —
+  async getAdminLogs() {
+    try {
+      const response = await fetch(`${API_URL}/accounts/admin/logs/`, {
+        method: 'GET',
+        headers: await getHeaders(),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Admin Logs');
+    }
+  },
+
+  async getAdminBroadcasts() {
+    try {
+      const response = await fetch(`${API_URL}/notifications/broadcast/`, {
+        method: 'GET',
+        headers: await getHeaders(),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Broadcasts');
+    }
+  },
+
+  async createReport(data) {
+    try {
+      const response = await fetch(`${API_URL}/community/reports/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify(data),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Create Report');
+    }
+  },
+
+  async sendBroadcast(title, message) {
+    try {
+      const response = await fetch(`${API_URL}/notifications/broadcast/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify({ title, message }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Send Broadcast');
+    }
+  },
+
+  async getModerationReports() {
+    try {
+      const response = await fetch(`${API_URL}/community/reports/`, {
+        method: 'GET',
+        headers: await getHeaders(),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Moderation Reports');
+    }
+  },
+
+  // — Connections & Chat —
+  async getConnections() {
+    try {
+      const response = await fetch(`${API_URL}/community/connections/`, {
+        method: 'GET',
+        headers: await getHeaders(),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Connections');
+    }
+  },
+
+  async requestConnection(receiverId) {
+    try {
+      const response = await fetch(`${API_URL}/community/connections/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify({ receiver: receiverId }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Request Connection');
+    }
+  },
+
+  async handleConnectionRequest(connectionId, action) {
+    try {
+      const response = await fetch(`${API_URL}/community/connections/${connectionId}/action/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify({ action }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Handle Connection');
+    }
+  },
+
+  async sendMessage(receiverId, message, relatedAppId = null) {
+    try {
+      const response = await fetch(`${API_URL}/community/chat/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify({ receiver: receiverId, message, related_application_id: relatedAppId }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Send Message');
+    }
+  },
+
+  async getChatHistory(otherUserId) {
+    try {
+      const response = await fetch(`${API_URL}/community/chat/${otherUserId}/`, {
+        method: 'GET',
+        headers: await getHeaders(),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Chat History');
+    }
+  },
+
+  async getConversations() {
+    try {
+      const response = await fetch(`${API_URL}/community/conversations/`, {
+        method: 'GET',
+        headers: await getHeaders(),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Conversations');
+    }
+  },
+
+  async editMessage(messageId, message) {
+    try {
+      const response = await fetch(`${API_URL}/community/chat/msg/${messageId}/`, {
+        method: 'PATCH',
+        headers: await getHeaders(),
+        body: JSON.stringify({ message }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Edit Message');
+    }
+  },
+
+  async deleteMessage(messageId) {
+    try {
+      const response = await fetch(`${API_URL}/community/chat/msg/${messageId}/`, {
+        method: 'DELETE',
+        headers: await getHeaders(),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Delete Message');
+    }
+  },
+
+  async resolveReport(id, action) {
+    try {
+      const response = await fetch(`${API_URL}/community/reports/${id}/`, {
+        method: 'PATCH',
+        headers: await getHeaders(),
+        body: JSON.stringify({ status: action === 'delete' ? 'resolved' : 'dismissed' }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Resolve Report');
     }
   }
 };
