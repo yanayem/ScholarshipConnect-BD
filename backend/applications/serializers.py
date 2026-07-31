@@ -9,6 +9,7 @@ class SavedScholarshipSerializer(serializers.ModelSerializer):
         model = SavedScholarship
         fields = ['id', 'user', 'scholarship', 'scholarship_details', 'created_at']
         read_only_fields = ['user']
+
 class ScholarshipApplicationSerializer(serializers.ModelSerializer):
     scholarship_title = serializers.CharField(source='scholarship.title', read_only=True)
     scholarship_country = serializers.CharField(source='scholarship.country', read_only=True)

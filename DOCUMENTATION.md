@@ -1,4 +1,4 @@
-# 📖 ScholarshipConnectBD — Complete User Manual & Documentation
+# ScholarshipConnectBD — Complete User Manual & Documentation
 
 Welcome to the official documentation for **ScholarshipConnectBD**. This guide provides a deep dive into the platform's features, management tools, technical architecture, and a step-by-step manual for both students and administrators.
 

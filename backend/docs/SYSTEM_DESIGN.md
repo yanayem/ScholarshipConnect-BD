@@ -1,4 +1,4 @@
-# 📐 ScholarshipConnectBD - System Design & Architecture
+# ScholarshipConnectBD - System Design & Architecture
 
 Welcome to the System Design documentation for **ScholarshipConnectBD**. This document outlines the software development lifecycle, system architecture, data flows, and structural diagrams used to build this highly scalable mobile platform.
 

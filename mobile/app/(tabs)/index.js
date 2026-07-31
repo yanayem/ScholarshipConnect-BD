@@ -85,7 +85,7 @@ export default function HomeScreen() {
         {/* Success Stories Preview */}
         <View style={styles.blogBanner}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.blogBannerTitle}>Success Stories 🏆</Text>
+            <Text style={styles.blogBannerTitle}>Success Stories</Text>
             <Text style={styles.blogBannerSub}>Read how others got their scholarships.</Text>
             <TouchableOpacity
               style={styles.blogBtn}

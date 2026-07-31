@@ -60,7 +60,6 @@ export default function MatchmakerScreen() {
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.aiBanner}>
-          <FontAwesome5 name="robot" size={40} color={theme.colors.primary} />
           <View style={styles.aiBannerContent}>
             <Text style={styles.aiBannerTitle}>Smart Suggestions</Text>
             {!user?.is_pro ? (

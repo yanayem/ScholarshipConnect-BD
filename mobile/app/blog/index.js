@@ -64,7 +64,7 @@ export default function BlogListScreen() {
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.topInfo}>
-          <Text style={styles.pageTitle}>Learn from the Winners 🏆</Text>
+          <Text style={styles.pageTitle}>Learn from the Winners</Text>
           <Text style={styles.pageSub}>Real experiences from students who secured prestigious scholarships.</Text>
         </View>
 

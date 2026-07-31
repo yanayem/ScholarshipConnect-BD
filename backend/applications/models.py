@@ -44,10 +44,10 @@ class ScholarshipApplication(models.Model):
     class Meta:
         unique_together = ('user', 'scholarship')
 
-    def _str_(self):
+    def __str__(self):
         return f"{self.full_name} - {self.scholarship.title}"
-        
-    class UserDocument(models.Model):
+
+class UserDocument(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='documents')
     name = models.CharField(max_length=255)
     doc_type = models.CharField(max_length=100)
@@ -61,7 +61,7 @@ class ScholarshipApplication(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def _str_(self):
+    def __str__(self):
         return f"{self.name} ({self.user.username})"
 
     @property

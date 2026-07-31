@@ -30,6 +30,7 @@ class SavedScholarshipDestroyView(generics.DestroyAPIView):
     
     def get_queryset(self):
         return SavedScholarship.objects.filter(user=self.request.user)
+
 # ==========================
 # Handle scholarship application submissions and view application history.
 # ==========================
@@ -64,19 +65,21 @@ class ScholarshipApplicationListCreateView(generics.ListCreateAPIView):
             message=f"You have successfully applied for '{instance.scholarship.title}'. Our team will review it soon."
         )
 
+        # Automated Agency Chat Initialization
         if instance.application_type == 'Agency':
             from django.contrib.auth.models import User
             from community.models import ChatMessage
+            # Find the primary admin (superuser) to act as the agency representative
             agency_admin = User.objects.filter(is_superuser=True).first()
             if agency_admin and agency_admin != user:
-                welcome_msg = f"Hello {instance.full_name}! We have received your agency processing request for '{instance.scholarship.title}'. A consultant will review your profile and get back to you shortly."
+                welcome_msg = f"Hello {instance.full_name}! We have received your agency processing request for '{instance.scholarship.title}'. A consultant will review your profile and get back to you shortly. Do you have any immediate questions?"
                 ChatMessage.objects.create(
                     sender=agency_admin,
                     receiver=user,
                     message=welcome_msg,
                     is_read=False
                 )
-        
+
         admin_id = None
         if instance.application_type == 'Agency':
             from django.contrib.auth.models import User
@@ -90,6 +93,7 @@ class ScholarshipApplicationListCreateView(generics.ListCreateAPIView):
             response_data['agency_admin_id'] = admin_id
             
         return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
+
 # ==========================
 # Manage document vault including file uploads and expiration reminders.
 # ==========================
@@ -144,3 +148,28 @@ class DocumentDeleteView(generics.DestroyAPIView):
 
     def get_queryset(self):
         return UserDocument.objects.filter(user=self.request.user)
+
+# ==========================
+# Admin-only view to update the processing status of applications.
+# ==========================
+class ScholarshipApplicationUpdateView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def patch(self, request, pk):
+        try:
+            application = ScholarshipApplication.objects.get(pk=pk)
+            new_status = request.data.get('status')
+            if new_status:
+                application.status = new_status
+                application.save()
+                
+                send_notification(
+                    user=application.user,
+                    title="Application Status Updated",
+                    message=f"The status of your application for '{application.scholarship_title}' has been changed to: {new_status}."
+                )
+
+                return Response({"message": f"Status updated to {new_status}"})
+            return Response({"error": "Status is required"}, status=status.HTTP_400_BAD_REQUEST)
+        except ScholarshipApplication.DoesNotExist:
+            return Response({"error": "Application not found"}, status=status.HTTP_404_NOT_FOUND)
