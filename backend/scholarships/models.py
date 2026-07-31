@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from core.fields import SafeDecimalField
 
 class Scholarship(models.Model):
     STATUS_CHOICES = [
@@ -15,7 +16,7 @@ class Scholarship(models.Model):
     category = models.CharField(max_length=100, blank=True, default='')
     level = models.CharField(max_length=100, blank=True, default='', help_text="e.g. Bachelors, Masters, PhD")
     field = models.CharField(max_length=100, blank=True, default='', help_text="e.g. Engineering, Arts, etc.")
-    min_cgpa = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True, default=0.00)
+    min_cgpa = SafeDecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     deadline = models.DateField()
     description = models.TextField(blank=True, default='')
     eligibility = models.TextField(blank=True, default='')
