@@ -90,3 +90,57 @@ class ScholarshipApplicationListCreateView(generics.ListCreateAPIView):
             response_data['agency_admin_id'] = admin_id
             
         return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
+# ==========================
+# Manage document vault including file uploads and expiration reminders.
+# ==========================
+class UserDocumentListCreateView(generics.ListCreateAPIView):
+    serializer_class = UserDocumentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = (parsers.MultiPartParser, parsers.FormParser)
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            queryset = UserDocument.objects.all()
+            user_id_param = self.request.query_params.get('user_id')
+            if user_id_param:
+                queryset = queryset.filter(user_id=user_id_param)
+            return queryset.order_by('-created_at')
+            
+        docs = UserDocument.objects.filter(user=user)
+        
+        try:
+            from notifications.models import Notification
+            from django.utils import timezone
+            import datetime
+            
+            today = timezone.now().date()
+            soon = today + datetime.timedelta(days=30)
+            expiring = docs.filter(expiry_date__lte=soon, reminder_sent=False)
+            
+            for doc in expiring:
+                Notification.objects.get_or_create(
+                    user=self.request.user,
+                    title="Document Expiring Soon",
+                    message=f"Your document '{doc.name}' is set to expire on {doc.expiry_date}.",
+                    defaults={'is_read': False}
+                )
+                doc.reminder_sent = True
+                doc.save()
+        except:
+            pass
+            
+        return docs
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+# ==========================
+# Delete a specific document from the user's vault.
+# ==========================
+class DocumentDeleteView(generics.DestroyAPIView):
+    serializer_class = UserDocumentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return UserDocument.objects.filter(user=self.request.user)
