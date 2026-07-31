@@ -1,78 +1,130 @@
 /**
- * SCHOLARSHIP DETAILS: Premium redesigned view for scholarship information.
- * - Featuring immersive header, modern info grid, and academic timeline.
- * - Connected to: apiService (getScholarshipDetail), /apply/[id], theme.js.
+ * SCHOLARSHIP DETAILS: Independent Professional View
+ * - Decoupled from global theme for specific educational styling.
+ * - Simple, modern, and academic layout.
  */
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, StatusBar, Share, ActivityIndicator,
-  Dimensions, ImageBackground, Linking
+  Dimensions, ImageBackground, Linking, Alert, Modal, Pressable
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
-import { theme } from '../../theme';
 import { apiService } from '../../services/api';
+import { useToast } from '../../components/Toast';
+import { Loader } from '../../components/Loader';
 
 const { width, height } = Dimensions.get('window');
 
-const InfoItem = ({ icon, label, value, isLink = false, onPress }) => {
-    const displayValue = (value === null || value === undefined || value === '') ? 'N/A' : value;
-    return (
-        <View style={styles.infoItem}>
-            <View style={styles.infoIconBox}>
-                <MaterialIcons name={icon} size={18} color={theme.colors.primary} />
-            </View>
-            <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>{label}</Text>
-                {isLink ? (
-                    <TouchableOpacity onPress={onPress}>
-                        <Text style={[styles.infoValue, { color: theme.colors.primary }]}>{displayValue} 🔗</Text>
-                    </TouchableOpacity>
-                ) : (
-                    <Text style={styles.infoValue} numberOfLines={1}>{displayValue}</Text>
-                )}
-            </View>
-        </View>
-    );
+// —————————————————————————————————————————————————————————————————————————————
+// LOCAL DESIGN TOKENS (Professional Educational Palette)
+// —————————————————————————————————————————————————————————————————————————————
+const UI = {
+  colors: {
+    primary:    '#2A9D8F',      // Branded Teal
+    primaryDark:'#1F6F66',      // Darker Teal for headers
+    primarySub: '#E6F7F5',      // Sub-tint for cards
+    secondary:  '#E76F51',      // Contrast accent (Terracotta/Orange)
+    background: '#F8F9FA',      // Neutral grey-white bg
+    surface:    '#FFFFFF',      // White cards
+    textMain:   '#1A202C',      // Deep charcoal
+    textMuted:  '#718096',      // Slate grey
+    border:     '#E2E8F0',      // Soft divider color
+    error:      '#E53E3E',      // Alert/Deadline red
+    success:    '#38A169',      // Verified green
+    shadow:     'rgba(0,0,0,0.08)',
+  },
+  fonts: {
+    bold:     'Inter-Bold',
+    semiBold: 'Inter-SemiBold',
+    medium:   'Inter-Medium',
+    regular:  'Inter-Regular',
+  }
 };
+
+const InfoItem = ({ icon, label, value, isLink = false, onPress }) => (
+    <View style={styles.infoItem}>
+        <View style={styles.infoIconBox}>
+            <MaterialIcons name={icon} size={20} color={UI.colors.primary} />
+        </View>
+        <View style={styles.infoContent}>
+            <Text style={styles.infoLabel}>{label}</Text>
+            {isLink ? (
+                <TouchableOpacity onPress={onPress}>
+                    <Text style={[styles.infoValue, { color: UI.colors.primary, textDecorationLine: 'underline' }]}>{value}</Text>
+                </TouchableOpacity>
+            ) : (
+                <Text style={styles.infoValue} numberOfLines={1}>{value}</Text>
+            )}
+        </View>
+    </View>
+);
 
 export default function ScholarshipDetails() {
   const { id } = useLocalSearchParams();
   const [details, setDetails] = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [error, setError] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const { showToast, ToastComponent } = useToast();
+
+  const loadData = async () => {
+    if (!id || id === 'undefined') return;
+    try {
+      const [res, staffStatus, profileRes] = await Promise.all([
+        apiService.getScholarshipDetail(id),
+        apiService.isStaff(),
+        apiService.getProfile()
+      ]);
+
+      if (res.ok && res.data) {
+        setDetails(res.data);
+        setIsAdmin(staffStatus);
+        if (profileRes.ok) setUser(profileRes.data);
+      } else {
+        setError(res.data?.error || 'Scholarship details could not be retrieved.');
+      }
+    } catch (err) {
+      setError('Network error. Check your connection.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [res, staffStatus] = await Promise.all([
-          apiService.getScholarshipDetail(id),
-          apiService.isStaff()
-        ]);
-
-        if (res.ok && res.data) {
-          setDetails(res.data);
-          setIsAdmin(staffStatus);
-        } else {
-          setDetails(null);
-        }
-      } catch (error) {
-        console.error(error);
-        setDetails(null);
-      } finally {
-        setLoading(false);
-      }
-    };
     loadData();
   }, [id]);
 
-  const onShare = async () => {
+  const toggleSave = async () => {
     if (!details) return;
     try {
+      if (details.is_saved) {
+        const res = await apiService.unsaveScholarship(details.save_id);
+        if (res.ok) {
+          setDetails({ ...details, is_saved: false, save_id: null });
+          showToast('Removed from bookmarks', 'info');
+        }
+      } else {
+        const res = await apiService.saveScholarship(details.id);
+        if (res.ok) {
+          setDetails({ ...details, is_saved: true, save_id: res.data.id });
+          showToast('Saved to bookmarks!', 'success');
+        } else {
+          showToast('Please login to save scholarships', 'error');
+        }
+      }
+    } catch (e) {
+      showToast('Error updating bookmarks', 'error');
+    }
+  };
+
+  const onShare = async () => {
+    try {
       await Share.share({
-        message: `Apply for ${details.title} via ScholarshipConnectBD! Deadline: ${details.deadline}`,
+        message: `Check out this scholarship: ${details.title}\nLevel: ${details.level}\nDeadline: ${details.deadline}`,
       });
     } catch (error) {
       console.log(error.message);
@@ -80,19 +132,21 @@ export default function ScholarshipDetails() {
   };
 
   if (loading) {
-    return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-      </View>
-    );
+    return <Loader message="Loading Scholarship..." />;
   }
 
-  if (!details) {
+  if (error || !details) {
     return (
-      <View style={styles.loader}>
-        <Text style={{ color: theme.colors.textSecondary, fontSize: 16 }}>Scholarship not found.</Text>
-        <TouchableOpacity style={{ marginTop: 20 }} onPress={() => router.back()}>
-          <Text style={{ color: theme.colors.primary, fontWeight: 'bold' }}>Go Back</Text>
+      <View style={[styles.loader, { backgroundColor: UI.colors.background, padding: 20 }]}>
+        <MaterialIcons name="error-outline" size={60} color={UI.colors.error} />
+        <Text style={{ color: UI.colors.textMain, fontSize: 18, fontFamily: UI.fonts.bold, marginTop: 20, textAlign: 'center' }}>
+            Oops! Something went wrong
+        </Text>
+        <Text style={{ color: UI.colors.textMuted, fontSize: 14, fontFamily: UI.fonts.medium, marginTop: 10, textAlign: 'center' }}>
+            {error || 'Detail not found'}
+        </Text>
+        <TouchableOpacity style={styles.errorBackBtn} onPress={() => router.back()}>
+          <Text style={styles.errorBackBtnText}>Return Home</Text>
         </TouchableOpacity>
       </View>
     );
@@ -100,390 +154,583 @@ export default function ScholarshipDetails() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" transparent backgroundColor="transparent" />
+      <StatusBar barStyle="dark-content" />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
-        {/* Header Section */}
-        <View style={styles.heroSection}>
-            <ImageBackground
-                source={{ uri: details.image_url || 'https://images.unsplash.com/photo-1526232759583-d6f44a7a4710?w=800' }}
-                style={styles.heroBg}
-                resizeMode="cover"
-            >
-                <View style={styles.heroOverlay} />
-            </ImageBackground>
-
-            <View style={styles.headerActions}>
+        {/* Top Branded Section */}
+        <View style={styles.topSection}>
+            {/* Simplified Header */}
+            <View style={styles.header}>
                 <TouchableOpacity
-                    style={styles.circleBtn}
-                    onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')}
+                    style={styles.actionBtn}
+                    onPress={() => router.back()}
                 >
-                    <MaterialIcons name="arrow-back" size={22} color={theme.colors.primary} />
+                    <Ionicons name="arrow-back" size={24} color={UI.colors.textMain} />
                 </TouchableOpacity>
 
-                <View style={{ flexDirection: 'row', gap: 12 }}>
-                    <TouchableOpacity style={styles.circleBtn} onPress={onShare}>
-                        <MaterialIcons name="share" size={20} color={theme.colors.primary} />
+                <View style={styles.headerRight}>
+                    <TouchableOpacity style={styles.actionBtn} onPress={onShare}>
+                        <Ionicons name="share-social-outline" size={22} color={UI.colors.textMain} />
                     </TouchableOpacity>
                     <TouchableOpacity
-                        style={styles.circleBtn}
-                        onPress={() => setIsBookmarked(!isBookmarked)}
+                        style={styles.actionBtn}
+                        onPress={toggleSave}
                     >
-                        <MaterialIcons
-                            name={isBookmarked ? "bookmark" : "bookmark-border"}
-                            size={20}
-                            color={isBookmarked ? theme.colors.warning : theme.colors.primary}
+                        <Ionicons
+                            name={details.is_saved ? "bookmark" : "bookmark-outline"}
+                            size={22}
+                            color={details.is_saved ? UI.colors.primary : UI.colors.textMain}
                         />
                     </TouchableOpacity>
                 </View>
             </View>
 
-            <View style={styles.heroContent}>
-                {isAdmin && (
-                  <View style={[styles.statusBadge, { backgroundColor: details.status === 'active' ? theme.colors.success : theme.colors.warning }]}>
-                    <Text style={styles.statusText}>ADMIN: {details.status.toUpperCase()}</Text>
-                  </View>
-                )}
-                <View style={styles.typeBadge}>
-                    <Text style={styles.typeText}>{details.category ? details.category.toUpperCase() : 'N/A'}</Text>
-                </View>
-                <Text style={styles.mainTitle}>{details.title || 'N/A'}</Text>
-                <View style={styles.providerRow}>
-                    <MaterialIcons name="verified" size={16} color={theme.colors.primary} />
-                    <Text style={styles.providerText}>{details.provider || 'N/A'}</Text>
-                </View>
+            {/* Hero Image & Branding */}
+            <View style={styles.heroWrapper}>
+                <ImageBackground
+                    source={{ uri: details.image_url || 'https://images.unsplash.com/photo-1523050335456-c38a70c7ef21?w=800' }}
+                    style={styles.mainImage}
+                    imageStyle={{ borderRadius: 20 }}
+                >
+                    <View style={styles.imageOverlay} />
+                    <View style={styles.badgeRow}>
+                        <View style={styles.tag}>
+                            <Text style={styles.tagText}>{details.category || 'GLOBAL'}</Text>
+                        </View>
+                        {isAdmin && (
+                            <View style={[styles.tag, { backgroundColor: UI.colors.success }]}>
+                                <Text style={styles.tagText}>VERIFIED</Text>
+                            </View>
+                        )}
+                    </View>
+                </ImageBackground>
             </View>
         </View>
 
-        {/* Content Card */}
-        <View style={styles.contentCard}>
-
-            {/* Professional Info Grid */}
-            <View style={styles.infoGrid}>
-                <View style={styles.infoRow}>
-                    <InfoItem icon="public" label="Country" value={details.country} />
-                    <InfoItem icon="school" label="Degree Level" value={details.level} />
-                </View>
-                <View style={styles.infoRow}>
-                    <InfoItem icon="account-balance-wallet" label="Financing" value={details.amount} />
-                    <InfoItem icon="timer" label="Deadline" value={details.deadline} />
-                </View>
-                <View style={styles.infoRow}>
-                    <InfoItem icon="category" label="Category" value={details.category} />
-                    <InfoItem icon="grade" label="Min CGPA" value={details.min_cgpa} />
-                </View>
-                <View style={styles.infoRow}>
-                    <InfoItem icon="book" label="Field" value={details.field} />
-                    <InfoItem
-                        icon="language"
-                        label="Website"
-                        value="Official Portal"
-                        isLink
-                        onPress={() => details.official_link && Linking.openURL(details.official_link)}
-                    />
-                </View>
-            </View>
-
-            {/* Sections */}
-            <View style={styles.detailsContainer}>
-                <View style={styles.section}>
-                    <View style={styles.sectionHeader}>
-                        <View style={styles.titleAccent} />
-                        <Text style={styles.sectionTitle}>Scholarship Overview</Text>
-                    </View>
-                    <Text style={styles.descriptionText}>{details.description || 'N/A'}</Text>
-                </View>
-
-                <View style={styles.section}>
-                    <View style={styles.sectionHeader}>
-                        <View style={styles.titleAccent} />
-                        <Text style={styles.sectionTitle}>Eligibility Criteria</Text>
-                    </View>
-                    <View style={styles.bulletItem}>
-                        <MaterialIcons name="check-circle" size={20} color={theme.colors.primary} style={{ marginTop: 2 }} />
-                        <Text style={styles.bulletText}>{details.eligibility || 'N/A'}</Text>
-                    </View>
-                </View>
-
-                {/* Important Alert */}
-                <View style={styles.alertBox}>
-                    <Ionicons name="information-circle" size={22} color={theme.colors.primary} />
-                    <Text style={styles.alertText}>
-                        Applications are typically submitted directly through the official provider portal. Check the link above for details.
-                    </Text>
-                </View>
+        {/* Title Section */}
+        <View style={styles.titleSection}>
+            <Text style={styles.scholarshipTitle}>{details.title}</Text>
+            <View style={styles.providerBox}>
+                <Ionicons name="business" size={16} color={UI.colors.primary} />
+                <Text style={styles.providerName}>{details.provider || 'Academic Institution'}</Text>
             </View>
         </View>
 
-        <View style={{ height: 100 }} />
+        {/* Professional Stats Grid */}
+        <View style={styles.gridCard}>
+            <View style={styles.gridRow}>
+                <InfoItem icon="language" label="Country" value={details.country} />
+                <InfoItem icon="layers" label="Degree" value={details.level} />
+            </View>
+            <View style={styles.gridRow}>
+                <InfoItem icon="account-balance" label="Funding" value={details.amount} />
+                <InfoItem icon="event-note" label="Deadline" value={details.deadline} />
+            </View>
+            <View style={styles.gridRow}>
+                <InfoItem icon="school" label="Field" value={details.field || 'General'} />
+                <InfoItem
+                    icon="launch"
+                    label="Application"
+                    value="Official Site"
+                    isLink
+                    onPress={() => details.official_link && Linking.openURL(details.official_link)}
+                />
+            </View>
+        </View>
+
+        {/* Content Body */}
+        <View style={styles.body}>
+            {/* AI Tools Bar */}
+            <View style={styles.aiBar}>
+                <TouchableOpacity
+                    style={styles.aiToolBtn}
+                    onPress={() => router.push({
+                        pathname: '/ai-tools/sop-helper',
+                        params: { scholarshipId: id, scholarshipTitle: details.title }
+                    })}
+                >
+                    <MaterialIcons name="auto-fix-high" size={20} color={UI.colors.primary} />
+                    <View>
+                        <Text style={styles.aiToolText}>AI SOP Helper</Text>
+                        {!user?.is_pro && (
+                            <Pressable onPress={() => router.push('/upgrade-pro')}>
+                                <View style={styles.proBadgeSmall}><Text style={styles.proBadgeText}>PRO: UNLOCK</Text></View>
+                            </Pressable>
+                        )}
+                    </View>
+                </TouchableOpacity>
+                <View style={styles.aiDivider} />
+                <TouchableOpacity
+                    style={styles.aiToolBtn}
+                    onPress={async () => {
+                        if (!user?.is_pro) {
+                            Alert.alert('Pro Feature', 'Deep Eligibility Analysis is a Pro feature. Please upgrade to unlock unlimited AI insights.', [
+                                { text: 'Cancel', style: 'cancel' },
+                                { text: 'Upgrade to Pro', onPress: () => router.push('/upgrade-pro') }
+                            ]);
+                            return;
+                        }
+                        showToast('AI Analyzing Eligibility...', 'info');
+                        const res = await apiService.aiCheckEligibility(id);
+                        if (res.ok) {
+                            Alert.alert('AI Eligibility Analysis', res.data.analysis);
+                        } else {
+                            showToast(res.data?.error || 'AI check failed', 'error');
+                        }
+                    }}
+                >
+                    <MaterialIcons name="fact-check" size={20} color={UI.colors.primary} />
+                    <View>
+                        <Text style={styles.aiToolText}>Eligibility Check</Text>
+                        {!user?.is_pro && (
+                            <View style={styles.proBadgeSmall}><Text style={styles.proBadgeText}>PRO: UNLOCK</Text></View>
+                        )}
+                    </View>
+                </TouchableOpacity>
+            </View>
+
+            <View style={styles.descriptionSection}>
+                <Text style={styles.bodyHeading}>About this Program</Text>
+                <Text style={styles.descriptionText}>{details.description}</Text>
+            </View>
+
+            <View style={styles.eligibilitySection}>
+                <View style={styles.eligibilityHeader}>
+                    <Ionicons name="list-circle" size={24} color={UI.colors.primary} />
+                    <Text style={styles.bodyHeading}>Requirements</Text>
+                </View>
+                <View style={styles.eligibilityBox}>
+                    <Text style={styles.eligibilityText}>{details.eligibility}</Text>
+                </View>
+            </View>
+
+            <View style={styles.alertNote}>
+                <Ionicons name="information-circle-outline" size={20} color={UI.colors.textMuted} />
+                <Text style={styles.alertNoteText}>
+                    Note: We give you the best info. Please check the official website to be sure.
+                </Text>
+            </View>
+        </View>
+
+        <View style={{ height: 120 }} />
       </ScrollView>
 
-      {/* Sticky Bottom Action */}
-      <View style={[styles.footer, theme.shadows.premium]}>
-        <View style={styles.footerLeft}>
-            <Text style={styles.footerLabel}>Application Deadline</Text>
-            <Text style={styles.footerDate}>{details.deadline}</Text>
+      {/* Modern Fixed Action Bar */}
+      <View style={styles.footer}>
+        <View style={styles.footerContent}>
+            <View style={styles.deadlineMeta}>
+                <Text style={styles.deadlineLabel}>Last Date</Text>
+                <Text style={styles.deadlineValue}>{details.deadline}</Text>
+            </View>
+            <TouchableOpacity
+                style={styles.applyButton}
+                activeOpacity={0.9}
+                onPress={() => setShowApplyModal(true)}
+            >
+                <Text style={styles.applyButtonText}>Apply Now</Text>
+                <Ionicons name="arrow-forward" size={20} color="#FFF" />
+            </TouchableOpacity>
         </View>
-        <TouchableOpacity
-            style={styles.applyBtn}
-            onPress={() => router.push(`/apply/${id}`)}
-        >
-            <Text style={styles.applyBtnText}>Apply Now</Text>
-            <MaterialIcons name="arrow-forward" size={20} color={theme.colors.white} />
-        </TouchableOpacity>
       </View>
+      {ToastComponent}
+
+      {/* Hybrid Apply Modal */}
+      <Modal visible={showApplyModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Choose Application Method</Text>
+              <TouchableOpacity onPress={() => setShowApplyModal(false)}>
+                <Ionicons name="close" size={24} color={UI.colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity 
+              style={styles.hybridOptionCard}
+              onPress={() => {
+                setShowApplyModal(false);
+                router.push(`/apply/${id}`);
+              }}
+            >
+              <View style={[styles.hybridIconBox, { backgroundColor: UI.colors.primarySub }]}>
+                <MaterialIcons name="person" size={28} color={UI.colors.primary} />
+              </View>
+              <View style={styles.hybridOptionText}>
+                <Text style={styles.hybridOptionTitle}>Do It Yourself (Free)</Text>
+                <Text style={styles.hybridOptionDesc}>Use our AI tools to prepare your SOP and CV, then apply on the official university portal.</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={UI.colors.textMuted} />
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.hybridOptionCard, { borderColor: '#8E44AD', borderWidth: 1.5, backgroundColor: 'rgba(142, 68, 173, 0.05)' }]}
+              onPress={() => {
+                setShowApplyModal(false);
+                router.push(`/apply/agency/${id}?title=${encodeURIComponent(details.title)}`);
+              }}
+            >
+              <View style={[styles.hybridIconBox, { backgroundColor: '#8E44AD' }]}>
+                <MaterialIcons name="business-center" size={24} color="#FFF" />
+              </View>
+              <View style={styles.hybridOptionText}>
+                <Text style={styles.hybridOptionTitle}>Let Experts Apply For You</Text>
+                <Text style={[styles.hybridOptionDesc, { color: '#8E44AD' }]}>Premium Service: Our consultants will handle formatting and official submission for a service fee.</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#8E44AD" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.colors.background },
-  loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  scroll: { flexGrow: 1 },
-  heroSection: {
-    height: height * 0.45,
-    justifyContent: 'flex-end',
-    padding: 24,
-    position: 'relative',
+  root: {
+    flex: 1,
+    backgroundColor: UI.colors.background,
   },
-  heroBg: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 0,
-    overflow: 'hidden',
-  },
-  heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(31, 111, 102, 0.7)', // Darker teal overlay (primaryDark based)
-  },
-  headerActions: {
-    position: 'absolute',
-    top: 60,
-    left: 20,
-    right: 24,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    zIndex: 10,
-  },
-  circleBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: theme.borderRadius.full,
-    backgroundColor: theme.colors.surface,
+  loader: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    ...theme.shadows.soft,
   },
-  heroContent: {
-    marginBottom: 32,
+  errorBackBtn: {
+    marginTop: 20,
+    backgroundColor: UI.colors.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
   },
-  statusBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-    marginBottom: 10,
+  errorBackBtnText: {
+    color: '#FFF',
+    fontFamily: UI.fonts.bold,
   },
-  statusText: {
-    color: theme.colors.white,
-    fontSize: 10,
-    fontFamily: theme.typography.fontFamily.bold,
+  scroll: {
+    paddingBottom: 20,
   },
-  typeBadge: {
-    backgroundColor: theme.colors.primary,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: theme.borderRadius.md,
-    alignSelf: 'flex-start',
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+  topSection: {
+    backgroundColor: 'rgba(42, 157, 143, 0.6)',
+    paddingBottom: 30,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
   },
-  typeText: {
-    color: theme.colors.white,
-    fontSize: 12,
-    fontFamily: theme.typography.fontFamily.bold,
-    letterSpacing: 1.2,
-  },
-  mainTitle: {
-    fontSize: 32,
-    fontFamily: theme.typography.fontFamily.bold,
-    color: theme.colors.white,
-    lineHeight: 40,
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: {width: 0, height: 2},
-    textShadowRadius: 4
-  },
-  providerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 12,
-    gap: 8,
-  },
-  providerText: {
-    color: theme.colors.white,
-    fontSize: 16,
-    fontFamily: theme.typography.fontFamily.semiBold,
-  },
-  contentCard: {
-    marginTop: -30,
-    backgroundColor: theme.colors.surface,
-    borderTopLeftRadius: theme.borderRadius.xxl,
-    borderTopRightRadius: theme.borderRadius.xxl,
-    padding: 24,
-    flex: 1,
-    ...theme.shadows.premium,
-  },
-  infoGrid: {
-    marginBottom: 32,
-    backgroundColor: theme.colors.tealCard,
-    padding: 20,
-    borderRadius: theme.borderRadius.lg,
-    borderWidth: 1,
-    borderColor: theme.colors.primaryLight,
-  },
-  infoRow: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    paddingHorizontal: 20,
+    paddingTop: 50,
+    paddingBottom: 20,
+    alignItems: 'center',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    gap: 15,
+  },
+  actionBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: UI.colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: UI.colors.border,
+  },
+  heroWrapper: {
+    paddingHorizontal: 20,
+    height: 240,
+  },
+  mainImage: {
+    width: '100%',
+    height: '100%',
+    overflow: 'hidden',
+    justifyContent: 'flex-end',
+  },
+  imageOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    padding: 15,
+    gap: 8,
+  },
+  tag: {
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+  },
+  tagText: {
+    color: '#FFF',
+    fontSize: 10,
+    fontFamily: UI.fonts.bold,
+    letterSpacing: 1,
+  },
+  titleSection: {
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 16,
+  },
+  scholarshipTitle: {
+    fontSize: 24,
+    fontFamily: UI.fonts.bold,
+    color: UI.colors.textMain,
+    lineHeight: 32,
+  },
+  providerBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 6,
+  },
+  providerName: {
+    fontSize: 15,
+    fontFamily: UI.fonts.medium,
+    color: UI.colors.primary,
+  },
+  gridCard: {
+    marginHorizontal: 20,
+    backgroundColor: UI.colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: UI.colors.border,
+    marginTop: 10,
+  },
+  gridRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
   },
   infoItem: {
-    flexDirection: 'row',
     width: '48%',
+    flexDirection: 'row',
     alignItems: 'center',
   },
   infoIconBox: {
-    width: 42,
-    height: 42,
-    borderRadius: theme.borderRadius.md,
-    backgroundColor: theme.colors.surface,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: UI.colors.primarySub,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+    marginRight: 12,
   },
   infoContent: {
     flex: 1,
   },
   infoLabel: {
-    fontSize: 12, // Increased size
-    fontFamily: theme.typography.fontFamily.bold,
-    color: theme.colors.textSecondary,
+    fontSize: 10,
+    fontFamily: UI.fonts.medium,
+    color: UI.colors.textMuted,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   infoValue: {
-    fontSize: 16, // Increased size
-    fontFamily: theme.typography.fontFamily.bold,
-    color: theme.colors.heading,
+    fontSize: 14,
+    fontFamily: UI.fonts.bold,
+    color: UI.colors.textMain,
     marginTop: 2,
   },
-  detailsContainer: {
-    gap: 32,
+  body: {
+    paddingHorizontal: 20,
+    paddingTop: 30,
   },
-  section: {
-    marginBottom: 8,
+  descriptionSection: {
+    marginBottom: 30,
   },
-  sectionHeader: {
+  aiBar: {
+    flexDirection: 'row',
+    backgroundColor: UI.colors.surface,
+    borderRadius: 15,
+    padding: 12,
+    marginBottom: 25,
+    borderWidth: 1,
+    borderColor: UI.colors.primarySub,
+    alignItems: 'center',
+    justifyContent: 'space-around',
+  },
+  aiToolBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    gap: 8,
   },
-  titleAccent: {
-    width: 6,
-    height: 24,
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.borderRadius.xs,
-    marginRight: 12,
+  aiToolText: {
+    fontSize: 13,
+    fontFamily: UI.fonts.bold,
+    color: UI.colors.textMain,
   },
-  sectionTitle: {
-    fontSize: 22,
-    fontFamily: theme.typography.fontFamily.bold,
-    color: theme.colors.heading,
+  proBadgeSmall: {
+    backgroundColor: '#FFD700',
+    paddingHorizontal: 4,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    marginTop: 2,
+  },
+  proBadgeText: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  aiDivider: {
+    width: 1,
+    height: 20,
+    backgroundColor: UI.colors.border,
+  },
+  bodyHeading: {
+    fontSize: 18,
+    fontFamily: UI.fonts.bold,
+    color: UI.colors.textMain,
+    marginBottom: 12,
   },
   descriptionText: {
-    fontSize: 17,
-    fontFamily: theme.typography.fontFamily.regular,
-    color: theme.colors.textPrimary,
-    lineHeight: 28,
+    fontSize: 15,
+    fontFamily: UI.fonts.regular,
+    color: UI.colors.textMain,
+    lineHeight: 24,
   },
-  bulletItem: {
+  eligibilitySection: {
+    marginBottom: 30,
+  },
+  eligibilityHeader: {
     flexDirection: 'row',
-    gap: 12,
-    alignItems: 'flex-start',
-    backgroundColor: theme.colors.primaryLight,
-    padding: 20,
-    borderRadius: theme.borderRadius.md,
-    borderLeftWidth: 6,
-    borderLeftColor: theme.colors.primary,
-  },
-  bulletText: {
-    fontSize: 16, // Increased size
-    fontFamily: theme.typography.fontFamily.medium,
-    color: theme.colors.textPrimary,
-    flex: 1,
-    lineHeight: 26,
-  },
-  alertBox: {
-    flexDirection: 'row',
-    backgroundColor: theme.colors.secondaryBackground,
-    padding: 18,
-    borderRadius: theme.borderRadius.md,
     alignItems: 'center',
-    gap: 14,
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+    gap: 8,
+    marginBottom: 12,
   },
-  alertText: {
+  eligibilityBox: {
+    backgroundColor: UI.colors.surface,
+    padding: 16,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: UI.colors.primary,
+    borderWidth: 1,
+    borderColor: UI.colors.border,
+  },
+  eligibilityText: {
     fontSize: 14,
-    fontFamily: theme.typography.fontFamily.medium,
-    color: theme.colors.textPrimary,
-    flex: 1,
+    fontFamily: UI.fonts.medium,
+    color: UI.colors.textMain,
     lineHeight: 22,
+  },
+  alertNote: {
+    flexDirection: 'row',
+    gap: 10,
+    backgroundColor: 'rgba(113, 128, 150, 0.05)',
+    padding: 15,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  alertNoteText: {
+    flex: 1,
+    fontSize: 12,
+    fontFamily: UI.fonts.regular,
+    color: UI.colors.textMuted,
+    lineHeight: 18,
   },
   footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: theme.colors.surface,
-    padding: 20,
-    paddingBottom: 34,
+    backgroundColor: UI.colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: UI.colors.border,
+    paddingTop: 16,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
+  },
+  footerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderTopWidth: 2,
-    borderTopColor: theme.colors.divider,
-    ...theme.shadows.premium,
   },
-  footerLeft: {
+  deadlineMeta: {
     flex: 1,
   },
-  footerLabel: {
-    fontSize: 12,
-    fontFamily: theme.typography.fontFamily.bold,
-    color: theme.colors.textSecondary,
-    marginBottom: 4,
+  deadlineLabel: {
+    fontSize: 11,
+    fontFamily: UI.fonts.medium,
+    color: UI.colors.textMuted,
+    textTransform: 'uppercase',
   },
-  footerDate: {
-    fontSize: 20,
-    fontFamily: theme.typography.fontFamily.bold,
-    color: theme.colors.error,
+  deadlineValue: {
+    fontSize: 18,
+    fontFamily: UI.fonts.bold,
+    color: UI.colors.error,
+    marginTop: 2,
   },
-  applyBtn: {
-    backgroundColor: theme.colors.primary,
-    paddingHorizontal: 32,
-    paddingVertical: 18,
-    borderRadius: theme.borderRadius.md,
+  applyButton: {
+    backgroundColor: UI.colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
-  applyBtnText: {
-    color: theme.colors.white,
+  applyButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontFamily: UI.fonts.bold,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: UI.colors.surface,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
     fontSize: 18,
-    fontFamily: theme.typography.fontFamily.bold,
+    fontFamily: UI.fonts.bold,
+    color: UI.colors.textMain,
+  },
+  hybridOptionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: UI.colors.background,
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: UI.colors.border,
+  },
+  hybridIconBox: {
+    width: 50,
+    height: 50,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  hybridOptionText: {
+    flex: 1,
+  },
+  hybridOptionTitle: {
+    fontSize: 16,
+    fontFamily: UI.fonts.bold,
+    color: UI.colors.textMain,
+    marginBottom: 4,
+  },
+  hybridOptionDesc: {
+    fontSize: 13,
+    fontFamily: UI.fonts.regular,
+    color: UI.colors.textMuted,
+    lineHeight: 18,
   },
 });
