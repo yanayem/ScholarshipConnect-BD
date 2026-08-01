@@ -71,4 +71,36 @@ The Data Flow Diagram maps out the flow of information for any process or system
 *   **D5 - Community & Logs Store:** Houses forum discussions, chat history, mentorship sessions, and system audit logs.
 
 ---
+## 3. Entity-Relationship Diagram (ERD)
+
+The Entity-Relationship Diagram represents the data architecture of ScholarshipConnectBD. Although we utilize MongoDB Atlas as our database, we map our data relationally using Django's ORM via Djongo. 
+
+Below is the database schema highlighting the primary tables, attributes, Primary Keys (PK), Foreign Keys (FK), and their relationships.
+
+### ER Diagram
+
+![ER Diagram](./diagrams/03_er_diagram.png)
+*(Figure: Entity-Relationship Diagram of ScholarshipConnectBD)*
+
+### Table Breakdown & Relationships:
+
+#### Core Entities
+1. **User:** The central entity storing authentication mapping (`firebase_uid`), email, and roles (Student, Mentor, Admin).
+2. **Profile:** An extension of the User table storing academic metadata (`cgpa`, `academic_level`), gamification data (`scholar_points`), and subscription status (`is_pro`).
+3. **Scholarship:** Stores all scholarship opportunities including criteria (`min_cgpa`), deadlines, and the user who posted it.
+4. **Application:** The associative entity linking a `User` (Student) to a `Scholarship` with tracking statuses.
+5. **Document_Vault:** Secure references to user-uploaded files (SOPs, CVs) mapped via Cloudinary.
+6. **Community_Post:** Stores forum queries, polls, and discussions.
+7. **MentorshipSession:** Maps one `User` (Mentee) to another `User` (Mentor) for 1-on-1 guidance.
+
+#### Cardinality & Relationships (Crow's Foot Logic)
+*   **User ↔ Profile (1:1):** Every registered user has exactly one academic profile.
+*   **User ↔ Document_Vault (1:N):** One user can upload multiple academic documents to their vault.
+*   **User ↔ Application (1:N):** A student can submit multiple scholarship applications.
+*   **Scholarship ↔ Application (1:N):** A single scholarship receives multiple applications from different students.
+*   **User ↔ MentorshipSession (1:N):** A user can participate in multiple sessions, either acting as a `mentee` or a `mentor`.
+*   **User ↔ Community_Post (1:N):** A user can write multiple posts in the discussion forum.
+*   **User ↔ Scholarship (1:N):** A user (Admin/Contributor) can post multiple scholarships.
+
+---
 *(Note: Additional diagrams like DFD, ERD, Use Case, Sequence, and Class diagrams will be added below in subsequent phases).*
