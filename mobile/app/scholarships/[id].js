@@ -98,6 +98,21 @@ export default function ScholarshipDetails() {
     loadData();
   }, [id]);
 
+  const getDirectImageUrl = (url) => {
+    if (!url || typeof url !== 'string') return null;
+    const trimmedUrl = url.trim();
+    if (!trimmedUrl.startsWith('http')) return null;
+
+    // Convert Google Drive sharing link to direct link
+    if (trimmedUrl.includes('drive.google.com')) {
+      const match = trimmedUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (match && match[1]) {
+        return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+      }
+    }
+    return trimmedUrl;
+  };
+
   const toggleSave = async () => {
     if (!details) return;
     try {
@@ -189,16 +204,21 @@ export default function ScholarshipDetails() {
             {/* Hero Image & Branding */}
             <View style={styles.heroWrapper}>
                 <ImageBackground
-                    source={{ uri: details.image_url || 'https://images.unsplash.com/photo-1523050335456-c38a70c7ef21?w=800' }}
+                    source={
+                        details.image && typeof details.image === 'string' && details.image.startsWith('http')
+                            ? { uri: details.image }
+                            : (getDirectImageUrl(details.image_url) ? { uri: getDirectImageUrl(details.image_url) } : null)
+                    }
                     style={styles.mainImage}
-                    imageStyle={{ borderRadius: 20 }}
+                    imageStyle={{ backgroundColor: UI.colors.primary }}
+                    resizeMode="cover"
                 >
                     <View style={styles.imageOverlay} />
                     <View style={styles.badgeRow}>
                         <View style={styles.tag}>
                             <Text style={styles.tagText}>{details.category || 'GLOBAL'}</Text>
                         </View>
-                        {isAdmin && (
+                        {details.status === 'active' && (
                             <View style={[styles.tag, { backgroundColor: UI.colors.success }]}>
                                 <Text style={styles.tagText}>VERIFIED</Text>
                             </View>
@@ -412,10 +432,11 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   topSection: {
-    backgroundColor: 'rgba(42, 157, 143, 0.6)',
-    paddingBottom: 30,
+    backgroundColor: UI.colors.primary,
+    paddingBottom: 0,
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
@@ -424,6 +445,11 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingBottom: 20,
     alignItems: 'center',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
   },
   headerRight: {
     flexDirection: 'row',
@@ -433,15 +459,14 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: UI.colors.surface,
+    backgroundColor: 'rgba(255,255,255,0.9)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: UI.colors.border,
   },
   heroWrapper: {
-    paddingHorizontal: 20,
-    height: 240,
+    height: 300,
   },
   mainImage: {
     width: '100%',

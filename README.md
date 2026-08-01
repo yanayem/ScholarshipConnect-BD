@@ -10,6 +10,13 @@ ScholarshipConnectBD is a specialized mobile application built with **React Nati
 
 ---
 
+## Project Design (Figma)
+<p align="center">
+  <img src="./mobile/assets/ScholarshipConnect-BD.png" alt="ScholarshipConnect-BD Project Figma Design" width="100%">
+</p>
+
+---
+
 ## Core Features
 - [x] **Smart Dashboard**: Real-time announcements and featured scholarships.
 - [x] **Scholarship Discovery**: Advanced search and multi-layer filtering (Country, Level, Field).
@@ -18,7 +25,10 @@ ScholarshipConnectBD is a specialized mobile application built with **React Nati
 - [x] **Personalized Profiles**: Manage academic history, CGPA, and preferences.
 - [x] **Firebase Authentication**: Secure login and registration with social auth support.
 - [x] **Web Support**: Full **Expo Web** compatibility for desktop and mobile browsers (Vercel-ready).
-- [x] **Real-time Chat**: Direct messaging system for Mentors & Students with Edit/Unsend features.
+- [x] **Advanced Messaging Suite**: Instagram-style UI with Teal gradients, session timestamps, and LinkedIn-style professional reactions.
+- [x] **Contextual Support**: Direct "Help" routing from scholarship application cards to Admin with auto-prefilled context.
+- [x] **Media Sharing**: Secure image and document sharing within chats for faster application verification.
+- [x] **Real-time Messaging**: Direct messaging system for Mentors & Students with Edit/Unsend/Reaction features.
 - [x] **Material 3 Admin Console**: Professional Android-style dashboard for system management.
 - [x] **Community Discussion**: Interactive forum with "Solved" status tracking and "Open Problems" filtering.
 - [x] **Stories & Polls**: Share academic journeys through visual stories and participate in community polls.
@@ -55,12 +65,14 @@ Recently, the platform underwent a significant UI/UX overhaul to meet global aca
 - **Smart Autocomplete**: Real-time suggestions for Degrees and Sub-fields based on global academic trends.
 - **Profile Readiness**: Interactive progress bar indicating profile completion for AI Matchmaking.
 
-### Advanced Mentorship Chat
-- **Real-time Messaging**: Direct 1-on-1 communication between students and verified mentors.
-- **Modern Controls**: Support for **Message Editing** and **Unsending** (Delete for Everyone) for full user control.
-- **Read/Unread Status**: Instant visual feedback with single and double-check icons.
-- **Session-Based UI**: Clean, session-grouped timestamps for a natural conversation flow.
-- **Booking Integration**: Seamlessly transition from a chat conversation to a formal session booking.
+### Professional Scholar & Support Communication
+- **Messenger-like Experience**: Implemented a modern UI with **Teal Gradients**, dynamic bubbles, and session-grouped timestamps for a fluid chat experience.
+- **LinkedIn-Style Reactions**: Users can now react to messages with professional emojis like **Like, Celebrate, Support, Insightful, and Curious**.
+- **Contextual Help Routing**: Students can trigger support requests directly from their **Application Cards**. The system automatically pre-fills the chat with application details for the Admin.
+- **Media & Image Sharing**: Integrated support for sharing images and screenshots directly within the conversation.
+- **Modern Controls**: Support for **Message Editing**, **Unsending** (Delete for Everyone), and **Enter-to-Send** keyboard optimization.
+- **Read Receipts**: Real-time visual feedback with single/double-check (Done-all) status icons.
+- **Direct Admin Access**: A dedicated "Support" button in the main Inbox for immediate staff assistance.
 
 ### Android-Native Admin Console (Full Management Suite)
 - **Material 3 Dashboard**: Centralized metrics for scholarships, users, applications, and mentorship sessions.
@@ -75,9 +87,9 @@ Recently, the platform underwent a significant UI/UX overhaul to meet global aca
 - **In-App Payments**: Integrated **SSLCommerz** gateway allowing students to upgrade via **bKash**, Rocket, Nagad, or Cards.
 - **In-App WebView**: A seamless, secure payment experience that remains entirely within the mobile application.
 - **Pro-Exclusive Features**:
-    - **Unlimited AI Suite**: Unlimited SOP writing and CV reviewing.
-    - **Priority AI Matchmaker**: Advanced NLP matching with higher precision.
-    - **Verified Pro Badge**: Golden badge for increased visibility and trust.
+  - **Unlimited AI Suite**: Unlimited SOP writing and CV reviewing.
+  - **Priority AI Matchmaker**: Advanced NLP matching with higher precision.
+  - **Verified Pro Badge**: Golden badge for increased visibility and trust.
 - **Gamified Upgrade**: Active community members can still unlock Pro using **200 ScholarPoints**.
 
 ### Scholar Network (LinkedIn Style)
@@ -100,9 +112,9 @@ The platform offers a premium tier that users can unlock via two methods:
 2.  **Direct Payment**: Cost 500 BDT (One-time) via the integrated **SSLCommerz** gateway.
 
 - **Premium Benefits**:
-    - **Unlimited AI Suite**: Unlimited access to SOP drafting and CV optimization tools.
-    - **Priority Matching**: AI-driven alerts for scholarships matching the user's specific profile.
-    - **Verified Pro Badge**: A golden "Verified" badge to increase trust in the community.
+  - **Unlimited AI Suite**: Unlimited access to SOP drafting and CV optimization tools.
+  - **Priority Matching**: AI-driven alerts for scholarships matching the user's specific profile.
+  - **Verified Pro Badge**: A golden "Verified" badge to increase trust in the community.
 
 ### 3. Mentorship Marketplace
 - **Verified Expertise**: Mentors are vetted by admins and can build a professional reputation within the platform.
@@ -227,6 +239,7 @@ ScholarshipConnectBD/
 ```bash
 cd mobile
 npm install
+# Ensure you have expo-linear-gradient and expo-image-picker installed
 npx expo start
 ```
 
@@ -236,6 +249,7 @@ cd backend
 python -m venv venv
 .\venv\Scripts\activate
 pip install -r requirements.txt
+# Set ADMIN_EMAILS in .env to grant staff access to specific users
 python manage.py migrate
 python manage.py runserver
 ```

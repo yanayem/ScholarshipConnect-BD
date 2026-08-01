@@ -1,9 +1,9 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import NotificationViewSet
+from .views import ScholarshipViewSet
 
 router = DefaultRouter()
-router.register(r'', NotificationViewSet, basename='notification')
+router.register(r'', ScholarshipViewSet, basename='scholarship')
 
 urlpatterns = [
     path('', include(router.urls)),

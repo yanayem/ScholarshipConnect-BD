@@ -10,6 +10,14 @@ class SavedScholarshipSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'scholarship', 'scholarship_details', 'created_at']
         read_only_fields = ['user']
 
+class UserDocumentSerializer(serializers.ModelSerializer):
+    status = serializers.ReadOnlyField()
+
+    class Meta:
+        model = UserDocument
+        fields = ['id', 'user', 'name', 'doc_type', 'file', 'size', 'expiry_date', 'status', 'created_at', 'updated_at']
+        read_only_fields = ['user', 'size']
+
 class ScholarshipApplicationSerializer(serializers.ModelSerializer):
     scholarship_title = serializers.CharField(source='scholarship.title', read_only=True)
     scholarship_country = serializers.CharField(source='scholarship.country', read_only=True)
@@ -35,11 +43,3 @@ class ScholarshipApplicationSerializer(serializers.ModelSerializer):
             docs = UserDocument.objects.filter(user=obj.user)
             return UserDocumentSerializer(docs, many=True).data
         return []
-
-class UserDocumentSerializer(serializers.ModelSerializer):
-    status = serializers.ReadOnlyField()
-
-    class Meta:
-        model = UserDocument
-        fields = ['id', 'user', 'name', 'doc_type', 'file', 'size', 'expiry_date', 'status', 'created_at', 'updated_at']
-        read_only_fields = ['user', 'size']
