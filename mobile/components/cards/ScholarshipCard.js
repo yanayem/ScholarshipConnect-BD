@@ -18,7 +18,9 @@ export default function ScholarshipCard({ title, organization, deadline, amount,
         <View style={styles.iconContainer}>
           <Ionicons name="school" size={24} color={theme.colors.textPrimary} />
         </View>
-        <Text style={styles.amount}>{amount}</Text>
+        <Text style={[styles.amount, { flex: 1, textAlign: 'right', marginLeft: 10 }]} numberOfLines={1} ellipsizeMode="tail">
+          {amount}
+        </Text>
       </View>
       <View style={styles.content}>
         <Text style={styles.title} numberOfLines={2}>{title}</Text>

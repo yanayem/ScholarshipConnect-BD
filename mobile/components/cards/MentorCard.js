@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TouchableOpacity } from 'react-native';
+import { router } from 'expo-router';
 import { theme } from '../../theme';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -18,10 +19,17 @@ export default function MentorCard({ name, role, company, matchPercentage }) {
         <Text style={styles.role}>{role}</Text>
         <Text style={styles.company}>at {company}</Text>
       </View>
-      <Pressable style={styles.connectBtn}>
+
+      <TouchableOpacity
+        style={styles.connectBtn}
+        onPress={() => router.push({
+          pathname: '/mentorship/request', // Or direct to chat if needed
+          params: { mentorName: name }
+        })}
+      >
+        <Ionicons name="chatbubble-ellipses-outline" size={18} color={theme.colors.primary} />
         <Text style={styles.connectBtnText}>Connect</Text>
-        <Ionicons name="chatbubble-outline" size={16} color={theme.colors.textPrimary} />
-      </Pressable>
+      </TouchableOpacity>
     </View>
   );
 }

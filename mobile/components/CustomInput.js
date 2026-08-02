@@ -16,6 +16,7 @@ const CustomInput = ({
   secureTextEntry,
   rightIcon,
   onRightIconPress,
+  innerRef,
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -35,19 +36,21 @@ const CustomInput = ({
       <View style={[
         styles.inputWrapper,
         isFocused && styles.inputWrapperFocused,
-        error && styles.inputWrapperError
+        error && styles.inputWrapperError,
+        props.multiline && { height: 'auto', minHeight: 100, alignItems: 'flex-start', paddingTop: 12 }
       ]}>
         {icon && (
           <MaterialIcons
             name={icon}
             size={20}
             color={isFocused ? theme.colors.primary : theme.colors.placeholder}
-            style={styles.icon}
+            style={[styles.icon, props.multiline && { marginTop: 4 }]}
           />
         )}
 
         <TextInput
-          style={styles.input}
+          ref={innerRef}
+          style={[styles.input, props.multiline && { textAlignVertical: 'top' }]}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           secureTextEntry={secureTextEntry}
@@ -93,17 +96,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderWidth: 1,
     borderColor: 'transparent',
-    // Premium soft shadow
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 1,
+    // Removed shadows
   },
   inputWrapperFocused: {
     borderColor: theme.colors.primary,
     backgroundColor: '#FFFFFF',
-    elevation: 3,
   },
   inputWrapperError: {
     borderColor: theme.colors.error,
