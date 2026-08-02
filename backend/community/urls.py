@@ -9,8 +9,20 @@ from .views import (
     StoryListCreateView,
     StoryRetrieveView,
     StoryReactionView,
+    MentorshipSessionViewSet,
+    MentorshipSessionDetailView,
+    MentorListView,
+    ReportListView,
+    ReportActionView,
+    MentorConnectionView,
+    MentorConnectionActionView,
+    ChatMessageView,
+    ChatHistoryView,
+    ChatMessageDetailView,
+    ChatMessageReactView,
+    ConversationListView,
+    MentorReviewView
 )
-
 
 urlpatterns = [
     path('', DiscussionListCreateView.as_view(), name='discussion-list'),
@@ -28,3 +40,17 @@ urlpatterns = [
     path('stories/', StoryListCreateView.as_view(), name='story-list'),
     path('stories/<int:pk>/', StoryRetrieveView.as_view(), name='story-detail'),
     path('stories/<int:pk>/react/', StoryReactionView.as_view(), name='story-react'),
+
+    # Mentorship endpoints
+    path('mentors/', MentorListView.as_view(), name='mentor-list'),
+    path('mentorships/', MentorshipSessionViewSet.as_view(), name='mentorship-list'),
+    path('mentorships/<int:pk>/', MentorshipSessionDetailView.as_view(), name='mentorship-detail'),
+
+    # Connection & Chat endpoints
+    path('connections/', MentorConnectionView.as_view(), name='connection-list'),
+    path('connections/<int:pk>/action/', MentorConnectionActionView.as_view(), name='connection-action'),
+    path('chat/', ChatMessageView.as_view(), name='chat-message-list'),
+    path('chat/msg/<str:pk>/', ChatMessageDetailView.as_view(), name='chat-message-detail'),
+    path('chat/msg/<str:pk>/react/', ChatMessageReactView.as_view(), name='chat-message-react'),
+    path('chat/<int:other_user_id>/', ChatHistoryView.as_view(), name='chat-history'),
+]
