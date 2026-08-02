@@ -3,7 +3,7 @@
  * - Handles Firebase Hybrid registration (Native & Web).
  * - Optimized with Modular API style to eliminate warnings.
  */
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView,
@@ -14,21 +14,9 @@ import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { theme, colors } from '../../theme';
 import CustomInput from '../../components/CustomInput';
 import { apiService } from '../../services/api';
+import { firebaseAuth } from '../../services/firebase';
 import { useToast } from '../../components/Toast';
-
-// Firebase Web SDK Imports
-import { getAuth as getWebAuth, createUserWithEmailAndPassword as webCreateUser, updateProfile as webUpdateProfile } from 'firebase/auth';
-import { getApp, getApps } from 'firebase/app';
-
-// Safe Native Auth Discovery
-let nativeAuthModule = null;
-if (Platform.OS !== 'web') {
-  try {
-    nativeAuthModule = require('@react-native-firebase/auth');
-  } catch (e) {
-    // Silently skip if native module not linked
-  }
-}
+import Constants from 'expo-constants';
 
 const { width, height } = Dimensions.get('window');
 
@@ -41,6 +29,10 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const { showToast, ToastComponent } = useToast();
 
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
+  const confirmPasswordRef = useRef(null);
+
   const secondaryTextColor = colors?.textSecondary || '#666';
 
   const handleRegister = async () => {
@@ -50,7 +42,7 @@ export default function RegisterScreen() {
     }
 
     if (password.length < 6) {
-      showToast('Password must be at least 6 characters long.', 'warning');
+      showToast('Password must be at least 6 characters.', 'warning');
       return;
     }
 
@@ -61,26 +53,22 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
-      let idToken;
-
-      if (Platform.OS !== 'web' && nativeAuthModule) {
-        // --- NATIVE SDK IMPLEMENTATION ---
-        const auth = nativeAuthModule.default();
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        if (auth.currentUser) {
-          await auth.currentUser.updateProfile({ displayName: fullName });
-        }
-        idToken = await userCredential.user.getIdToken();
-      } else {
-        // --- WEB SDK FALLBACK ---
-        if (getApps().length === 0) throw new Error("Firebase not initialized.");
-        const auth = getWebAuth(getApp());
-        const userCredential = await webCreateUser(auth, email, password);
-        await webUpdateProfile(userCredential.user, { displayName: fullName });
-        idToken = await userCredential.user.getIdToken();
+      const isExpoGo = Constants.executionEnvironment === 'storeClient';
+      if (isExpoGo) {
+         Alert.alert(
+           "Expo Go Detected",
+           "Native Firebase Authentication does not work in Expo Go. Use 'npm run android' or the Web version.",
+           [{ text: "OK" }]
+         );
+         setLoading(false);
+         return;
       }
 
-      // Store token and sync with backend
+      // 1. Create User with our Unified Service
+      const userCredential = await firebaseAuth.signUp(email.trim(), password);
+
+      // 2. Sync with Backend
+      const idToken = await firebaseAuth.getIdToken();
       await apiService.setToken(idToken);
       await apiService.updateProfile({ full_name: fullName });
 
@@ -89,7 +77,7 @@ export default function RegisterScreen() {
     } catch (error) {
       console.error('Registration Error:', error);
       let errorMsg = error.message || 'Could not create account.';
-      if (error.code === 'auth/email-already-in-use') errorMsg = 'That email address is already in use!';
+      if (error.code === 'auth/email-already-in-use') errorMsg = 'That email is already in use!';
       showToast(errorMsg, 'error');
     } finally {
       setLoading(false);
@@ -121,13 +109,55 @@ export default function RegisterScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} bounces={false}>
           <View style={[styles.mainCard, theme.shadows.premium]}>
             <View style={styles.inputsWrapper}>
-              <CustomInput label="Full Name" icon="person-outline" placeholder="Enter your full name" value={fullName} onChangeText={setFullName} autoCapitalize="words" />
-              <CustomInput label="Email Address" icon="mail-outline" placeholder="you@example.com" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
               <CustomInput
-                label="Password" icon="lock-outline" placeholder="Create a password" value={password} onChangeText={setPassword} secureTextEntry={!showPassword}
-                rightIcon={showPassword ? "visibility" : "visibility-off"} onRightIconPress={() => setShowPassword(!showPassword)}
+                label="Full Name"
+                icon="person-outline"
+                placeholder="Enter your full name"
+                value={fullName}
+                onChangeText={setFullName}
+                autoCapitalize="words"
+                returnKeyType="next"
+                onSubmitEditing={() => emailRef.current?.focus()}
+                blurOnSubmit={false}
               />
-              <CustomInput label="Confirm Security Password" icon="verified-user" placeholder="Repeat password" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry={!showPassword} />
+              <CustomInput
+                innerRef={emailRef}
+                label="Email Address"
+                icon="mail-outline"
+                placeholder="you@example.com"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                returnKeyType="next"
+                onSubmitEditing={() => passwordRef.current?.focus()}
+                blurOnSubmit={false}
+              />
+              <CustomInput
+                innerRef={passwordRef}
+                label="Password"
+                icon="lock-outline"
+                placeholder="Create a password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                rightIcon={showPassword ? "visibility" : "visibility-off"}
+                onRightIconPress={() => setShowPassword(!showPassword)}
+                returnKeyType="next"
+                onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+                blurOnSubmit={false}
+              />
+              <CustomInput
+                innerRef={confirmPasswordRef}
+                label="Confirm Security Password"
+                icon="verified-user"
+                placeholder="Repeat password"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showPassword}
+                returnKeyType="done"
+                onSubmitEditing={handleRegister}
+              />
             </View>
 
             <View style={styles.termsWrapper}>

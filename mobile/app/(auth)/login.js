@@ -3,32 +3,21 @@
  * - Handles Firebase Hybrid login (Native & Web).
  * - Consolidated to Modular API style for better performance and no warnings.
  */
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView,
-  StatusBar, Dimensions
+  StatusBar, Dimensions, ActivityIndicator, Alert
 } from 'react-native';
 import { router, Link } from 'expo-router';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { theme } from '../../theme';
 import CustomInput from '../../components/CustomInput';
 import { apiService } from '../../services/api';
+import { firebaseAuth } from '../../services/firebase';
 import { useToast } from '../../components/Toast';
-
-// Firebase Web SDK Imports
-import { getAuth as getWebAuth, signInWithEmailAndPassword as webSignIn } from 'firebase/auth';
-import { getApp, getApps } from 'firebase/app';
-
-// Safe Native Auth Discovery
-let nativeAuthModule = null;
-if (Platform.OS !== 'web') {
-  try {
-    nativeAuthModule = require('@react-native-firebase/auth');
-  } catch (e) {
-    // Silently skip if native module not linked
-  }
-}
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
 const { width, height } = Dimensions.get('window');
 
@@ -38,6 +27,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { showToast, ToastComponent } = useToast();
+  const passwordRef = useRef(null);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -47,30 +37,75 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      let idToken;
+      const cleanEmail = email.trim().toLowerCase();
 
-      // Check for Native vs Web/Expo Go
-      if (Platform.OS !== 'web' && nativeAuthModule) {
-        // --- NATIVE SDK IMPLEMENTATION ---
-        const auth = nativeAuthModule.default();
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        idToken = await userCredential.user.getIdToken();
-      } else {
-        // --- WEB SDK FALLBACK (Expo Go or Web) ---
-        if (getApps().length === 0) throw new Error('Firebase not initialized.');
-        const auth = getWebAuth(getApp());
-        const userCredential = await webSignIn(auth, email, password);
-        idToken = await userCredential.user.getIdToken();
+      // Basic validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(cleanEmail)) {
+        showToast('Please enter a valid email address.', 'error');
+        setLoading(false);
+        return;
       }
 
+      const isExpoGo = Constants.executionEnvironment === 'storeClient';
+      if (isExpoGo) {
+         Alert.alert(
+           "Expo Go Detected",
+           "Native Firebase Authentication does not work in Expo Go. Use 'npm run android' or the Web version.",
+           [{ text: "OK" }]
+         );
+         setLoading(false);
+         return;
+      }
+
+      console.log('[LOGIN] Attempting sign-in for:', cleanEmail);
+
+      // 1. Sign in with Firebase using our Unified Service
+      const userCredential = await firebaseAuth.signIn(cleanEmail, password);
+      const idToken = await firebaseAuth.getIdToken();
+      console.log('[LOGIN] Step 1 Success. Token received.');
+
+      // 2. Set token in storage and API service
+      console.log('[LOGIN] Step 2: Storing token...');
       await apiService.setToken(idToken);
-      router.replace('/(tabs)');
+
+      // 3. Verify and cache profile/roles
+      console.log('[LOGIN] Step 3: Verifying with Backend API...');
+      const profile = await apiService.getProfile();
+
+      if (profile.ok) {
+        console.log('[LOGIN] Step 3 Success. User verified:', profile.data.username);
+
+        if (profile.data.is_staff) {
+          await AsyncStorage.setItem('is_staff', 'true');
+        } else {
+          await AsyncStorage.removeItem('is_staff');
+        }
+
+        showToast('Successfully logged in!', 'success');
+
+        setTimeout(() => {
+            router.replace('/(tabs)');
+        }, 500);
+      } else {
+        console.log('[LOGIN] Backend Verification Failed:', profile.data);
+        const errorMsg = profile.data?.error || profile.data?.details || 'Backend server rejected the session.';
+        throw new Error(errorMsg);
+      }
     } catch (error) {
-      console.error('Login Error:', error);
-      let errorMsg = error.message || 'Invalid credentials.';
+      console.log('[LOGIN ERROR]:', error);
+      let errorMsg = 'Login failed.';
+
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         errorMsg = 'Incorrect email or password.';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMsg = 'Firebase network error. Check your internet.';
+      } else if (error.message.includes('Network request failed')) {
+        errorMsg = 'Cannot reach the Django server. Is it running?';
+      } else {
+        errorMsg = error.message || 'An unexpected error occurred.';
       }
+
       showToast(errorMsg, 'error');
     } finally {
       setLoading(false);
@@ -111,9 +146,14 @@ export default function LoginScreen() {
                 onChangeText={setEmail}
                 autoCapitalize="none"
                 keyboardType="email-address"
+                editable={!loading}
+                returnKeyType="next"
+                onSubmitEditing={() => passwordRef.current?.focus()}
+                blurOnSubmit={false}
               />
               <View style={{ height: 8 }} />
               <CustomInput
+                innerRef={passwordRef}
                 label="Security Password"
                 icon="lock-outline"
                 placeholder="Enter your password"
@@ -122,8 +162,15 @@ export default function LoginScreen() {
                 secureTextEntry={!showPassword}
                 rightIcon={showPassword ? "visibility" : "visibility-off"}
                 onRightIconPress={() => setShowPassword(!showPassword)}
+                editable={!loading}
+                returnKeyType="done"
+                onSubmitEditing={handleLogin}
               />
-              <TouchableOpacity style={styles.forgotBtn}>
+              <TouchableOpacity
+                style={styles.forgotBtn}
+                onPress={() => router.push('/(auth)/forgot-password')}
+                disabled={loading}
+              >
                 <Text style={styles.forgotText}>Forgot Password?</Text>
               </TouchableOpacity>
             </View>
@@ -133,8 +180,14 @@ export default function LoginScreen() {
               onPress={handleLogin}
               disabled={loading}
             >
-              <Text style={styles.loginButtonText}>{loading ? 'Authenticating...' : 'Sign In'}</Text>
-              {!loading && <MaterialIcons name="chevron-right" size={24} color="white" />}
+              {loading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <>
+                  <Text style={styles.loginButtonText}>Sign In</Text>
+                  <MaterialIcons name="chevron-right" size={24} color="white" />
+                </>
+              )}
             </TouchableOpacity>
 
             <View style={styles.orDivider}>
@@ -150,7 +203,7 @@ export default function LoginScreen() {
           <View style={styles.footerSection}>
             <Text style={styles.noAccountText}>New to the platform?</Text>
             <Link href="/(auth)/register" asChild>
-              <TouchableOpacity><Text style={styles.createAccountText}>Create an account</Text></TouchableOpacity>
+              <TouchableOpacity disabled={loading}><Text style={styles.createAccountText}>Create an account</Text></TouchableOpacity>
             </Link>
           </View>
         </ScrollView>
