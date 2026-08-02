@@ -103,4 +103,47 @@ Below is the database schema highlighting the primary tables, attributes, Primar
 *   **User ↔ Scholarship (1:N):** A user (Admin/Contributor) can post multiple scholarships.
 
 ---
+## 4. System Architecture
+
+The System Architecture of ScholarshipConnectBD follows a modern, scalable, multi-tier design. It is built to handle concurrent student requests, secure document management, and AI-assisted processing seamlessly.
+
+Below is the High-Level System Architecture diagram divided into 5 distinct layers.
+
+### High-Level System Architecture Diagram
+
+![System Architecture](./diagrams/04_system_architecture.png)
+*(Figure: High-Level System Architecture of ScholarshipConnectBD)*
+
+### Architectural Layers Breakdown:
+
+#### 1. Client / Presentation Layer
+This layer represents the user interface where Students, Mentors, and Admins interact with the platform.
+*   **Mobile App:** A cross-platform mobile application built with **React Native & Expo**, compiled for Android and iOS.
+*   **Web App:** An accessible web version utilizing **Expo Web** and hosted seamlessly on **Vercel**.
+
+#### 2. Network & Security Layer
+Ensures all incoming and outgoing data is secure, properly routed, and authenticated.
+*   **Nginx:** Acts as a reverse proxy and load balancer. It handles HTTPS termination, security headers, and DDoS protection.
+*   **Firebase Auth:** Manages decentralized user authentication, generating and validating secure JWT (JSON Web Tokens) before allowing access to the backend.
+
+#### 3. Application Layer (Backend)
+The core logic engine of the platform, powered by **Django REST Framework** running via **Gunicorn**. A central API Gateway routes requests to dedicated micro-services:
+*   **Auth & Profile Manager:** Handles registration, roles, and profile preferences.
+*   **Scholarship Matchmaker Engine:** Uses NLP logic to analyze eligibility and match students with the right opportunities.
+*   **Application & Vault Manager:** Handles scholarship submissions and secure document parsing.
+*   **Community & Real-time Chat:** Powers the discussion forum and 1-on-1 mentorship messaging.
+*   **Monetization / Payment Manager:** Secures premium subscription (Pro tier) transactions and ScholarPoints tracking.
+
+#### 4. External Services & APIs
+Third-party integrations that supercharge the platform's capabilities.
+*   **AI Services (Groq / Gemini):** LLM models for drafting/reviewing SOPs, CVs, and intelligent profile matching.
+*   **SSLCommerz Gateway:** Handles domestic payment methods like bKash, Nagad, and Cards for the Pro upgrade.
+*   **Firebase Cloud Messaging (FCM):** Delivers real-time push notifications, reminders, and broadcast alerts.
+*   **Cloudinary / AWS S3:** Secure, external cloud storage for hosting the encrypted Document Vault files.
+
+#### 5. Database Layer
+The persistence layer ensuring high availability and flexible data schemas.
+*   **MongoDB Atlas:** A cloud-based NoSQL database holding collections for Users, Scholarships, Applications, Documents, Community Chats, Payments, and AI Logs. It communicates with Django seamlessly via Djongo/Motor.
+
+---
 *(Note: Additional diagrams like DFD, ERD, Use Case, Sequence, and Class diagrams will be added below in subsequent phases).*
