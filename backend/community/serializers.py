@@ -178,3 +178,101 @@ class StorySerializer(serializers.ModelSerializer):
             reaction = obj.reactions.filter(user=request.user).first()
             return reaction.reaction_type if reaction else None
         return None
+
+class MentorshipSessionSerializer(serializers.ModelSerializer):
+    mentor_name = serializers.CharField(source='mentor.profile.full_name', read_only=True)
+    mentee_name = serializers.CharField(source='mentee.profile.full_name', read_only=True)
+    status = serializers.CharField(read_only=True)
+    mentee = serializers.PrimaryKeyRelatedField(read_only=True)
+    
+    class Meta:
+        model = MentorshipSession
+        fields = [
+            'id', 'mentor', 'mentee', 'topic', 'message', 'status', 
+            'scheduled_date', 'scheduled_time', 'created_at',
+            'mentor_name', 'mentee_name'
+        ]
+        read_only_fields = ['id', 'mentee', 'status', 'created_at']
+
+    def to_internal_value(self, data):
+        # Create a mutable copy of data if it's a QueryDict
+        if hasattr(data, 'dict'):
+            data = data.dict()
+        else:
+            data = data.copy() if isinstance(data, dict) else data
+
+        if 'mentor' in data:
+            mentor_val = data['mentor']
+            try:
+                # 1. Try to see if it's already a valid User ID
+                if not User.objects.filter(id=mentor_val).exists():
+                    # 2. If not, check if it's a Profile ID
+                    profile = Profile.objects.filter(id=mentor_val).first()
+                    if profile:
+                        # 3. Swap it with the correct User ID
+                        data['mentor'] = profile.user.id
+            except (ValueError, TypeError):
+                pass
+                
+        return super().to_internal_value(data)
+
+class MentorConnectionSerializer(serializers.ModelSerializer):
+    sender_name = serializers.CharField(source='sender.profile.full_name', read_only=True)
+    receiver_name = serializers.CharField(source='receiver.profile.full_name', read_only=True)
+    sender_avatar = serializers.SerializerMethodField()
+    receiver_avatar = serializers.SerializerMethodField()
+
+    class Meta:
+        model = MentorConnection
+        fields = ['id', 'sender', 'receiver', 'status', 'sender_name', 'receiver_name', 'sender_avatar', 'receiver_avatar', 'created_at']
+        read_only_fields = ['sender', 'status', 'created_at']
+
+    def get_sender_avatar(self, obj):
+        try: return obj.sender.profile.avatar_url
+        except: return ""
+
+    def get_receiver_avatar(self, obj):
+        try: return obj.receiver.profile.avatar_url
+        except: return ""
+
+class ChatMessageSerializer(serializers.ModelSerializer):
+    sender_name = serializers.CharField(source='sender.profile.full_name', read_only=True)
+    sender_is_mentor = serializers.BooleanField(source='sender.profile.is_mentor', read_only=True)
+    sender_is_staff = serializers.BooleanField(source='sender.is_staff', read_only=True)
+    receiver_name = serializers.CharField(source='receiver.profile.full_name', read_only=True)
+    is_me = serializers.SerializerMethodField()
+    id = serializers.SerializerMethodField() # Explicitly handle MongoDB _id
+
+    class Meta:
+        model = ChatMessage
+        fields = [
+            'id', 'sender', 'receiver', 'message', 'image', 'reaction',
+            'is_read', 'created_at', 'sender_name', 'sender_is_mentor', 'sender_is_staff', 
+            'receiver_name', 'is_me', 'related_application_id'
+        ]
+        read_only_fields = ['id', 'sender', 'receiver', 'is_read', 'created_at']
+
+    def get_id(self, obj):
+        # Access MongoDB's internal ID safely
+        if hasattr(obj, '_id') and obj._id:
+            return str(obj._id)
+        if obj.pk:
+            return str(obj.pk)
+        return None
+
+    def get_is_me(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.sender == request.user
+        return False
+
+class ReportSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True)
+    reporter_name = serializers.CharField(source='reporter.username', read_only=True)
+    reported_user_name = serializers.CharField(source='reported_user.username', read_only=True)
+    reported_user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=True)
+    
+    class Meta:
+        model = Report
+        fields = ['id', 'reporter', 'reporter_name', 'reported_user', 'reported_user_name', 'content_type', 'content_id', 'reason', 'description', 'status', 'created_at']
+        read_only_fields = ['reporter', 'status']
