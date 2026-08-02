@@ -31,14 +31,14 @@ class FirebaseAuthentication(authentication.BaseAuthentication):
         
         try:
             # Verify the token with Firebase Admin SDK.
+            # This is the real check (signature, expiration, project id).
             decoded_token = auth.verify_id_token(id_token)
             print(f"[FIREBASE AUTH] Token verified for UID: {decoded_token.get('uid')}")
         except Exception as e:
-            # Print the full error to the terminal for debugging
-            import traceback
-            print("[FIREBASE AUTH ERROR] Verification failed!")
-            traceback.print_exc()
+            # If it failed verification, we report it immediately as 401.
+            print(f"[FIREBASE AUTH ERROR] Verification failed: {str(e)}")
             
+            # More user-friendly messages
             error_str = str(e)
             if "expired" in error_str.lower():
                 raise exceptions.AuthenticationFailed("Firebase token has expired.")
@@ -53,24 +53,16 @@ class FirebaseAuthentication(authentication.BaseAuthentication):
         try:
             uid = decoded_token.get('uid')
             email = decoded_token.get('email', '')
-            print(f"[FIREBASE AUTH] Mapping user UID={uid}, Email={email}")
             
             # Map Firebase users to Django users by uid (used as username)
             user, created = User.objects.get_or_create(
                 username=uid, 
                 defaults={'email': email}
             )
-            if created:
-                print(f"[FIREBASE AUTH] Created new Django user for UID: {uid}")
-            else:
-                print(f"[FIREBASE AUTH] Found existing Django user for UID: {uid}")
 
             # Promotion to staff if email is in ADMIN_EMAILS
-            admin_emails = getattr(settings, 'ADMIN_EMAILS', [])
-            if isinstance(admin_emails, str):
-                admin_emails = [e.strip().lower() for e in admin_emails.split(',') if e.strip()]
-            else:
-                admin_emails = [str(e).strip().lower() for e in admin_emails]
+            admin_emails_str = getattr(settings, 'ADMIN_EMAILS', '')
+            admin_emails = [e.strip().lower() for e in admin_emails_str.split(',') if e.strip()]
             
             if email and email.lower() in admin_emails:
                 if not user.is_staff or not user.is_superuser:

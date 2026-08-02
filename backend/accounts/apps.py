@@ -35,8 +35,6 @@ class AccountsConfig(AppConfig):
                     logger.info("Firebase Admin SDK initialized with default credentials.")
                 except Exception:
                     if firebase_creds_path:
-                        print(f"!!! CRITICAL: Firebase key not found at: {firebase_creds_path}")
                         logger.warning(f"Firebase key not found at: {firebase_creds_path}")
                     else:
-                        print("!!! CRITICAL: Firebase Admin SDK not initialized: FIREBASE_SERVICE_ACCOUNT_KEY not set.")
                         logger.warning("Firebase Admin SDK not initialized: FIREBASE_SERVICE_ACCOUNT_KEY not set.")
