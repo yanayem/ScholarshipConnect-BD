@@ -3,48 +3,29 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const MentorModeContext = createContext();
 
-export const MentorModeProvider = ({ children }) => {
+export function MentorModeProvider({ children }) {
   const [isMentorMode, setIsMentorMode] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadMentorMode();
+    const loadMode = async () => {
+      const mode = await AsyncStorage.getItem('mentor_mode');
+      setIsMentorMode(mode === 'true');
+    };
+    loadMode();
   }, []);
 
-  const loadMentorMode = async () => {
-    try {
-      const savedMode = await AsyncStorage.getItem('mentorMode');
-      if (savedMode !== null) {
-        setIsMentorMode(JSON.parse(savedMode));
-      }
-    } catch (error) {
-      console.error('Error loading mentor mode:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const toggleMentorMode = async () => {
-    try {
-      const newMode = !isMentorMode;
-      setIsMentorMode(newMode);
-      await AsyncStorage.setItem('mentorMode', JSON.stringify(newMode));
-    } catch (error) {
-      console.error('Error toggling mentor mode:', error);
-    }
+  const toggleMentorMode = async (value) => {
+    setIsMentorMode(value);
+    await AsyncStorage.setItem('mentor_mode', value.toString());
   };
 
   return (
-    <MentorModeContext.Provider value={{ isMentorMode, toggleMentorMode, loading }}>
+    <MentorModeContext.Provider value={{ isMentorMode, toggleMentorMode }}>
       {children}
     </MentorModeContext.Provider>
   );
-};
+}
 
-export const useMentorMode = () => {
-  const context = useContext(MentorModeContext);
-  if (context === undefined) {
-    throw new Error('useMentorMode must be used within a MentorModeProvider');
-  }
-  return context;
-};
+export function useMentorMode() {
+  return useContext(MentorModeContext);
+}
