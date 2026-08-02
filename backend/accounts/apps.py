@@ -13,7 +13,7 @@ class AccountsConfig(AppConfig):
     def ready(self):
         # Initialize Firebase Admin SDK
         from django.conf import settings
-        firebase_creds_name = os.environ.get('FIREBASE_SERVICE_ACCOUNT_KEY')
+        firebase_creds_name = settings.FIREBASE_SERVICE_ACCOUNT_KEY
         
         try:
             firebase_admin.get_app()
@@ -35,6 +35,8 @@ class AccountsConfig(AppConfig):
                     logger.info("Firebase Admin SDK initialized with default credentials.")
                 except Exception:
                     if firebase_creds_path:
+                        print(f"!!! CRITICAL: Firebase key not found at: {firebase_creds_path}")
                         logger.warning(f"Firebase key not found at: {firebase_creds_path}")
                     else:
+                        print("!!! CRITICAL: Firebase Admin SDK not initialized: FIREBASE_SERVICE_ACCOUNT_KEY not set.")
                         logger.warning("Firebase Admin SDK not initialized: FIREBASE_SERVICE_ACCOUNT_KEY not set.")

@@ -15,6 +15,7 @@ import {
 } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect } from 'react';
+import { UserProvider } from '../context/UserContext';
 import { MentorModeProvider } from '../context/MentorModeContext';
 import { ToastProvider } from '../context/ToastContext';
 
@@ -67,9 +68,11 @@ function RootLayoutContent() {
 export default function RootLayout() {
   return (
     <ToastProvider>
-      <MentorModeProvider>
-        <RootLayoutContent />
-      </MentorModeProvider>
+      <UserProvider>
+        <MentorModeProvider>
+          <RootLayoutContent />
+        </MentorModeProvider>
+      </UserProvider>
     </ToastProvider>
   );
 }

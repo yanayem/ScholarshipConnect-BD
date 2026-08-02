@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView,
   TouchableOpacity, StyleSheet, StatusBar,
 } from 'react-native';
+import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { theme } from '../../theme';
+import { apiService } from '../../services/api';
+import { useToast } from '../../components/Toast';
 
 const STATUS_CONFIG = {
   Saved:        { color: theme.colors.textSecondary, bg: theme.colors.secondaryBackground, icon: 'bookmark-outline' },
@@ -16,20 +19,54 @@ const STATUS_CONFIG = {
   Rejected:     { color: theme.colors.error, bg: 'rgba(232, 93, 117, 0.1)', icon: 'cancel' },
 };
 
-const INITIAL = [
-  { id: '1', title: 'MEXT (Japan)', country: '🇯🇵 Japan', level: 'Masters', deadline: 'May 2025', status: 'Accepted' },
-  { id: '2', title: 'Chevening (UK)', country: '🇬🇧 UK', level: 'Masters', deadline: 'Nov 2025', status: 'Under Review' },
-  { id: '3', title: 'DAAD (Germany)', country: '🇩🇪 Germany', level: 'PhD', deadline: 'Oct 2025', status: 'Submitted' },
-  { id: '4', title: 'Erasmus Mundus', country: '🇪🇺 Europe', level: 'Masters', deadline: 'Jan 2026', status: 'Preparing' },
-  { id: '5', title: 'Fulbright (USA)', country: '🇺🇸 USA', level: 'Masters', deadline: 'Jun 2025', status: 'Shortlisted' },
-  { id: '6', title: 'Stipendium Hungaricum', country: '🇭🇺 Hungary', level: 'Bachelors', deadline: 'Jan 2025', status: 'Saved' },
-];
-
 const TABS = ['All', 'Saved', 'Preparing', 'Submitted', 'Under Review', 'Shortlisted', 'Accepted', 'Rejected'];
 
 export default function ApplicationsScreen() {
   const [activeTab, setActiveTab] = useState('All');
-  const [applications, setApplications] = useState(INITIAL);
+  const [applications, setApplications] = useState([]);
+  const { showToast, ToastComponent } = useToast();
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [savedRes, appRes] = await Promise.all([
+          apiService.getSavedScholarships(),
+          apiService.getApplications()
+        ]);
+        let data = [];
+        if (savedRes.ok) {
+          data = data.concat(savedRes.data.map(item => ({
+            id: 's' + item.id,
+            title: item.scholarship_details?.title || 'N/A',
+            country: item.scholarship_details?.country || 'N/A',
+            level: item.scholarship_details?.level || 'N/A',
+            deadline: item.scholarship_details?.deadline || 'N/A',
+            status: 'Saved'
+          })));
+        }
+        if (appRes.ok) {
+          data = data.concat(appRes.data.map(item => ({
+            id: 'a' + item.id,
+            title: item.scholarship_title || 'N/A',
+            country: item.scholarship_country || 'N/A',
+            level: item.scholarship_level || 'N/A',
+            deadline: item.scholarship_deadline || 'N/A',
+            status: item.status
+          })));
+        }
+
+        if (!savedRes.ok || !appRes.ok) {
+          showToast('Failed to load some data. Please check your connection.', 'warning');
+        }
+
+        setApplications(data);
+      } catch (error) {
+        console.error('Failed to load applications', error);
+        showToast('Error loading applications', 'error');
+      }
+    };
+    loadData();
+  }, []);
 
   const filtered = activeTab === 'All'
     ? applications
@@ -101,9 +138,36 @@ export default function ApplicationsScreen() {
                   <Text style={styles.deadline}>
                     <MaterialIcons name="event" size={13} color={theme.colors.error} /> {item.deadline}
                   </Text>
-                  <TouchableOpacity style={styles.detailBtn}>
-                    <Text style={styles.detailBtnText}>Update Status</Text>
-                  </TouchableOpacity>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <TouchableOpacity
+                      style={styles.helpBtn}
+                      onPress={async () => {
+                        try {
+                          const res = await apiService.getUsers();
+                          if (res.ok) {
+                            const staff = res.data.find(u => u.is_staff || u.is_superuser);
+                            if (staff) {
+                              router.push({
+                                pathname: `/messages/${staff.id || staff.user_id}`,
+                                params: {
+                                  name: staff.full_name || staff.username,
+                                  avatar: staff.avatar_url,
+                                  prefill: `Hi, I have a question regarding my application for "${item.title}". Status: ${item.status}`
+                                }
+                              });
+                            }
+                          }
+                        } catch (e) {
+                          showToast('Connection failed', 'error');
+                        }
+                      }}
+                    >
+                      <MaterialIcons name="help-outline" size={18} color={theme.colors.info} />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.detailBtn}>
+                      <Text style={styles.detailBtnText}>Update Status</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
 
                 {/* Progress Indicator */}
@@ -135,6 +199,7 @@ export default function ApplicationsScreen() {
 
         <View style={{ height: 24 }} />
       </ScrollView>
+      {ToastComponent}
     </View>
   );
 }
@@ -171,6 +236,11 @@ const styles = StyleSheet.create({
   metaText: { fontSize: 13, color: theme.colors.textSecondary, marginLeft: 4 },
   cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 },
   deadline: { fontSize: 13, color: theme.colors.error, fontWeight: '500' },
+  helpBtn: {
+    width: 34, height: 34, borderRadius: 10,
+    backgroundColor: theme.colors.infoLight,
+    alignItems: 'center', justifyContent: 'center'
+  },
   detailBtn: { borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: theme.colors.primaryLight },
   detailBtnText: { color: theme.colors.primary, fontWeight: '700', fontSize: 13 },
   progressRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10, borderTopWidth: 1, borderTopColor: theme.colors.divider, paddingTop: 15 },

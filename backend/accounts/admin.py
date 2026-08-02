@@ -16,10 +16,10 @@ class ProfileAdmin(admin.ModelAdmin):
             'fields': ('academic_level', 'cgpa', 'department', 'university')
         }),
         ('Interests & Bio', {
-            'fields': ('target_countries', 'preferred_fields', 'bio')
+            'fields': ('target_countries', 'major_course', 'research_interests', 'bio')
         }),
-        ('Social Links', {
-            'fields': ('linkedin_url', 'github_url', 'facebook_url'),
+        ('Professional Links', {
+            'fields': ('linkedin_url', 'github_url', 'facebook_url', 'google_scholar_url'),
             'classes': ('collapse',),
         }),
         ('System Info', {

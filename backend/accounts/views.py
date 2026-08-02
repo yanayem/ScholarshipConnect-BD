@@ -188,13 +188,13 @@ class UserActivityView(APIView):
         from community.models import Discussion, DiscussionComment
         liked_discussions = Discussion.objects.filter(likes=user).values('id', 'title', 'created_at')
         comments = DiscussionComment.objects.filter(user=user).select_related('discussion').values(
-            'id', 'content', 'created_at', 'discussion_id', 'discussion_title'
+            'id', 'content', 'created_at', 'discussion__id', 'discussion__title'
         )
         activity = []
         for like in liked_discussions:
             activity.append({"id": like['id'], "type": "like", "title": f"Liked: {like['title']}", "timestamp": like['created_at'], "target_id": like['id']})
         for comment in comments:
-            activity.append({"id": comment['id'], "type": "comment", "title": f"Commented on: {comment['discussion_title']}", "subtitle": comment['content'], "timestamp": comment['created_at'], "target_id": comment['discussion_id']})
+            activity.append({"id": comment['id'], "type": "comment", "title": f"Commented on: {comment['discussion__title']}", "subtitle": comment['content'], "timestamp": comment['created_at'], "target_id": comment['discussion__id']})
         activity.sort(key=lambda x: x['timestamp'], reverse=True)
         return Response({"activity": activity, "summary": {"total_likes": len(liked_discussions), "total_comments": len(comments)}})
 

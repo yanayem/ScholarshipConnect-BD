@@ -118,7 +118,7 @@ export default function CalendarScreen() {
                 </View>
                 <TouchableOpacity
                   style={styles.applyBtn}
-                  onPress={() => router.push(`/scholarship/${item.id}`)}
+                  onPress={() => item.id && router.push(`/scholarships/${item.id}`)}
                 >
                   <Text style={styles.applyText}>Details</Text>
                   <MaterialIcons name="arrow-forward" size={14} color="#fff" />

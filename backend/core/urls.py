@@ -20,6 +20,9 @@ urlpatterns = [
     path('api/blog/', include('blog.urls')),
     path('api/applications/', include('applications.urls')),
     path('api/notifications/', include('notifications.urls')),
+    path('api/ai/', include('ai_assistant.urls')),
+    path('api/community/', include('community.urls')),
+    path('api/payments/', include('payments.urls')),
 ]
 
 if settings.DEBUG:

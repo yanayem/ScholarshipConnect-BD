@@ -25,6 +25,10 @@ DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = ['*']
 
+# ScholarshipConnectBD Specific Settings
+ADMIN_EMAILS = env('ADMIN_EMAILS', default='')
+FIREBASE_SERVICE_ACCOUNT_KEY = env('FIREBASE_SERVICE_ACCOUNT_KEY', default='firebase-service-account.json')
+
 
 # Application definition
 
@@ -35,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cloudinary_storage',
+    'cloudinary',
     'rest_framework',
     'corsheaders',
     'accounts',
@@ -42,10 +48,14 @@ INSTALLED_APPS = [
     'blog',
     'applications',
     'notifications',
+    'ai_assistant',
+    'community',
+    'payments',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -77,10 +87,12 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 
 # Database
+# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
         'NAME': env('DATABASE_NAME', default='scholarship_db'),
+        'ENFORCE_SCHEMA': False,
         'CLIENT': {
             'host': env('MONGODB_URI'),
         }
@@ -107,7 +119,6 @@ CORS_ALLOW_HEADERS = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'accounts.authentication.FirebaseAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
 
@@ -129,7 +140,28 @@ USE_TZ = True
 
 # Static files
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = env('EMAIL_USER', default='vsaga924@gmail.com')
+EMAIL_HOST_PASSWORD = env('EMAIL_PASS', default='upkgqzqovfvxirqg')
+DEFAULT_FROM_EMAIL = f"ScholarshipConnectBD <{EMAIL_HOST_USER}>"
+
+# Cloudinary Configuration
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': env('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': env('CLOUDINARY_API_KEY'),
+    'API_SECRET': env('CLOUDINARY_API_SECRET'),
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'

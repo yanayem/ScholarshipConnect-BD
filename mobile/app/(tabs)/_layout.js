@@ -1,17 +1,19 @@
 /**
  * TABS LAYOUT: Defines the Bottom Tab Navigation.
  * - Manages Home, Scholarships, Calendar, Eligibility Check, Applications, Community, and Profile tabs.
- * - Controls the header style and tab bar appearance.
- * - Connected to: index.js, scholarships.js, calendar.js, eligibility.js, applications.js, community.js, profile.js.
+ * - Optimized order: Profile (Left) | Scholarships | Calendar | Home (Center) | Applications | Community (Right).
  */
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import { View, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { theme } from '../../theme';
+import { useMentorMode } from '../../context/MentorModeContext';
 
 export default function TabLayout() {
   const PRIMARY = theme.colors.primary;
   const INACTIVE = theme.colors.textSecondary;
   const TAB_BG = theme.colors.surface;
+  const { isMentorMode } = useMentorMode();
 
   return (
     <Tabs
@@ -22,14 +24,20 @@ export default function TabLayout() {
           backgroundColor: TAB_BG,
           borderTopWidth: 1,
           borderTopColor: theme.colors.divider,
-          height: 64,
-          paddingBottom: 10,
+          height: 65,
+          paddingBottom: 8,
           paddingTop: 8,
-          elevation: 0,
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
+          elevation: 10,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 5,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
+          fontSize: 10,
+          fontWeight: '700',
         },
         headerStyle: {
           backgroundColor: theme.colors.surface,
@@ -45,76 +53,139 @@ export default function TabLayout() {
         },
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="home" size={size + 2} color={color} />
-          ),
-          headerTitle: '🎓 ScholarshipConnectBD',
-        }}
-      />
+
+      {/* 1. Scholarships (Student Only) */}
       <Tabs.Screen
         name="scholarships"
         options={{
           title: 'Scholarships',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="school" size={size + 2} color={color} />
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="school" size={24} color={color} />
           ),
           headerTitle: 'Scholarships',
+          href: isMentorMode ? null : undefined,
         }}
       />
+
+
+
+      {/* 3. Calendar (Student Only) */}
       <Tabs.Screen
         name="calendar"
         options={{
           title: 'Calendar',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="event" size={size + 2} color={color} />
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="event" size={24} color={color} />
           ),
           headerTitle: 'Deadline Calendar',
+          href: isMentorMode ? null : undefined,
         }}
       />
+
+      {/* 4. Sessions (Mentor Only) */}
       <Tabs.Screen
-        name="eligibility"
+        name="sessions"
         options={{
-          title: 'Check',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="check-circle" size={size + 2} color={color} />
+          title: 'Sessions',
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="event-available" size={24} color={color} />
           ),
-          headerTitle: 'Eligibility Check',
+          headerShown: false,
+          href: isMentorMode ? undefined : null,
         }}
       />
+
+      {/* 5. Home / Dashboard (Center for BOTH modes) */}
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: isMentorMode ? 'Dashboard' : 'Home',
+          tabBarIcon: ({ color }) => (
+            <View style={styles.homeIconContainer}>
+               <MaterialIcons
+                name={isMentorMode ? "dashboard" : "home"}
+                size={28}
+                color={color}
+               />
+            </View>
+          ),
+          headerShown: false,
+        }}
+      />
+
+      {/* 6. Applications (Student Only) */}
       <Tabs.Screen
         name="applications"
         options={{
-          title: 'Applications',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="bookmark" size={size + 2} color={color} />
+          title: 'Application',
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="bookmark" size={24} color={color} />
           ),
           headerTitle: 'My Applications',
+          href: isMentorMode ? null : undefined,
         }}
       />
+
+      {/* 7. Community (Shared) */}
       <Tabs.Screen
         name="community"
         options={{
           title: 'Community',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="forum" size={size + 2} color={color} />
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="groups" size={24} color={color} />
           ),
-          headerTitle: 'Community Discussion',
+          headerTitle: 'Community Feed',
         }}
       />
+
+      {/* 8. Inbox (Mentor Only in Bottom Nav) */}
+      <Tabs.Screen
+        name="inbox"
+        options={{
+          title: 'Messages',
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="chat" size={24} color={color} />
+          ),
+          headerTitle: 'Inbox',
+          href: isMentorMode ? undefined : null,
+        }}
+      />
+
+      {/* 9. Profile (Mentor Only - Position 5 for Mentor) */}
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="person" size={size + 2} color={color} />
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="person" size={24} color={color} />
           ),
-          headerTitle: 'My Profile',
+          headerShown: false,
+          href: isMentorMode ? undefined : null,
+        }}
+      />
+
+      {/* Hidden Technical Tabs */}
+      <Tabs.Screen
+        name="eligibility"
+        options={{
+          href: null,
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  headerIconButton: {
+    padding: 8,
+    marginLeft: 5,
+  },
+  homeIconContainer: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    backgroundColor: 'rgba(42, 157, 143, 0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  }
+});
