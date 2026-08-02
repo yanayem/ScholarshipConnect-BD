@@ -72,7 +72,18 @@ export const firebaseAuth = {
     async getIdToken(forceRefresh = false) {
         const user = auth?.currentUser;
         if (!user) return null;
-        return await user.getIdToken(forceRefresh);
+
+        // Handle both Namespaced and Modular (v22+) styles to avoid warnings
+        try {
+            if (typeof user.getIdToken === 'function') {
+                return await user.getIdToken(forceRefresh);
+            }
+            // Fallback for some library versions
+            return await user.getIdToken;
+        } catch (e) {
+            console.error('[FIREBASE] Failed to get ID token:', e);
+            return null;
+        }
     },
 
     onAuthStateChanged(callback) {

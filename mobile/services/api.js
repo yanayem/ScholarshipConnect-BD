@@ -14,7 +14,13 @@ const isExpoGo = Constants.executionEnvironment === 'storeClient';
 
 const handleResponse = async (response) => {
   const text = await response.text();
-  console.log(`[API] Response ${response.status} from ${response.url}`);
+
+  if (!response.ok) {
+    console.error(`[API ERROR] ${response.status} from ${response.url}`);
+    console.error(`[API ERROR BODY]`, text.substring(0, 300));
+  } else {
+    console.log(`[API SUCCESS] ${response.status} from ${response.url}`);
+  }
 
   let data;
   try {
@@ -30,16 +36,27 @@ const handleResponse = async (response) => {
 
   if (response.status === 401) {
     console.warn('[API] Unauthorized request detected. Token may be invalid or expired.');
-    if (!isExpoGo) {
+
+    // To prevent infinite retry loops, we check if we've already tried refreshing
+    const lastRefreshAttempt = await AsyncStorage.getItem('last_refresh_attempt');
+    const now = Date.now();
+
+    if (!isExpoGo && (!lastRefreshAttempt || (now - parseInt(lastRefreshAttempt)) > 30000)) {
       try {
-        console.log('[API] Attempting to refresh token from Firebase...');
+        await AsyncStorage.setItem('last_refresh_attempt', now.toString());
+        console.log('[API] Attempting to auto-refresh token from Firebase...');
         const newToken = await firebaseAuth.getIdToken(true);
+
         if (newToken) {
             await AsyncStorage.setItem('token', newToken);
-            console.log('[API] Token refreshed successfully.');
+            console.log('[API] Token refreshed successfully. Please retry the operation.');
+        } else {
+            console.warn('[API] Firebase session lost. Logging out...');
+            await apiService.logout();
         }
       } catch (e) {
         console.error('[API] Failed to auto-refresh token:', e.message);
+        await apiService.logout();
       }
     }
   }
@@ -212,10 +229,13 @@ export const apiService = {
 
   async addScholarship(scholarshipData) {
     try {
+      const token = await AsyncStorage.getItem('token');
+      const isFormData = scholarshipData instanceof FormData;
+
       const response = await fetch(`${API_URL}/scholarships/`, {
         method: 'POST',
-        headers: await getHeaders(),
-        body: JSON.stringify(scholarshipData),
+        headers: isFormData ? { 'Authorization': `Bearer ${token}` } : await getHeaders(),
+        body: isFormData ? scholarshipData : JSON.stringify(scholarshipData),
       });
       return await handleResponse(response);
     } catch (error) {
@@ -225,10 +245,13 @@ export const apiService = {
 
   async updateScholarship(id, scholarshipData) {
     try {
+      const token = await AsyncStorage.getItem('token');
+      const isFormData = scholarshipData instanceof FormData;
+
       const response = await fetch(`${API_URL}/scholarships/${id}/`, {
         method: 'PATCH',
-        headers: await getHeaders(),
-        body: JSON.stringify(scholarshipData),
+        headers: isFormData ? { 'Authorization': `Bearer ${token}` } : await getHeaders(),
+        body: isFormData ? scholarshipData : JSON.stringify(scholarshipData),
       });
       return await handleResponse(response);
     } catch (error) {
@@ -277,9 +300,9 @@ export const apiService = {
     }
   },
 
-  async getUsers() {
+  async getUsers(params = '') {
     try {
-      const response = await fetch(`${API_URL}/accounts/users/`, {
+      const response = await fetch(`${API_URL}/accounts/users/${params ? '?' + params : ''}`, {
         method: 'GET',
         headers: await getHeaders(true),
       });
@@ -1089,34 +1112,66 @@ export const apiService = {
     }
   },
 
-  async sendMessage(receiverId, message, relatedAppId = null) {
+  async sendMessage(receiverId, message, image = null, relatedAppId = null) {
     try {
-      const response = await fetch(`${API_URL}/community/chat/`, {
+      const token = await AsyncStorage.getItem('token');
+      const headers = { 'Authorization': `Bearer ${token}` };
+
+      let body;
+      if (image) {
+        body = new FormData();
+        body.append('receiver', receiverId);
+        if (message) body.append('message', message);
+        if (relatedAppId) body.append('related_application_id', relatedAppId);
+        body.append('image', {
+          uri: Platform.OS === 'ios' ? image.uri.replace('file://', '') : image.uri,
+          name: image.fileName || 'chat_image.jpg',
+          type: image.type || 'image/jpeg'
+        });
+      } else {
+        body = JSON.stringify({ receiver: receiverId, message, related_application_id: relatedAppId });
+        headers['Content-Type'] = 'application/json';
+      }
+
+      const response = await fetchWithTimeout(`${API_URL}/community/chat/`, {
         method: 'POST',
-        headers: await getHeaders(),
-        body: JSON.stringify({ receiver: receiverId, message, related_application_id: relatedAppId }),
-      });
+        headers: headers,
+        body: body,
+      }, 10000);
       return await handleResponse(response);
     } catch (error) {
       return networkError(error, 'Send Message');
     }
   },
 
+  async reactToMessage(messageId, reaction) {
+    try {
+      const response = await fetch(`${API_URL}/community/chat/msg/${messageId}/react/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify({ reaction }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'React to Message');
+    }
+  },
+
   async getChatHistory(otherUserId) {
     try {
-      const response = await fetch(`${API_URL}/community/chat/${otherUserId}/`, {
+      const response = await fetchWithTimeout(`${API_URL}/community/chat/${otherUserId}/`, {
         method: 'GET',
         headers: await getHeaders(),
-      });
+      }, 15000); // 15s timeout for chat history
       return await handleResponse(response);
     } catch (error) {
       return networkError(error, 'Get Chat History');
     }
   },
 
-  async getConversations() {
+  async getConversations(params = '') {
     try {
-      const response = await fetch(`${API_URL}/community/conversations/`, {
+      const response = await fetch(`${API_URL}/community/conversations/${params ? '?' + params : ''}`, {
         method: 'GET',
         headers: await getHeaders(),
       });
@@ -1128,11 +1183,11 @@ export const apiService = {
 
   async editMessage(messageId, message) {
     try {
-      const response = await fetch(`${API_URL}/community/chat/msg/${messageId}/`, {
+      const response = await fetchWithTimeout(`${API_URL}/community/chat/msg/${messageId}/`, {
         method: 'PATCH',
         headers: await getHeaders(),
         body: JSON.stringify({ message }),
-      });
+      }, 5000);
       return await handleResponse(response);
     } catch (error) {
       return networkError(error, 'Edit Message');
@@ -1141,10 +1196,10 @@ export const apiService = {
 
   async deleteMessage(messageId) {
     try {
-      const response = await fetch(`${API_URL}/community/chat/msg/${messageId}/`, {
+      const response = await fetchWithTimeout(`${API_URL}/community/chat/msg/${messageId}/`, {
         method: 'DELETE',
         headers: await getHeaders(),
-      });
+      }, 5000);
       return await handleResponse(response);
     } catch (error) {
       return networkError(error, 'Delete Message');
