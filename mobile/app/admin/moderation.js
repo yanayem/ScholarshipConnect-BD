@@ -32,7 +32,7 @@ export default function ModerationScreen() {
     const handleAction = async (id, action) => {
         const res = await apiService.resolveReport(id, action);
         if (res.ok) {
-            Alert.alert('Moderation', Report ${action === 'delete' ? 'resolved' : 'dismissed'});
+            Alert.alert('Moderation', `Report ${action === 'delete' ? 'resolved' : 'dismissed'}`);
             loadReports();
         } else {
             Alert.alert('Error', 'Failed to update report');

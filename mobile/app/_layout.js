@@ -14,17 +14,13 @@ import {
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
-import React, { useEffect, useState } from 'react';
-import { View, Text, Platform } from 'react-native';
-import { useToast } from '../components/Toast';
-import Constants from 'expo-constants';
-import { firebaseAuth } from '../services/firebase';
+import React, { useEffect } from 'react';
 import { MentorModeProvider } from '../context/MentorModeContext';
+import { ToastProvider } from '../context/ToastContext';
 
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
-  const { showToast, ToastComponent } = useToast();
+function RootLayoutContent() {
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': Inter_400Regular,
     'Inter-Medium': Inter_500Medium,
@@ -33,7 +29,6 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    // Hide splash screen immediately if there's an error
     if (fontError) {
       console.error('Font loading error:', fontError);
       SplashScreen.hideAsync();
@@ -43,7 +38,6 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
 
-    // Safety timeout: Ensure splash screen hides even if everything fails
     const timer = setTimeout(() => {
       SplashScreen.hideAsync();
     }, 3000);
@@ -56,19 +50,26 @@ export default function RootLayout() {
   }
 
   return (
-    <MentorModeProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(auth)" />
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="scholarships/[id]" />
-        <Stack.Screen name="apply/[id]" />
-        <Stack.Screen name="reminders" />
-        <Stack.Screen name="documents" />
-        <Stack.Screen name="settings" />
-        <Stack.Screen name="edit-profile" options={{ presentation: 'modal' }} />
-      </Stack>
-      {ToastComponent}
-    </MentorModeProvider>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="scholarships/[id]" />
+      <Stack.Screen name="apply/[id]" />
+      <Stack.Screen name="reminders" />
+      <Stack.Screen name="documents" />
+      <Stack.Screen name="settings" />
+      <Stack.Screen name="edit-profile" options={{ presentation: 'modal' }} />
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ToastProvider>
+      <MentorModeProvider>
+        <RootLayoutContent />
+      </MentorModeProvider>
+    </ToastProvider>
   );
 }
