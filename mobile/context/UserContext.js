@@ -12,7 +12,15 @@ export const UserProvider = ({ children }) => {
     if (!force && user) return user;
 
     try {
-      const res = await apiService.getProfile();
+      let res = await apiService.getProfile();
+
+      // If 401, the token might have been refreshed automatically in apiService.handleResponse.
+      // We try one more time before giving up.
+      if (res.status === 401) {
+        console.log('[UserContext] 401 encountered, retrying fetchProfile...');
+        res = await apiService.getProfile();
+      }
+
       if (res.ok) {
         setUser(res.data);
         await AsyncStorage.setItem('is_staff', res.data.is_staff.toString());
