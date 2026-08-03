@@ -23,7 +23,7 @@ ScholarshipConnectBD is a specialized mobile application built with **React Nati
 - [x] **Eligibility Checker**: Instant matching based on CGPA and academic background.
 - [x] **Deadline Calendar**: Visual tracking of upcoming application deadlines.
 - [x] **Personalized Profiles**: Manage academic history, CGPA, and preferences.
-- [x] **Firebase Authentication**: Secure login and registration with social auth support.
+- [x] **Firebase Authentication**: Secure login and registration with backend ID token verification.
 - [x] **Web Support**: Full **Expo Web** compatibility for desktop and mobile browsers (Vercel-ready).
 - [x] **Advanced Messaging Suite**: Instagram-style UI with Teal gradients, session timestamps, and LinkedIn-style professional reactions.
 - [x] **Contextual Support**: Direct "Help" routing from scholarship application cards to Admin with auto-prefilled context.
@@ -44,8 +44,13 @@ ScholarshipConnectBD is a specialized mobile application built with **React Nati
 - [x] **Scholarship Blog**: Curated articles, success stories, and application guides.
 
 ---
-## System Architecture & Design
-To view the in-depth system architecture, Data Flow Diagrams (DFD), Entity-Relationship Diagrams (ERD), and our Agile (Scrum) SDLC Workflow, please check our [System Design Documentation](./docs/SYSTEM_DESIGN.md).
+## System Architecture & Documentation
+For a complete user manual, in-depth system architecture, Data Flow Diagrams (DFD), Entity-Relationship Diagrams (ERD), and our Agile (Scrum) SDLC Workflow, please refer to our core documentation:
+
+- **[Complete User Manual & Documentation](./DOCUMENTATION.md)**
+- **[AI Matchmaker Algorithm Details](./AI_MATCHMAKER.md)**
+- **[Entity-Relationship Diagram (ERD)](./erdigram.md)**
+- **[System Design & DFD](./docs/SYSTEM_DESIGN.md)** (Legacy)
 
 ---
 ## Phase 2 - Professional Redesign (Latest Updates)
@@ -55,7 +60,7 @@ Recently, the platform underwent a significant UI/UX overhaul to meet global aca
 ### Premium UX & Branding
 - **Branded Splash Screen**: A professional logo entrance page with a 1.5s visibility delay, mimicking high-end apps like Facebook.
 - **Cross-Platform Support (Expo Web)**: Seamless accessibility via desktop and mobile browsers, optimized for **Vercel** hosting.
-- **Vibrant Onboarding**: A redesigned 3-step intro flow using brand-specific colors (Teal, Lavender, Warning Orange) to educate new users.
+- **Vibrant Onboarding**: A redesigned 3-step intro flow (v4) using brand-specific colors (Teal, Lavender, Warning Orange) to educate new users.
 - **Educational Layout**: Scholarship details redesigned with a focus on high-readability and professional hierarchy.
 - **Immersive Header**: Branded teal background with glass-morphic controls.
 
@@ -76,6 +81,7 @@ Recently, the platform underwent a significant UI/UX overhaul to meet global aca
 
 ### Android-Native Admin Console (Full Management Suite)
 - **Material 3 Dashboard**: Centralized metrics for scholarships, users, applications, and mentorship sessions.
+- **Secondary Security Gate**: Protected by an additional Django-admin login layer for enhanced security.
 - **Bulk Upload Tool**: Specialized endpoint for admins to upload 100+ scholarships via a single JSON payload.
 - **Moderation Center**: A dedicated system to review reported posts and comments to ensure a safe community.
 - **Mentor Approval System**: Evaluate and approve expert mentors to guide younger students.
@@ -120,8 +126,10 @@ The platform offers a premium tier that users can unlock via two methods:
 - **Verified Expertise**: Mentors are vetted by admins and can build a professional reputation within the platform.
 - **1-on-1 Guidance**: A structured system for booking and managing personalized scholarship strategy sessions.
 - **Session Lifecycle**: Management of session states including `Pending`, `Approved`, `Rejected`, and `Completed`.
+- **Technical Note**: Booking requests are processed using the Mentor's **User ID** (linked to their profile) to ensure database integrity.
 
 ### 4. AI-Powered Assistance
+- **Hybrid AI Matchmaker**: Powered by a **Hybrid Content-Based Recommendation Engine** using **TF-IDF Vectorization** and **Cosine Similarity** to match student bios with scholarship requirements.
 - **AI Suite**: Specialized tools for **SOP Writing**, **CV Review**, and **Eligibility Checking**.
 - **Usage Tracking**: Detailed logging of AI requests (`AI_REQUEST_LOG`) to enforce rate limits based on user tier.
 
@@ -226,9 +234,17 @@ ScholarshipConnectBD/
 │   ├── blog/                     # Success Stories & Educational Content
 │   ├── notifications/            # Push Notifications & System Broadcasts
 │   ├── media/                    # Secure Storage for User Documents & Media
+│   ├── docs/                     # System Design & Legacy Documentation
+│   │   ├── diagrams/             # SDLC, DFD, ERD, and Architecture diagrams
+│   │   └── SYSTEM_DESIGN.md      # Detailed system analysis and DFD details
 │   ├── manage.py                 # Django Management CLI
 │   └── .env                      # Secure Credentials (DB URI, Firebase Keys)
-└── README.md                     # Project Documentation
+├── DOCUMENTATION.md              # Complete User Manual & Technical Guide
+├── AI_MATCHMAKER.md              # AI Algorithm & NLP Technical Deep-dive
+├── erdigram.md                   # Entity-Relationship Diagram (Database)
+├── AGENTS.md                     # Developer Guide & Migration Notes
+├── LAYOUT_DOCUMENTATION.md       # UI Components & Theme Documentation
+└── README.md                     # Project Overview & Entry Point
 ```
 
 ---
@@ -249,7 +265,7 @@ cd backend
 python -m venv venv
 .\venv\Scripts\activate
 pip install -r requirements.txt
-# Set ADMIN_EMAILS in .env to grant staff access to specific users
+# Configure .env with MONGO_URI, FIREBASE_SERVICE_ACCOUNT_KEY, and ADMIN_EMAILS
 python manage.py migrate
 python manage.py runserver
 ```
@@ -258,7 +274,10 @@ python manage.py runserver
 To build a standalone APK for production:
 ```bash
 cd mobile
+# 1. Update app.json (name, slug, android.package)
+# 2. Run prebuild
 npx expo prebuild --clean
+# 3. Build with EAS
 eas build -p android --profile preview
 ```
 
