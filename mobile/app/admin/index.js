@@ -1,190 +1,319 @@
 /**
- * ADMIN DASHBOARD: Main management console for staff.
- * - Displays system metrics (Scholarships, Users, Revenue).
- * - Provides quick access to common admin tasks.
- * - Shows recent activities and scholarship postings.
- * - Connected to: add-scholarship.js, theme.js, apiService.
+ * ADMIN CONSOLE: Professional Material 3 Dashboard.
+ * - Centralized system metrics and vitals.
+ * - Modern Android-inspired UI with Action Chips and Dynamic Cards.
+ * - Connected to: apiService, theme.js, router.
  */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
-  Pressable, StatusBar, Dimensions,
-  TouchableOpacity, Platform
+  TouchableOpacity, StatusBar, Dimensions,
+  RefreshControl, Platform, Alert, Modal, Pressable
 } from 'react-native';
+import Animated, { SlideInRight, SlideOutRight } from 'react-native-reanimated';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { theme } from '../../theme';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { showToast } from '../../components/AdminToast';
+import { apiService } from '../../services/api';
+import { useToast } from '../../components/Toast';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
-
-
-const MetricCard = ({ title, value, icon, subValue, subColor, onPress }) => (
-  <TouchableOpacity
-    style={[styles.metricCard, theme.shadows.soft]}
-    onPress={onPress || (() => showToast(`${title} details coming soon!`))}
-  >
-    <View style={styles.metricHeader}>
-      <View style={[styles.metricIcon, { backgroundColor: theme.colors.primaryLight }]}>
-        <MaterialIcons name={icon} size={22} color={theme.colors.primary} />
-      </View>
-      <MaterialIcons name="more-vert" size={18} color={theme.colors.placeholder} />
+const MetricItem = ({ label, value, icon, color }) => (
+    <View style={styles.metricItem}>
+        <View style={[styles.metricIconBox, { backgroundColor: color + '15' }]}>
+            <MaterialCommunityIcons name={icon} size={22} color={color} />
+        </View>
+        <View>
+            <Text style={styles.metricValueText}>{value}</Text>
+            <Text style={styles.metricLabelText}>{label}</Text>
+        </View>
     </View>
-    <Text style={styles.metricValue}>{value}</Text>
-    <Text style={styles.metricTitle}>{title}</Text>
-    <View style={styles.metricFooter}>
-        <MaterialIcons name="trending-up" size={14} color={subColor || theme.colors.success} />
-        <Text style={[styles.metricSub, { color: subColor || theme.colors.success }]}>{subValue}</Text>
-    </View>
-  </TouchableOpacity>
 );
 
-export default function AdminDashboard() {
+const ActionChip = ({ label, icon, onPress, color = theme.colors.primary }) => (
+    <TouchableOpacity
+        style={[styles.chip, { borderColor: color + '30' }]}
+        onPress={onPress}
+        activeOpacity={0.7}
+    >
+        <MaterialCommunityIcons name={icon} size={20} color={color} />
+        <Text style={[styles.chipText, { color: color }]}>{label}</Text>
+    </TouchableOpacity>
+);
+
+export default function AdminConsole() {
   const router = useRouter();
+  const { showToast, ToastComponent } = useToast();
+  const [refreshing, setRefreshing] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    pending: 0,
+    rejected: 0,
+    users: 0,
+    apps: 0
+  });
+
+  const loadStats = async () => {
+    setRefreshing(true);
+    try {
+        const res = await apiService.getScholarships();
+        const usersRes = await apiService.getUsers();
+        const appsRes = await apiService.getApplications();
+
+        if (res.ok) {
+            const data = res.data;
+            setStats({
+                total: data.length,
+                active: data.filter(s => s.status === 'active').length,
+                pending: data.filter(s => s.status === 'pending').length,
+                rejected: data.filter(s => s.status === 'rejected').length,
+                users: usersRes.ok ? usersRes.data.length : 0,
+                apps: appsRes.ok ? appsRes.data.length : 0
+            });
+        }
+    } catch (e) {
+        console.error(e);
+    } finally {
+        setRefreshing(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    Alert.alert(
+      "Admin Logout",
+      "Are you sure you want to sign out from the admin console?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            await AsyncStorage.removeItem('admin_verified');
+            router.replace('/(tabs)/profile');
+          }
+        }
+      ]
+    );
+  };
+
+  const handleReturnToApp = () => {
+    router.replace('/(tabs)/profile');
+  };
+
+  useEffect(() => {
+    loadStats();
+  }, []);
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.surface} />
 
-      {/* Admin Header */}
-      <View style={styles.topHeader}>
-        <View>
-          <Text style={styles.adminName}>System Admin</Text>
-          <Text style={styles.adminRole}>Master Controller</Text>
+      {/* M3 Style Top Bar */}
+      <View style={styles.topBar}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={handleReturnToApp}
+        >
+          <MaterialIcons name="apps" size={24} color={theme.colors.primary} />
+          <Text style={styles.backButtonText}>App</Text>
+        </TouchableOpacity>
+
+        <View style={styles.headerInfo}>
+            <Text style={styles.consoleTitle}>Admin</Text>
+            <View style={styles.statusIndicator}>
+                <View style={styles.liveDot} />
+                <Text style={styles.statusText}>Working Now</Text>
+            </View>
         </View>
-        <View style={styles.headerActions}>
+
+        <View style={styles.topActions}>
           <TouchableOpacity
-            style={styles.headerIconBtn}
-            onPress={() => showToast('Notifications cleared')}
+              style={styles.menuBtn}
+              onPress={() => setMenuVisible(true)}
           >
-            <MaterialIcons name="notifications-none" size={24} color={theme.colors.heading} />
-            <View style={styles.notifDot} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.adminAvatar}
-            onPress={() => router.push('/(tabs)/profile')}
-          >
-            <Text style={styles.avatarText}>A</Text>
+              <MaterialCommunityIcons name="menu" size={28} color={theme.colors.heading} />
           </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={styles.scroll}
+        refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={loadStats} colors={[theme.colors.primary]} />
+        }
       >
-        <Text style={styles.sectionHeading}>Business Metrics</Text>
-        <View style={styles.metricsGrid}>
-          <MetricCard
-            title="Total Programs"
-            value="0"
-            icon="school"
-            subValue="---"
-          />
-          <MetricCard
-            title="Active Scholars"
-            value="0"
-            icon="people-outline"
-            subValue="---"
-          />
-          <MetricCard
-            title="Pending Approval"
-            value="0"
-            icon="pending"
-            subValue="---"
-            subColor={theme.colors.warning}
-            onPress={() => router.push('/admin/scholarships')}
-          />
-          <MetricCard
-            title="Platform Reach"
-            value="0"
-            icon="public"
-            subValue="---"
-          />
+        {/* Core Vitals Card */}
+        <View style={[styles.vitalsCard, theme.shadows.soft]}>
+            <View style={styles.vitalsHeader}>
+                <Text style={styles.vitalsTitle}>Stats Summary</Text>
+                <TouchableOpacity onPress={loadStats}>
+                    <MaterialIcons name="refresh" size={20} color={theme.colors.textSecondary} />
+                </TouchableOpacity>
+            </View>
+
+            <View style={styles.vitalsGrid}>
+                <MetricItem label="Total" value={stats.total} icon="database" color={theme.colors.primary} />
+                <MetricItem label="Live Now" value={stats.active} icon="check-decagram" color={theme.colors.success} />
+                <MetricItem label="Users" value={stats.users} icon="account-group" color={theme.colors.chartSecondary} />
+                <MetricItem label="Waiting" value={stats.pending} icon="clock-fast" color={theme.colors.warning} />
+                <MetricItem label="Total Apps" value={stats.apps} icon="file-document-edit" color={theme.colors.info} />
+            </View>
         </View>
 
-        <Text style={styles.sectionHeading}>Quick Management</Text>
-        <View style={styles.quickActions}>
-          <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: theme.colors.primary }]}
-            onPress={() => router.push('/admin/scholarships')}
-          >
-            <View style={styles.actionIconCircle}>
-              <MaterialIcons name="list" size={24} color={theme.colors.primary} />
-            </View>
-            <Text style={styles.actionBtnText}>Manage All</Text>
-          </TouchableOpacity>
+        {/* Quick Access Chips have been moved to the Sidebar */}
 
-          <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: theme.colors.heading }]}
-            onPress={() => router.push('/add-scholarship')}
-          >
-            <View style={styles.actionIconCircle}>
-              <MaterialIcons name="add" size={24} color={theme.colors.heading} />
+        {/* Recent Activity Section */}
+        <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Recent Changes</Text>
+                <TouchableOpacity onPress={() => router.push('/admin/scholarships')}>
+                    <Text style={styles.seeAllText}>View All</Text>
+                </TouchableOpacity>
             </View>
-            <Text style={styles.actionBtnText}>Post New</Text>
-          </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: theme.colors.chartSecondary }]}
-            onPress={() => showToast('Broadcast feature active soon!')}
-          >
-            <View style={styles.actionIconCircle}>
-              <MaterialIcons name="campaign" size={24} color={theme.colors.chartSecondary} />
+            {/* Placeholder for real activity log */}
+            <View style={styles.activityBox}>
+                <View style={styles.activityItem}>
+                    <View style={[styles.activityDot, { backgroundColor: theme.colors.success }]} />
+                    <View style={styles.activityContent}>
+                        <Text style={styles.activityMain}>Database Ready</Text>
+                        <Text style={styles.activitySub}>Connected to the system</Text>
+                    </View>
+                    <Text style={styles.activityTime}>Now</Text>
+                </View>
+
+                <View style={styles.activityItem}>
+                    <View style={[styles.activityDot, { backgroundColor: theme.colors.primary }]} />
+                    <View style={styles.activityContent}>
+                        <Text style={styles.activityMain}>Security Ready</Text>
+                        <Text style={styles.activitySub}>Safe login is active</Text>
+                    </View>
+                    <Text style={styles.activityTime}>2m</Text>
+                </View>
+
+                <View style={styles.activityItem}>
+                    <View style={[styles.activityDot, { backgroundColor: theme.colors.warning }]} />
+                    <View style={styles.activityContent}>
+                        <Text style={styles.activityMain}>To-Do List</Text>
+                        <Text style={styles.activitySub}>{stats.pending} items waiting for check</Text>
+                    </View>
+                    <Text style={styles.activityTime}>5m</Text>
+                </View>
             </View>
-            <Text style={styles.actionBtnText}>Broadcast</Text>
-          </TouchableOpacity>
         </View>
 
-        <View style={styles.listSection}>
-          <View style={styles.listHeader}>
-            <Text style={styles.sectionHeading}>Recent Applications</Text>
-            <TouchableOpacity onPress={() => showToast('Viewing all applications')}><Text style={styles.seeAll}>See All</Text></TouchableOpacity>
-          </View>
-
-          {[].map((item, i) => (
-            <TouchableOpacity
-              key={i}
-              style={[styles.activityCard, theme.shadows.soft]}
-              onPress={() => showToast(`Reviewing ${item.user}'s application`)}
-            >
-              <View style={styles.activityAvatar}>
-                <Text style={styles.activityAvatarText}>{item.user.charAt(0)}</Text>
-              </View>
-              <View style={styles.activityInfo}>
-                <Text style={styles.activityUser}>{item.user}</Text>
-                <Text style={styles.activityProgram}>{item.program}</Text>
-                <Text style={styles.activityDate}>{item.date}</Text>
-              </View>
-              <View style={[
-                styles.statusBadge,
-                { backgroundColor: item.status === 'New' ? theme.colors.mintCard : theme.colors.infoLight }
-              ]}>
-                <Text style={[
-                    styles.statusText,
-                    { color: item.status === 'New' ? theme.colors.primary : theme.colors.info }
-                ]}>{item.status}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-          <Text style={{ textAlign: 'center', color: theme.colors.textSecondary, marginTop: 10 }}>No recent applications.</Text>
-        </View>
-
+        {/* Maintenance Mode Toggle */}
         <TouchableOpacity
-          style={styles.maintenanceBanner}
-          onPress={() => showToast('System status: Healthy')}
+            style={styles.maintenanceBanner}
+            onPress={() => showToast('System is currently in Production Mode', 'info')}
         >
-            <Ionicons name="construct" size={24} color="#fff" />
-            <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={styles.bannerTitle}>System Health: Optimal</Text>
-                <Text style={styles.bannerSub}>Last backup: 12 minutes ago</Text>
+            <View style={styles.maintenanceIcon}>
+                <Ionicons name="shield-checkmark" size={20} color="#FFF" />
             </View>
-            <MaterialIcons name="chevron-right" size={24} color="#fff" />
+            <View style={{ flex: 1, marginLeft: 16 }}>
+                <Text style={styles.maintenanceTitle}>Production Mode Active</Text>
+                <Text style={styles.maintenanceSub}>Encrypted tunnel established</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={24} color="rgba(255,255,255,0.4)" />
         </TouchableOpacity>
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* Android FAB */}
+      <TouchableOpacity
+        style={[styles.fab, theme.shadows.premium]}
+        onPress={() => router.push('/add-scholarship')}
+      >
+        <MaterialIcons name="add" size={28} color="#FFF" />
+      </TouchableOpacity>
+      
+      {/* Sidebar Modal */}
+      <Modal visible={menuVisible} transparent animationType="none">
+        <Pressable style={styles.modalOverlay} onPress={() => setMenuVisible(false)}>
+          <Animated.View
+            style={styles.sidebar}
+            entering={SlideInRight.duration(300)}
+            exiting={SlideOutRight.duration(300)}
+          >
+            <Pressable onPress={(e) => e.stopPropagation()} style={{ flex: 1 }}>
+              <View style={styles.sidebarHeader}>
+                <Text style={styles.sidebarTitle}>Admin Menu</Text>
+                <TouchableOpacity onPress={() => setMenuVisible(false)}>
+                  <MaterialIcons name="close" size={24} color={theme.colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.sidebarScroll}>
+                
+                <Text style={styles.sidebarSectionTitle}>Core Modules</Text>
+                <TouchableOpacity style={styles.sidebarItem} onPress={() => {setMenuVisible(false); router.push('/admin/scholarships');}}>
+                  <MaterialCommunityIcons name="school" size={22} color={theme.colors.primary} />
+                  <Text style={styles.sidebarItemText}>Manage Scholarships</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.sidebarItem} onPress={() => {setMenuVisible(false); router.push('/admin/applications');}}>
+                  <MaterialCommunityIcons name="clipboard-list" size={22} color={theme.colors.chartSecondary} />
+                  <Text style={styles.sidebarItemText}>Student Applications</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.sidebarItem} onPress={() => {setMenuVisible(false); router.push('/admin/users');}}>
+                  <MaterialCommunityIcons name="account-group" size={22} color={theme.colors.info} />
+                  <Text style={styles.sidebarItemText}>User Directory</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.sidebarItem} onPress={() => {setMenuVisible(false); router.push('/admin/mentors');}}>
+                  <MaterialCommunityIcons name="account-tie" size={22} color={theme.colors.success} />
+                  <Text style={styles.sidebarItemText}>Mentor Program</Text>
+                </TouchableOpacity>
+
+                <View style={styles.sidebarDivider} />
+                <Text style={styles.sidebarSectionTitle}>System</Text>
+
+                <TouchableOpacity style={styles.sidebarItem} onPress={() => {setMenuVisible(false); router.push('/admin/moderation');}}>
+                  <MaterialCommunityIcons name="shield-alert" size={22} color={theme.colors.error} />
+                  <Text style={styles.sidebarItemText}>Moderation</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.sidebarItem} onPress={() => {setMenuVisible(false); router.push('/admin/broadcast');}}>
+                  <MaterialCommunityIcons name="bullhorn" size={22} color={theme.colors.warning} />
+                  <Text style={styles.sidebarItemText}>Push Broadcast</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.sidebarItem} onPress={() => {setMenuVisible(false); router.push('/admin/analytics');}}>
+                  <MaterialCommunityIcons name="chart-areaspline" size={22} color={theme.colors.chartSecondary} />
+                  <Text style={styles.sidebarItemText}>Analytics</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.sidebarItem} onPress={() => {setMenuVisible(false); router.push('/admin/logs');}}>
+                  <MaterialCommunityIcons name="history" size={22} color={theme.colors.textSecondary} />
+                  <Text style={styles.sidebarItemText}>History Logs</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.sidebarItem} onPress={() => {setMenuVisible(false); router.push('/admin/settings');}}>
+                  <MaterialCommunityIcons name="cog" size={22} color={theme.colors.primaryDark} />
+                  <Text style={styles.sidebarItemText}>Admin Settings</Text>
+                </TouchableOpacity>
+
+                <View style={styles.sidebarDivider} />
+
+                <TouchableOpacity style={[styles.sidebarItem, { marginTop: 10 }]} onPress={() => {setMenuVisible(false); handleLogout();}}>
+                  <MaterialCommunityIcons name="logout" size={22} color={theme.colors.error} />
+                  <Text style={[styles.sidebarItemText, { color: theme.colors.error }]}>Secure Logout</Text>
+                </TouchableOpacity>
+
+              </ScrollView>
+            </Pressable>
+          </Animated.View>
+        </Pressable>
+      </Modal>
+
+      {ToastComponent}
     </View>
   );
 }
@@ -194,206 +323,186 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  topHeader: {
-    paddingTop: 60,
-    paddingBottom: 24,
-    paddingHorizontal: 24,
+  topBar: {
     backgroundColor: theme.colors.surface,
+    paddingTop: 60,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.divider,
   },
-  adminName: {
-    fontSize: 20,
-    fontFamily: theme.typography.fontFamily.bold,
-    color: theme.colors.heading,
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: theme.colors.primaryLight,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
   },
-  adminRole: {
+  backButtonText: {
     fontSize: 12,
-    fontFamily: theme.typography.fontFamily.medium,
-    color: theme.colors.textSecondary,
-    marginTop: 2,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  headerIconBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: theme.colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  notifDot: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: theme.colors.error,
-    borderWidth: 1.5,
-    borderColor: '#fff',
-  },
-  adminAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: theme.colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    color: '#fff',
     fontFamily: theme.typography.fontFamily.bold,
-    fontSize: 18,
+    color: theme.colors.primary,
   },
-  scrollContent: {
-    padding: 24,
-  },
-  sectionHeading: {
-    fontSize: 16,
-    fontFamily: theme.typography.fontFamily.bold,
-    color: theme.colors.heading,
-    marginBottom: 16,
-  },
-  metricsGrid: {
+  topActions: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-    marginBottom: 32,
-  },
-  metricCard: {
-    width: (width - 64) / 2,
-    backgroundColor: theme.colors.surface,
-    borderRadius: 24,
-    padding: 18,
-  },
-  metricHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    gap: 12,
   },
-  metricIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+  logoutBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.errorLight,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  metricValue: {
+  consoleTitle: {
     fontSize: 22,
     fontFamily: theme.typography.fontFamily.bold,
     color: theme.colors.heading,
   },
-  metricTitle: {
+  statusIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+    gap: 6,
+  },
+  liveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: theme.colors.success,
+  },
+  statusText: {
     fontSize: 12,
     fontFamily: theme.typography.fontFamily.medium,
     color: theme.colors.textSecondary,
-    marginTop: 4,
   },
-  metricFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 12,
-    gap: 4,
+  scroll: {
+    padding: 20,
   },
-  metricSub: {
-    fontSize: 10,
-    fontFamily: theme.typography.fontFamily.bold,
-  },
-  quickActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 32,
-  },
-  actionBtn: {
-    width: (width - 80) / 3,
-    height: 110,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 12,
-  },
-  actionIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  actionBtnText: {
-    color: '#fff',
-    fontSize: 11,
-    fontFamily: theme.typography.fontFamily.bold,
-  },
-  listHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  seeAll: {
-    fontSize: 13,
-    color: theme.colors.primary,
-    fontFamily: theme.typography.fontFamily.bold,
-  },
-  activityCard: {
+  vitalsCard: {
     backgroundColor: theme.colors.surface,
-    borderRadius: 20,
-    padding: 14,
+    borderRadius: 28,
+    padding: 24,
+    marginBottom: 24,
+  },
+  vitalsHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 24,
   },
-  activityAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: theme.colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  activityAvatarText: {
+  vitalsTitle: {
     fontSize: 18,
     fontFamily: theme.typography.fontFamily.bold,
+    color: theme.colors.heading,
+  },
+  vitalsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 20,
+  },
+  metricItem: {
+    width: '45%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  metricIconBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  metricValueText: {
+    fontSize: 20,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: theme.colors.heading,
+  },
+  metricLabelText: {
+    fontSize: 11,
+    fontFamily: theme.typography.fontFamily.medium,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 32,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1.5,
+    gap: 8,
+  },
+  chipText: {
+    fontSize: 13,
+    fontFamily: theme.typography.fontFamily.bold,
+  },
+  section: {
+    marginBottom: 32,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: theme.colors.heading,
+  },
+  seeAllText: {
+    fontSize: 13,
+    fontFamily: theme.typography.fontFamily.bold,
     color: theme.colors.primary,
   },
-  activityInfo: {
-    flex: 1,
-    marginLeft: 14,
+  activityBox: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 24,
+    padding: 20,
+    gap: 20,
   },
-  activityUser: {
+  activityItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  activityDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  activityContent: {
+    flex: 1,
+  },
+  activityMain: {
     fontSize: 14,
     fontFamily: theme.typography.fontFamily.bold,
     color: theme.colors.heading,
   },
-  activityProgram: {
+  activitySub: {
     fontSize: 12,
+    fontFamily: theme.typography.fontFamily.medium,
     color: theme.colors.textSecondary,
     marginTop: 2,
   },
-  activityDate: {
-    fontSize: 10,
+  activityTime: {
+    fontSize: 11,
     color: theme.colors.placeholder,
-    marginTop: 4,
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  statusText: {
-    fontSize: 10,
-    fontFamily: theme.typography.fontFamily.bold,
   },
   maintenanceBanner: {
     backgroundColor: theme.colors.heading,
@@ -401,16 +510,109 @@ const styles = StyleSheet.create({
     padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
   },
-  bannerTitle: {
-    color: '#fff',
+  maintenanceIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  maintenanceTitle: {
+    color: '#FFF',
     fontFamily: theme.typography.fontFamily.bold,
-    fontSize: 14,
+    fontSize: 15,
   },
-  bannerSub: {
+  maintenanceSub: {
     color: 'rgba(255,255,255,0.6)',
-    fontSize: 11,
+    fontFamily: theme.typography.fontFamily.medium,
+    fontSize: 12,
     marginTop: 2,
   },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    width: 60,
+    height: 60,
+    borderRadius: 18,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 0,
+  },
+  menuBtn: {
+    padding: 8,
+  },
+  // Sidebar styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'stretch',
+  },
+  sidebar: {
+    width: width * 0.78,
+    height: height,
+    backgroundColor: theme.colors.surface,
+    elevation: 0,
+    shadowColor: 'transparent',
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  sidebarHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingTop: 60,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.divider,
+    backgroundColor: theme.colors.primaryLight,
+  },
+  sidebarTitle: {
+    fontSize: 22,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: theme.colors.heading,
+  },
+  sidebarScroll: {
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+  },
+  sidebarSectionTitle: {
+    fontSize: 11,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: theme.colors.textSecondary,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    marginTop: 4,
+  },
+  sidebarItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
+    marginHorizontal: 4,
+    marginVertical: 2,
+  },
+  sidebarItemText: {
+    fontSize: 15,
+    fontFamily: theme.typography.fontFamily.medium,
+    color: theme.colors.textPrimary,
+  },
+  sidebarDivider: {
+    height: 1,
+    backgroundColor: theme.colors.divider,
+    marginHorizontal: 16,
+    marginVertical: 8,
+  },
 });
+

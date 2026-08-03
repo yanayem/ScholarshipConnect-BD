@@ -1,137 +1,98 @@
-/**
- * SYSTEM LOGS: Track all administrative actions for transparency.
- * - List of actions taken by admins (approvals, deletions, broadcasts).
- */
 import React, { useState, useEffect } from 'react';
-import {
-  View, Text, StyleSheet, FlatList,
-  TouchableOpacity, StatusBar, RefreshControl,
-  ActivityIndicator
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, ActivityIndicator, RefreshControl } from 'react-native';
 import { theme } from '../../theme';
-import { MaterialIcons, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { apiService } from '../../services/api';
 
-export default function SystemLogs() {
-  const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
+export default function HistoryLogsScreen() {
+    const router = useRouter();
+    const [logs, setLogs] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
 
-  const loadLogs = async () => {
-    try {
-      setLoading(true);
-      // Simulating log fetching or using a general endpoint if exists
-      const res = await apiService.getScholarships('status=all'); // Example of fetching all data
-      if (res.ok) {
-        // Transform some data into log format for demonstration if real logs don't exist
-        const mockLogs = [
-            { id: 1, action: 'SCHOLARSHIP_APPROVED', detail: 'MEXT Japan Scholarship was approved', admin: 'Admin_Rahat', time: '2 mins ago', icon: 'check-circle', color: theme.colors.success },
-            { id: 2, action: 'BROADCAST_SENT', detail: 'New Scholarship Alert sent to 1,204 users', admin: 'Admin_Rahat', time: '45 mins ago', icon: 'bullhorn', color: theme.colors.info },
-            { id: 3, action: 'USER_BANNED', detail: 'User "spam_bot_99" was permanently banned', admin: 'System_Auto', time: '2 hours ago', icon: 'block', color: theme.colors.error },
-            { id: 4, action: 'CONTENT_DELETED', detail: 'Reported post #882 removed from Community', admin: 'Moderator_Karim', time: '5 hours ago', icon: 'delete-sweep', color: theme.colors.warning },
-            { id: 5, action: 'MENTOR_APPROVED', detail: 'Dr. Smith was added to official mentors', admin: 'Admin_Rahat', time: 'Yesterday', icon: 'verified', color: theme.colors.primary },
-        ];
-        setLogs(mockLogs);
-      }
-    } catch (e) {
-      console.error('[ADMIN] Failed to load logs:', e);
-    } finally {
-      setLoading(false);
+    const loadLogs = async () => {
+        const res = await apiService.getAdminLogs();
+        if (res.ok) {
+            setLogs(res.data);
+        }
+        setLoading(false);
+        setRefreshing(false);
+    };
+
+    useEffect(() => {
+        loadLogs();
+    }, []);
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        loadLogs();
+    };
+
+    const getLogIcon = (action) => {
+        if (action.toLowerCase().includes('approve')) return { name: 'check-circle', color: theme.colors.success };
+        if (action.toLowerCase().includes('delete')) return { name: 'delete', color: theme.colors.error };
+        if (action.toLowerCase().includes('broadcast')) return { name: 'bullhorn', color: theme.colors.warning };
+        return { name: 'settings', color: theme.colors.primary };
+    };
+
+    if (loading) {
+        return (
+            <View style={styles.centered}>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
+            </View>
+        );
     }
-  };
 
-  useEffect(() => {
-    loadLogs();
-  }, []);
-
-  const renderItem = ({ item }) => (
-    <View style={styles.logItem}>
-        <View style={[styles.logIcon, { backgroundColor: item.color + '15' }]}>
-            <MaterialIcons name={item.icon} size={20} color={item.color} />
-        </View>
-        <View style={styles.logContent}>
-            <View style={styles.logHeader}>
-                <Text style={styles.actionType}>{item.action.replace('_', ' ')}</Text>
-                <Text style={styles.logTime}>{item.time}</Text>
+    return (
+        <View style={styles.root}>
+            <StatusBar barStyle="dark-content" />
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+                    <MaterialIcons name="arrow-back" size={24} color={theme.colors.heading} />
+                </TouchableOpacity>
+                <Text style={styles.title}>History Logs</Text>
             </View>
-            <Text style={styles.logDetail}>{item.detail}</Text>
-            <Text style={styles.adminTag}>By {item.admin}</Text>
-        </View>
-    </View>
-  );
 
-  return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.surface} />
-
-      <View style={styles.header}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <MaterialIcons name="arrow-back" size={24} color={theme.colors.heading} />
-          </TouchableOpacity>
-          <Text style={styles.title}>Activity Logs</Text>
+            <ScrollView
+                contentContainerStyle={styles.scroll}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            >
+                {logs.map(log => {
+                    const iconConfig = getLogIcon(log.action);
+                    return (
+                        <View key={log.id} style={styles.logCard}>
+                            <View style={[styles.iconBox, { backgroundColor: iconConfig.color + '15' }]}>
+                                <MaterialCommunityIcons name={iconConfig.name} size={22} color={iconConfig.color} />
+                            </View>
+                            <View style={styles.logInfo}>
+                                <Text style={styles.actionText}>{log.action}</Text>
+                                <Text style={styles.targetText}>{log.target}</Text>
+                                <Text style={styles.metaText}>By {log.admin_name} • {new Date(log.created_at).toLocaleString()}</Text>
+                            </View>
+                        </View>
+                    );
+                })}
+                {logs.length === 0 && (
+                    <Text style={styles.emptyText}>No logs found</Text>
+                )}
+            </ScrollView>
         </View>
-      </View>
-
-      {loading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-        </View>
-      ) : (
-        <FlatList
-          data={logs}
-          renderItem={renderItem}
-          keyExtractor={item => item.id.toString()}
-          contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={loading} onRefresh={loadLogs} />}
-          ItemSeparatorComponent={() => <View style={styles.logDivider} />}
-          ListEmptyComponent={
-            <View style={styles.empty}>
-              <MaterialCommunityIcons name="history" size={60} color={theme.colors.placeholder} />
-              <Text style={styles.emptyText}>No recent activity found.</Text>
-            </View>
-          }
-        />
-      )}
-    </View>
-  );
+    );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: {
-    paddingTop: 50,
-    paddingHorizontal: 24,
-    paddingBottom: 20,
-    backgroundColor: theme.colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.divider
-  },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  title: { fontSize: 22, fontFamily: theme.typography.fontFamily.bold, color: theme.colors.heading },
-  list: { paddingVertical: 10 },
-  logItem: {
-    flexDirection: 'row',
-    padding: 20,
-    backgroundColor: theme.colors.surface,
-  },
-  logIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16
-  },
-  logContent: { flex: 1 },
-  logHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  actionType: { fontSize: 11, fontFamily: theme.typography.fontFamily.bold, color: theme.colors.textSecondary, letterSpacing: 0.5 },
-  logTime: { fontSize: 11, color: theme.colors.placeholder },
-  logDetail: { fontSize: 14, fontFamily: theme.typography.fontFamily.medium, color: theme.colors.heading, marginBottom: 4 },
-  adminTag: { fontSize: 11, color: theme.colors.primary, fontFamily: theme.typography.fontFamily.bold },
-  logDivider: { height: 1, backgroundColor: theme.colors.divider, marginLeft: 76 },
-  empty: { alignItems: 'center', marginTop: 100 },
-  emptyText: { marginTop: 16, fontSize: 15, color: theme.colors.placeholder, fontFamily: theme.typography.fontFamily.medium }
+    root: { flex: 1, backgroundColor: theme.colors.background },
+    centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    header: { paddingTop: 60, paddingBottom: 20, paddingHorizontal: 20, backgroundColor: '#fff', flexDirection: 'row', alignItems: 'center', gap: 16 },
+    backBtn: { padding: 4 },
+    title: { fontSize: 20, fontWeight: 'bold', color: theme.colors.heading },
+    scroll: { padding: 20 },
+    logCard: { flexDirection: 'row', backgroundColor: '#fff', padding: 16, borderRadius: 16, marginBottom: 12, alignItems: 'center', ...theme.shadows.soft },
+    iconBox: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 16 },
+    logInfo: { flex: 1 },
+    actionText: { fontSize: 14, fontWeight: 'bold', color: theme.colors.heading },
+    targetText: { fontSize: 13, color: theme.colors.textPrimary, marginTop: 2 },
+    metaText: { fontSize: 11, color: theme.colors.textSecondary, marginTop: 4 },
+    emptyText: { textAlign: 'center', marginTop: 40, color: theme.colors.textSecondary }
 });

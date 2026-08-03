@@ -1,119 +1,198 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, Image } from 'react-native';
+/**
+ * USER AUDIT: Manage registered students and staff.
+ * - Search by name or email.
+ * - Material 3 item cards.
+ * - Simple role identification.
+ */
+import React, { useState, useEffect } from 'react';
+import {
+  View, Text, StyleSheet, FlatList,
+  TextInput, TouchableOpacity, StatusBar, ActivityIndicator, RefreshControl
+} from 'react-native';
 import { theme } from '../../theme';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { apiService } from '../../services/api';
+import { useRouter } from 'expo-router';
+import { Loader } from '../../components/Loader';
 
-const USERS_DATA = [
-  { id: '1', name: 'Anisur Rahman', email: 'anis@example.com', role: 'Student', joined: '2024-10-01' },
-  { id: '2', name: 'Farzana Yasmin', email: 'farzana@example.com', role: 'Premium', joined: '2024-09-15' },
-  { id: '3', name: 'Sabbir Ahmed', email: 'sabbir@example.com', role: 'Student', joined: '2024-10-05' },
-  { id: '4', name: 'Admin User', email: 'admin@scholarshipconnect.bd', role: 'Admin', joined: '2024-01-01' },
-];
+export default function UserAudit() {
+  const [search, setSearch] = useState('');
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const router = useRouter();
 
-export default function UserManagement() {
-  const renderItem = ({ item }) => (
-    <View style={styles.userRow}>
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{item.name[0]}</Text>
-      </View>
-      <View style={styles.userInfo}>
-        <Text style={styles.userName}>{item.name}</Text>
-        <Text style={styles.userEmail}>{item.email}</Text>
-      </View>
-      <View style={styles.userMeta}>
-        <View style={[styles.roleBadge, { backgroundColor: item.role === 'Admin' ? theme.colors.lavenderCard : theme.colors.background }]}>
-          <Text style={styles.roleText}>{item.role}</Text>
-        </View>
-        <Text style={styles.joinedText}>Since {item.joined}</Text>
-      </View>
-    </View>
+  const loadUsers = async () => {
+    try {
+        const res = await apiService.getUsers();
+        if (res.ok) {
+            setUsers(res.data);
+        }
+    } catch (e) {
+        console.error(e);
+    } finally {
+        setLoading(false);
+        setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadUsers();
+  };
+
+  const filtered = (users || []).filter(u =>
+    (u.profile?.full_name || '').toLowerCase().includes(search.toLowerCase()) ||
+    (u.email || '').toLowerCase().includes(search.toLowerCase()) ||
+    (u.username || '').toLowerCase().includes(search.toLowerCase())
   );
+
+  const renderItem = ({ item }) => {
+    const name = item.profile?.full_name || item.username;
+    const role = item.is_staff ? 'Admin' : 'Student';
+
+    return (
+        <View style={styles.card}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{name[0].toUpperCase()}</Text>
+          </View>
+          <View style={styles.info}>
+            <Text style={styles.name}>{name}</Text>
+            <Text style={styles.email}>{item.email}</Text>
+            <View style={styles.meta}>
+                <Text style={styles.joined}>Username: {item.username}</Text>
+            </View>
+          </View>
+          <View style={{ alignItems: 'flex-end', gap: 8 }}>
+            <View style={[styles.badge, {
+              backgroundColor: item.is_staff ? theme.colors.primary : '#F1F5F9'
+            }]}>
+              <Text style={[styles.badgeText, {
+                  color: item.is_staff ? '#FFF' : theme.colors.textSecondary
+              }]}>{role}</Text>
+            </View>
+            {!item.is_staff && (
+              <TouchableOpacity
+                style={styles.chatBtn}
+                onPress={() => router.push({
+                  pathname: `/messages/${item.id}`,
+                  params: { name: name, avatar: item.profile?.avatar_url }
+                })}
+              >
+                <MaterialCommunityIcons name="chat-outline" size={18} color={theme.colors.primary} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      );
+  };
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.surface} />
+
       <View style={styles.header}>
-        <Text style={styles.countText}>{USERS_DATA.length} Total Registered Users</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <TouchableOpacity onPress={() => router.back()}>
+                <MaterialIcons name="arrow-back" size={24} color={theme.colors.heading} />
+            </TouchableOpacity>
+            <Text style={styles.title}>System Users</Text>
+        </View>
+        <View style={styles.searchBar}>
+            <Ionicons name="search" size={18} color={theme.colors.textSecondary} />
+            <TextInput
+                placeholder="Find a user by name or email..."
+                style={styles.input}
+                value={search}
+                onChangeText={setSearch}
+            />
+        </View>
       </View>
 
-      <FlatList
-        data={USERS_DATA}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
+      {loading ? (
+        <Loader message="Loading directory..." />
+      ) : (
+        <FlatList
+          data={filtered}
+          renderItem={renderItem}
+          keyExtractor={item => item.id.toString()}
+          contentContainerStyle={styles.list}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} />
+          }
+          ListEmptyComponent={
+              <View style={styles.empty}>
+                  <MaterialCommunityIcons name="account-search-outline" size={60} color={theme.colors.placeholder} />
+                  <Text style={styles.emptyText}>No users found</Text>
+              </View>
+          }
+        />
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.surface,
-  },
+  container: { flex: 1, backgroundColor: theme.colors.background },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: {
-    padding: theme.spacing.lg,
+    paddingTop: 50,
+    paddingHorizontal: 24,
+    paddingBottom: 20,
+    backgroundColor: theme.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.divider,
+    borderBottomColor: theme.colors.divider
   },
-  countText: {
-    fontFamily: theme.typography.fontFamily.semiBold,
-    fontSize: theme.typography.sizes.sm,
-    color: theme.colors.textSecondary,
-  },
-  userRow: {
+  title: { fontSize: 22, fontFamily: theme.typography.fontFamily.bold, color: theme.colors.heading, marginBottom: 16 },
+  searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: theme.spacing.lg,
+    backgroundColor: theme.colors.background,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 48
+  },
+  input: { flex: 1, marginLeft: 10, fontFamily: theme.typography.fontFamily.medium, fontSize: 14 },
+  list: { padding: 20 },
+  card: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 20,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.divider
   },
   avatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
     backgroundColor: theme.colors.primaryLight,
-    alignItems: 'center',
     justifyContent: 'center',
-    marginRight: theme.spacing.md,
+    alignItems: 'center',
+    marginRight: 16
   },
-  avatarText: {
-    fontFamily: theme.typography.fontFamily.bold,
-    fontSize: theme.typography.sizes.lg,
-    color: theme.colors.primary,
+  avatarText: { fontSize: 18, fontFamily: theme.typography.fontFamily.bold, color: theme.colors.primary },
+  info: { flex: 1 },
+  name: { fontSize: 15, fontFamily: theme.typography.fontFamily.bold, color: theme.colors.heading },
+  email: { fontSize: 13, color: theme.colors.textSecondary, marginTop: 2 },
+  meta: { marginTop: 4 },
+  joined: { fontSize: 11, color: theme.colors.placeholder },
+  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  badgeText: { fontSize: 10, fontFamily: theme.typography.fontFamily.bold, textTransform: 'uppercase' },
+  chatBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: theme.colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  userInfo: {
-    flex: 1,
-  },
-  userName: {
-    fontFamily: theme.typography.fontFamily.bold,
-    fontSize: theme.typography.sizes.base,
-    color: theme.colors.textPrimary,
-  },
-  userEmail: {
-    fontFamily: theme.typography.fontFamily.regular,
-    fontSize: theme.typography.sizes.xs,
-    color: theme.colors.textSecondary,
-  },
-  userMeta: {
-    alignItems: 'flex-end',
-    gap: 4,
-  },
-  roleBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  roleText: {
-    fontFamily: theme.typography.fontFamily.medium,
-    fontSize: 10,
-    color: theme.colors.textPrimary,
-  },
-  joinedText: {
-    fontFamily: theme.typography.fontFamily.regular,
-    fontSize: 10,
-    color: theme.colors.placeholder,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: theme.colors.divider,
-    marginHorizontal: theme.spacing.lg,
-  }
+  empty: { alignItems: 'center', marginTop: 100 },
+  emptyText: { marginTop: 16, fontSize: 15, color: theme.colors.placeholder, fontFamily: theme.typography.fontFamily.medium }
 });

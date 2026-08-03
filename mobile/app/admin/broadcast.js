@@ -1,145 +1,130 @@
-/**
- * BROADCAST TOOL: Send messages to all users.
- * - Simple form to write title and message.
- * - Material 3 visual feedback.
- */
-import React, { useState } from 'react';
-import {
-  View, Text, StyleSheet, TextInput,
-  TouchableOpacity, StatusBar, ScrollView,
-  Alert, KeyboardAvoidingView, Platform
-} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, StatusBar, Alert, ActivityIndicator, RefreshControl } from 'react-native';
 import { theme } from '../../theme';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { apiService } from '../../services/api';
 
-export default function BroadcastMessage() {
-  const [title, setTitle] = useState('');
-  const [message, setMessage] = useState('');
-  const [sending, setSending] = useState(false);
-  const router = useRouter();
+export default function BroadcastScreen() {
+    const router = useRouter();
+    const [title, setTitle] = useState('');
+    const [message, setMessage] = useState('');
+    const [sending, setSending] = useState(false);
+    const [broadcasts, setBroadcasts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
 
-  const handleSend = () => {
-    if (!title || !message) {
-      Alert.alert('Oops', 'Please fill in all boxes');
-      return;
-    }
+    const loadBroadcasts = async () => {
+        const res = await apiService.getAdminBroadcasts();
+        if (res.ok) {
+            setBroadcasts(res.data);
+        }
+        setLoading(false);
+        setRefreshing(false);
+    };
 
-    setSending(true);
-    // Simulate sending
-    setTimeout(() => {
-      setSending(false);
-      Alert.alert('Success', 'Message sent to all users!', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
-    }, 1500);
-  };
+    useEffect(() => {
+        loadBroadcasts();
+    }, []);
 
-  return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.surface} />
+    const onRefresh = () => {
+        setRefreshing(true);
+        loadBroadcasts();
+    };
 
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <MaterialIcons name="arrow-back" size={24} color={theme.colors.heading} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Send Message</Text>
-      </View>
+    const handleSend = async () => {
+        if (!title || !message) return Alert.alert('Error', 'Please fill all fields');
+        setSending(true);
+        const res = await apiService.sendBroadcast(title, message);
+        if (res.ok) {
+            Alert.alert('Success', 'Push notification sent to all users!');
+            setTitle('');
+            setMessage('');
+            loadBroadcasts();
+        } else {
+            Alert.alert('Error', 'Failed to send broadcast');
+        }
+        setSending(false);
+    };
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
-        <ScrollView contentContainerStyle={styles.scroll}>
-            <View style={styles.infoBox}>
-                <Ionicons name="information-circle" size={20} color={theme.colors.primary} />
-                <Text style={styles.infoText}>This message will go to every registered student instantly.</Text>
-            </View>
-
-            <View style={styles.form}>
-                <Text style={styles.label}>Message Title</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder="e.g. New Scholarship Alert!"
-                    value={title}
-                    onChangeText={setTitle}
-                />
-
-                <Text style={styles.label}>Message Body</Text>
-                <TextInput
-                    style={[styles.input, styles.textArea]}
-                    placeholder="Write your message here..."
-                    multiline
-                    numberOfLines={6}
-                    value={message}
-                    onChangeText={setMessage}
-                    textAlignVertical="top"
-                />
-
-                <TouchableOpacity
-                    style={[styles.sendBtn, sending && { opacity: 0.7 }]}
-                    onPress={handleSend}
-                    disabled={sending}
-                >
-                    <Text style={styles.sendBtnText}>
-                        {sending ? 'Sending...' : 'Send to Everyone'}
-                    </Text>
-                    {!sending && <MaterialIcons name="send" size={20} color="#FFF" />}
+    return (
+        <View style={styles.root}>
+            <StatusBar barStyle="dark-content" />
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+                    <MaterialIcons name="arrow-back" size={24} color={theme.colors.heading} />
                 </TouchableOpacity>
+                <Text style={styles.title}>Global Broadcast</Text>
             </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </View>
-  );
+
+            <ScrollView
+                contentContainerStyle={styles.scroll}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            >
+                <View style={styles.card}>
+                    <MaterialCommunityIcons name="bullhorn-outline" size={48} color={theme.colors.primary} style={styles.icon} />
+                    <Text style={styles.infoText}>Send a push notification to all registered students.</Text>
+
+                    <Text style={styles.label}>Broadcast Title</Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="e.g., MEXT Scholarship is Live!"
+                        value={title}
+                        onChangeText={setTitle}
+                    />
+
+                    <Text style={styles.label}>Message Content</Text>
+                    <TextInput
+                        style={[styles.input, styles.textArea]}
+                        placeholder="Type your announcement here..."
+                        multiline
+                        numberOfLines={4}
+                        value={message}
+                        onChangeText={setMessage}
+                    />
+
+                    <TouchableOpacity style={styles.sendBtn} onPress={handleSend} disabled={sending}>
+                        {sending ? <ActivityIndicator color="#fff" /> : (
+                            <>
+                                <Text style={styles.sendBtnText}>Send Broadcast</Text>
+                                <MaterialIcons name="send" size={20} color="#fff" />
+                            </>
+                        )}
+                    </TouchableOpacity>
+                </View>
+
+                <Text style={styles.historyTitle}>Recent Broadcasts</Text>
+                {loading ? <ActivityIndicator color={theme.colors.primary} /> : (
+                    broadcasts.map(b => (
+                        <View key={b.id} style={styles.broadcastItem}>
+                            <Text style={styles.itemTitle}>{b.title}</Text>
+                            <Text style={styles.itemMsg}>{b.message}</Text>
+                            <Text style={styles.itemMeta}>Sent by {b.sender_name} • {new Date(b.created_at).toLocaleDateString()}</Text>
+                        </View>
+                    ))
+                )}
+            </ScrollView>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background },
-  header: {
-    paddingTop: 50,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    backgroundColor: theme.colors.surface,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.divider
-  },
-  headerTitle: { fontSize: 20, fontFamily: theme.typography.fontFamily.bold, color: theme.colors.heading },
-  scroll: { padding: 24 },
-  infoBox: {
-    flexDirection: 'row',
-    backgroundColor: theme.colors.primaryLight,
-    padding: 16,
-    borderRadius: 12,
-    gap: 12,
-    marginBottom: 30,
-    alignItems: 'center'
-  },
-  infoText: { flex: 1, fontSize: 13, color: theme.colors.primary, fontFamily: theme.typography.fontFamily.medium },
-  form: { gap: 20 },
-  label: { fontSize: 14, fontFamily: theme.typography.fontFamily.bold, color: theme.colors.textSecondary, marginLeft: 4 },
-  input: {
-    backgroundColor: theme.colors.surface,
-    borderWidth: 1,
-    borderColor: theme.colors.divider,
-    borderRadius: 14,
-    padding: 16,
-    fontSize: 15,
-    fontFamily: theme.typography.fontFamily.medium
-  },
-  textArea: { height: 150 },
-  sendBtn: {
-    backgroundColor: theme.colors.primary,
-    paddingVertical: 18,
-    borderRadius: 14,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 10,
-    marginTop: 20,
-    ...theme.shadows.teal
-  },
-  sendBtnText: { color: '#FFF', fontSize: 16, fontFamily: theme.typography.fontFamily.bold }
+    root: { flex: 1, backgroundColor: theme.colors.background },
+    header: { paddingTop: 60, paddingBottom: 20, paddingHorizontal: 20, backgroundColor: '#fff', flexDirection: 'row', alignItems: 'center', gap: 16 },
+    backBtn: { padding: 4 },
+    title: { fontSize: 20, fontWeight: 'bold', color: theme.colors.heading },
+    scroll: { padding: 20 },
+    card: { backgroundColor: '#fff', borderRadius: 24, padding: 24, ...theme.shadows.soft, marginBottom: 30 },
+    icon: { alignSelf: 'center', marginBottom: 16 },
+    infoText: { textAlign: 'center', color: theme.colors.textSecondary, marginBottom: 30, fontSize: 14 },
+    label: { fontSize: 14, fontWeight: 'bold', color: theme.colors.textPrimary, marginBottom: 8 },
+    input: { backgroundColor: theme.colors.background, borderRadius: 12, padding: 16, fontSize: 16, marginBottom: 20 },
+    textArea: { height: 120, textAlignVertical: 'top' },
+    sendBtn: { backgroundColor: theme.colors.primary, height: 56, borderRadius: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 12 },
+    sendBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+    historyTitle: { fontSize: 18, fontWeight: 'bold', color: theme.colors.heading, marginBottom: 16 },
+    broadcastItem: { backgroundColor: '#fff', padding: 16, borderRadius: 16, marginBottom: 12, ...theme.shadows.soft },
+    itemTitle: { fontSize: 16, fontWeight: 'bold', color: theme.colors.heading },
+    itemMsg: { fontSize: 14, color: theme.colors.textPrimary, marginTop: 4 },
+    itemMeta: { fontSize: 11, color: theme.colors.textSecondary, marginTop: 8 }
 });

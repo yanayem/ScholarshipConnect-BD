@@ -6,32 +6,22 @@
  * - Connected to: apiService.js, expo-constants.
  */
 import Constants from 'expo-constants';
-import { Platform } from 'react-native';
+import { Platform, NativeModules } from 'react-native';
+import * as Device from 'expo-device';
 
 const getApiUrl = () => {
-  let hostIP = '10.0.2.2'; // Default for Android Emulator
+  let localhost = '192.168.0.163'; // Your PC's Local IP for Physical Devices
 
-  // Try to get the IP address where the Metro bundler is running
-  const debuggerHost = Constants.expoConfig?.hostUri ||
-                       Constants.manifest?.hostUri ||
-                       Constants.manifest2?.extra?.expoGo?.debuggerHost;
-
-  // Fix for Web Browser testing
-  if (Platform.OS === 'web' || (typeof window !== 'undefined' && window.location)) {
-    hostIP = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-  } else if (debuggerHost && !debuggerHost.includes('127.0.0.1') && !debuggerHost.includes('localhost')) {
-    // If we have a debugger host (usually computer IP), use it for physical devices
-    hostIP = debuggerHost.split(':')[0];
+  // 1. For Android Emulator, 10.0.2.2 is the dedicated loopback to the host machine.
+  if (Platform.OS === 'android' && !Device.isDevice) {
+    localhost = '10.0.2.2';
+    console.log('[API CONFIG] Android Emulator detected, using 10.0.2.2');
   }
 
-  // If using Android emulator, 10.0.2.2 is usually the best bet
-  // You can override this manually here if needed:
-  // hostIP = '192.168.0.163';
+  const url = `http://${localhost}:8000/api`;
 
-  const url = `http://${hostIP}:8000/api`;
-
-  console.log('[API] Current Platform:', Platform.OS);
-  console.log('[API] Target URL:', url);
+  console.log('[API CONFIG] Detected Host:', localhost, Device.isDevice ? '(Device)' : '(Emulator)');
+  console.log('[API CONFIG] Target URL:', url);
 
   return url;
 };

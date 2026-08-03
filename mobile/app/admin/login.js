@@ -8,14 +8,13 @@ import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
   KeyboardAvoidingView, Platform, ScrollView,
-  StatusBar, Dimensions, TextInput
+  StatusBar, Dimensions, Alert, TextInput
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { theme } from '../../theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiService } from '../../services/api';
-import { showToast } from '../../components/AdminToast';
 
 const { width, height } = Dimensions.get('window');
 
@@ -28,7 +27,7 @@ export default function AdminSecurityLogin() {
 
   const handleVerify = async () => {
     if (!username || !password) {
-      showToast('Please enter admin username and password', 'error');
+      Alert.alert('Error', 'Please enter admin username and password');
       return;
     }
 
@@ -42,11 +41,11 @@ export default function AdminSecurityLogin() {
         router.replace('/admin');
       } else {
         const errorMsg = response.data.detail || 'Invalid admin credentials.';
-        showToast(errorMsg, 'error');
+        Alert.alert('Access Denied', errorMsg);
       }
     } catch (error) {
       console.error(error);
-      showToast('Could not verify admin status. Check your connection.', 'error');
+      Alert.alert('Error', 'Could not verify admin status. Check your connection.');
     } finally {
       setLoading(false);
     }

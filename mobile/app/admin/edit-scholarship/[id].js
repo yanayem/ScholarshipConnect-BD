@@ -4,18 +4,19 @@
  * - Allows modification of all fields including min_cgpa and deadline.
  * - Connected to: apiService.getScholarshipDetail, apiService.updateScholarship, theme.js.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
   TextInput, TouchableOpacity, KeyboardAvoidingView,
-  Platform, Modal, ActivityIndicator
+  Platform, Alert, Modal, ActivityIndicator, Pressable, Image
 } from 'react-native';
 import { theme } from '../../../theme';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
+import * as ImagePicker from 'expo-image-picker';
 import { apiService } from '../../../services/api';
-import { showToast } from '../../../components/AdminToast';
+import { useToast } from '../../../components/Toast';
 
 const InputField = ({ label, value, onChangeText, name, placeholder, multiline = false, numberOfLines = 1, keyboardType = 'default' }) => (
   <View style={styles.inputContainer}>
@@ -37,9 +38,12 @@ const InputField = ({ label, value, onChangeText, name, placeholder, multiline =
 export default function EditScholarship() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { showToast, ToastComponent } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [existingImage, setExistingImage] = useState(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -78,8 +82,9 @@ export default function EditScholarship() {
             official_link: data.official_link || '',
             image_url: data.image_url || '',
           });
+          setExistingImage(data.image);
         } else {
-          showToast('Could not load scholarship details', 'error');
+          Alert.alert('Error', 'Could not load scholarship details');
         }
       } catch (error) {
         console.error(error);
@@ -94,31 +99,83 @@ export default function EditScholarship() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0]);
+    }
+  };
+
   const handleUpdate = async () => {
     if (!formData.title || !formData.deadline) {
-      showToast('Title and Deadline are required', 'error');
+      Alert.alert('Error', 'Title and Deadline are required');
+      return;
+    }
+
+    // Basic date validation
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(formData.deadline)) {
+      Alert.alert('Invalid Date', 'Deadline must be in YYYY-MM-DD format');
       return;
     }
 
     setSaving(true);
     try {
-      const payload = {
-        ...formData,
-        min_cgpa: formData.min_cgpa === '' ? 0.00 : parseFloat(formData.min_cgpa)
-      };
+      const data = new FormData();
 
-      const res = await apiService.updateScholarship(id, payload);
+      // Add all text fields to FormData
+      Object.keys(formData).forEach(key => {
+        if (key === 'min_cgpa') {
+          data.append(key, parseFloat(formData[key]) || 0.00);
+        } else {
+          data.append(key, formData[key]);
+        }
+      });
+
+      // Add image if selected
+      if (selectedImage) {
+        data.append('image', {
+          uri: Platform.OS === 'ios' ? selectedImage.uri.replace('file://', '') : selectedImage.uri,
+          name: 'scholarship_update.jpg',
+          type: 'image/jpeg',
+        });
+      }
+
+      const res = await apiService.updateScholarship(id, data);
       if (res.ok) {
         showToast('Scholarship updated successfully!', 'success');
-        if (router.canGoBack()) {
-          router.back();
-        } else {
-          router.replace('/(tabs)');
-        }
+
+        setTimeout(() => {
+          if (router.canGoBack()) {
+            router.back();
+          } else {
+            router.replace('/admin/scholarships');
+          }
+        }, 1200);
       } else {
-        showToast('Update failed', 'error');
+        console.error('[EDIT FAIL] Response:', res.status, res.data);
+        let errorMsg = 'Update failed. ';
+
+        if (res.data && typeof res.data === 'object') {
+          // Extract specific field errors from Django
+          const details = Object.entries(res.data)
+            .map(([key, val]) => `${key}: ${Array.isArray(val) ? val.join(', ') : val}`)
+            .join('\n');
+          errorMsg += details || 'Please check all fields.';
+        } else {
+          errorMsg += res.data?.error || res.data?.message || 'Server error occurred.';
+        }
+
+        Alert.alert('Update Error', errorMsg);
       }
     } catch (error) {
+      console.error('[EDIT ERROR]', error);
       showToast('Network error occurred', 'error');
     } finally {
       setSaving(false);
@@ -154,6 +211,13 @@ export default function EditScholarship() {
             onChangeText={handleInputChange}
             placeholder="e.g. MEXT Research Scholarship"
           />
+          <InputField
+            label="Provider"
+            name="provider"
+            value={formData.provider}
+            onChangeText={handleInputChange}
+            placeholder="e.g. Government of Japan"
+          />
 
           <View style={styles.row}>
             <View style={{ flex: 1 }}>
@@ -178,12 +242,12 @@ export default function EditScholarship() {
                     onChangeText={(text) => handleInputChange('deadline', text)}
                     underlineColorAndroid="transparent"
                   />
-                  <TouchableOpacity
+                  <Pressable
                     onPress={() => setShowCalendar(true)}
                     style={styles.calendarIconBtn}
                   >
-                    <MaterialIcons name="event" size={22} color={theme.colors.primary} />
-                  </TouchableOpacity>
+                    <MaterialIcons name="event" size={24} color={theme.colors.primary} />
+                  </Pressable>
                 </View>
               </View>
             </View>
@@ -224,25 +288,55 @@ export default function EditScholarship() {
           <View style={styles.row}>
             <View style={{ flex: 1 }}>
               <InputField
-                label="Minimum CGPA"
-                name="min_cgpa"
-                value={formData.min_cgpa}
+                label="Amount"
+                name="amount"
+                value={formData.amount}
                 onChangeText={handleInputChange}
-                placeholder="3.50"
-                keyboardType="numeric"
+                placeholder="e.g. Full Tuition"
               />
             </View>
             <View style={{ width: theme.spacing.md }} />
+            <View style={{ flex: 1 }}>
+              <InputField
+                label="Category"
+                name="category"
+                value={formData.category}
+                onChangeText={handleInputChange}
+                placeholder="e.g. Research"
+              />
+            </View>
+          </View>
+
+          <View style={styles.row}>
             <View style={{ flex: 1 }}>
               <InputField
                 label="Study Level"
                 name="level"
                 value={formData.level}
                 onChangeText={handleInputChange}
-                placeholder="Masters"
+                placeholder="e.g. Masters"
+              />
+            </View>
+            <View style={{ width: theme.spacing.md }} />
+            <View style={{ flex: 1 }}>
+              <InputField
+                label="Field of Study"
+                name="field"
+                value={formData.field}
+                onChangeText={handleInputChange}
+                placeholder="e.g. Computer Science"
               />
             </View>
           </View>
+
+          <InputField
+            label="Minimum CGPA"
+            name="min_cgpa"
+            value={formData.min_cgpa}
+            onChangeText={handleInputChange}
+            placeholder="e.g. 3.50 (Leave blank if none)"
+            keyboardType="numeric"
+          />
 
           <InputField
             label="Eligibility Criteria"
@@ -255,12 +349,41 @@ export default function EditScholarship() {
           />
 
           <InputField
-            label="Official Link"
+            label="Official Website Link"
             name="official_link"
             value={formData.official_link}
             onChangeText={handleInputChange}
             placeholder="https://..."
           />
+
+          <InputField
+            label="Image URL"
+            name="image_url"
+            value={formData.image_url}
+            onChangeText={handleInputChange}
+            placeholder="https://..."
+          />
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Scholarship Banner Image</Text>
+            <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
+              {selectedImage ? (
+                <Image source={{ uri: selectedImage.uri }} style={styles.previewImage} />
+              ) : existingImage ? (
+                <Image source={{ uri: existingImage }} style={styles.previewImage} />
+              ) : (
+                <View style={styles.imagePlaceholder}>
+                  <MaterialIcons name="add-a-photo" size={32} color={theme.colors.primary} />
+                  <Text style={styles.imagePickerText}>Change Scholarship Poster</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            {selectedImage && (
+              <TouchableOpacity onPress={() => setSelectedImage(null)} style={styles.removeImgBtn}>
+                <Text style={styles.removeImgText}>Reset to Original</Text>
+              </TouchableOpacity>
+            )}
+          </View>
 
           <InputField
             label="Description"
@@ -286,6 +409,7 @@ export default function EditScholarship() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      {ToastComponent}
     </KeyboardAvoidingView>
   );
 }
@@ -310,5 +434,39 @@ const styles = StyleSheet.create({
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'center', alignItems: 'center', padding: theme.spacing.lg },
   calendarModalContent: { backgroundColor: theme.colors.surface, borderRadius: theme.borderRadius.xl, padding: theme.spacing.lg, width: '100%', maxWidth: 400, ...theme.shadows.premium },
   calendarHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: theme.spacing.md },
-  calendarHeaderTitle: { fontSize: theme.typography.sizes.lg, fontFamily: theme.typography.fontFamily.bold, color: theme.colors.heading }
+  calendarHeaderTitle: { fontSize: theme.typography.sizes.lg, fontFamily: theme.typography.fontFamily.bold, color: theme.colors.heading },
+  imagePicker: {
+    height: 180,
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    marginTop: 5,
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+  },
+  imagePlaceholder: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  imagePickerText: {
+    color: theme.colors.primary,
+    fontSize: 14,
+    fontFamily: theme.typography.fontFamily.medium,
+  },
+  removeImgBtn: {
+    marginTop: 8,
+    alignSelf: 'flex-end',
+  },
+  removeImgText: {
+    color: theme.colors.error,
+    fontSize: 12,
+    fontWeight: 'bold',
+  }
 });

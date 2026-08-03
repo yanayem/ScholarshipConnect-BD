@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Switch, ScrollView, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Switch, ScrollView, TouchableOpacity, Alert, Modal, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { theme } from '../../theme';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 import { apiService } from '../../services/api';
-import { showToast } from '../../components/AdminToast';
 
 const SettingItem = ({ icon, title, description, value, onValueChange, type = 'switch' }) => (
   <View style={styles.settingItem}>
@@ -26,149 +27,59 @@ const SettingItem = ({ icon, title, description, value, onValueChange, type = 's
 );
 
 export default function AdminSettings() {
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const router = useRouter();
+  const [showPassModal, setShowPassModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showCurrent, setShowCurrent] = useState(false);
-  const [showNew, setShowNew] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [passForm, setPassForm] = useState({ old: '', new: '', confirm: '' });
 
-  const handleChangePassword = async () => {
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      showToast('Please fill in all password fields.', 'error');
-      return;
+  const handleLogout = () => {
+    Alert.alert(
+      "Admin Logout",
+      "Are you sure you want to sign out from the admin console?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            await AsyncStorage.removeItem('admin_verified');
+            router.replace('/(tabs)/profile');
+          }
+        }
+      ]
+    );
+  };
+
+  const handlePasswordChange = async () => {
+    if (!passForm.old || !passForm.new || !passForm.confirm) {
+        return Alert.alert('Error', 'All fields are required');
     }
-    if (newPassword.length < 6) {
-      showToast('New password must be at least 6 characters.', 'error');
-      return;
+    if (passForm.new !== passForm.confirm) {
+        return Alert.alert('Error', 'New passwords do not match');
     }
-    if (newPassword !== confirmPassword) {
-      showToast('New passwords do not match.', 'error');
-      return;
-    }
-    if (currentPassword === newPassword) {
-      showToast('New password must be different from current password.', 'error');
-      return;
+    if (passForm.new.length < 6) {
+        return Alert.alert('Error', 'New password must be at least 6 characters');
     }
 
     setLoading(true);
     try {
-      const response = await apiService.changePassword(currentPassword, newPassword);
-      if (response.ok) {
-        showToast('Password changed successfully! Use it next login.', 'success');
-        setCurrentPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
-      } else {
-        const errorMsg = response.data?.error || 'Failed to change password.';
-        showToast(errorMsg, 'error');
-      }
-    } catch (error) {
-      showToast('Network error. Please try again.', 'error');
+        const res = await apiService.changePassword(passForm.old, passForm.new);
+        if (res.ok) {
+            Alert.alert('Success', 'Password updated successfully');
+            setShowPassModal(false);
+            setPassForm({ old: '', new: '', confirm: '' });
+        } else {
+            Alert.alert('Error', res.data?.old_password?.[0] || 'Failed to update password');
+        }
+    } catch (e) {
+        Alert.alert('Error', 'Network request failed');
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   };
 
   return (
     <ScrollView style={styles.container}>
-      {/* Change Password Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Change Admin Password</Text>
-        <View style={styles.card}>
-          <View style={styles.passwordHeader}>
-            <View style={styles.iconBox}>
-              <MaterialIcons name="vpn-key" size={22} color={theme.colors.primary} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.settingTitle}>Update Security Password</Text>
-              <Text style={styles.settingDesc}>Change your Admin Portal login password</Text>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.passwordForm}>
-            <Text style={styles.inputLabel}>Current Password</Text>
-            <View style={styles.inputContainer}>
-              <MaterialIcons name="lock-outline" size={18} color={theme.colors.placeholder} />
-              <TextInput
-                style={styles.input}
-                placeholder="Enter current password"
-                value={currentPassword}
-                onChangeText={setCurrentPassword}
-                secureTextEntry={!showCurrent}
-                placeholderTextColor={theme.colors.placeholder}
-              />
-              <TouchableOpacity onPress={() => setShowCurrent(!showCurrent)}>
-                <MaterialIcons
-                  name={showCurrent ? "visibility" : "visibility-off"}
-                  size={18}
-                  color={theme.colors.placeholder}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.inputLabel}>New Password</Text>
-            <View style={styles.inputContainer}>
-              <MaterialIcons name="lock" size={18} color={theme.colors.placeholder} />
-              <TextInput
-                style={styles.input}
-                placeholder="Min 6 characters"
-                value={newPassword}
-                onChangeText={setNewPassword}
-                secureTextEntry={!showNew}
-                placeholderTextColor={theme.colors.placeholder}
-              />
-              <TouchableOpacity onPress={() => setShowNew(!showNew)}>
-                <MaterialIcons
-                  name={showNew ? "visibility" : "visibility-off"}
-                  size={18}
-                  color={theme.colors.placeholder}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.inputLabel}>Confirm New Password</Text>
-            <View style={styles.inputContainer}>
-              <MaterialIcons name="lock" size={18} color={theme.colors.placeholder} />
-              <TextInput
-                style={styles.input}
-                placeholder="Re-enter new password"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry={!showConfirm}
-                placeholderTextColor={theme.colors.placeholder}
-              />
-              <TouchableOpacity onPress={() => setShowConfirm(!showConfirm)}>
-                <MaterialIcons
-                  name={showConfirm ? "visibility" : "visibility-off"}
-                  size={18}
-                  color={theme.colors.placeholder}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              style={[styles.changeButton, loading && { opacity: 0.7 }]}
-              onPress={handleChangePassword}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <>
-                  <MaterialIcons name="check-circle" size={20} color="white" />
-                  <Text style={styles.changeButtonText}>Update Password</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-
-      {/* General Settings Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>General Settings</Text>
         <View style={styles.card}>
@@ -189,27 +100,101 @@ export default function AdminSettings() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Scholarship Management</Text>
+        <Text style={styles.sectionTitle}>Security & Access</Text>
         <View style={styles.card}>
-          <SettingItem
-            icon="auto-awesome"
-            title="Auto-Approve Verified Sources"
-            description="Automatically publish scholarships from trusted partners"
-            value={true}
-          />
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => setShowPassModal(true)}
+          >
+            <View style={[styles.iconBox, { backgroundColor: theme.colors.primaryLight }]}>
+              <MaterialIcons name="lock-reset" size={22} color={theme.colors.primary} />
+            </View>
+            <View style={styles.settingText}>
+              <Text style={styles.settingTitle}>Change Admin Password</Text>
+              <Text style={styles.settingDesc}>Update your security credentials</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={24} color={theme.colors.placeholder} />
+          </TouchableOpacity>
+
           <View style={styles.divider} />
-          <SettingItem
-            icon="email"
-            title="Deadline Notifications"
-            description="Notify users 48 hours before scholarship expiry"
-            value={true}
-          />
+
+          <TouchableOpacity
+            style={styles.logoutCard}
+            onPress={handleLogout}
+            activeOpacity={0.7}
+          >
+            <View style={styles.settingItem}>
+              <View style={[styles.iconBox, { backgroundColor: theme.colors.errorLight }]}>
+                <MaterialIcons name="logout" size={22} color={theme.colors.error} />
+              </View>
+              <View style={styles.settingText}>
+                <Text style={[styles.settingTitle, { color: theme.colors.error }]}>Sign Out</Text>
+                <Text style={styles.settingDesc}>Exit admin console and return to student app</Text>
+              </View>
+              <MaterialIcons name="chevron-right" size={24} color={theme.colors.error} />
+            </View>
+          </TouchableOpacity>
         </View>
       </View>
 
       <View style={styles.footer}>
         <Text style={styles.versionText}>ScholarshipConnect Admin v1.0.4</Text>
       </View>
+
+      {/* Password Change Modal */}
+      <Modal visible={showPassModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Update Security</Text>
+                <TouchableOpacity onPress={() => setShowPassModal(false)}>
+                    <MaterialIcons name="close" size={24} color={theme.colors.placeholder} />
+                </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalBody}>
+                <Text style={styles.inputLabel}>Current Password</Text>
+                <TextInput
+                    style={styles.modalInput}
+                    secureTextEntry
+                    value={passForm.old}
+                    onChangeText={v => setPassForm({...passForm, old: v})}
+                    placeholder="Enter current password"
+                />
+
+                <Text style={styles.inputLabel}>New Password</Text>
+                <TextInput
+                    style={styles.modalInput}
+                    secureTextEntry
+                    value={passForm.new}
+                    onChangeText={v => setPassForm({...passForm, new: v})}
+                    placeholder="Min 6 characters"
+                />
+
+                <Text style={styles.inputLabel}>Confirm New Password</Text>
+                <TextInput
+                    style={styles.modalInput}
+                    secureTextEntry
+                    value={passForm.confirm}
+                    onChangeText={v => setPassForm({...passForm, confirm: v})}
+                    placeholder="Repeat new password"
+                />
+
+                <TouchableOpacity
+                    style={[styles.savePassBtn, loading && {opacity: 0.7}]}
+                    onPress={handlePasswordChange}
+                    disabled={loading}
+                >
+                    {loading ? (
+                        <ActivityIndicator color="#fff" />
+                    ) : (
+                        <Text style={styles.savePassBtnText}>Update Credentials</Text>
+                    )}
+                </TouchableOpacity>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -270,57 +255,6 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.divider,
     marginHorizontal: theme.spacing.lg,
   },
-  passwordHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: theme.spacing.lg,
-  },
-  passwordForm: {
-    padding: theme.spacing.lg,
-    paddingTop: theme.spacing.md,
-  },
-  inputLabel: {
-    fontSize: 12,
-    fontFamily: theme.typography.fontFamily.bold,
-    color: theme.colors.textSecondary,
-    marginBottom: 6,
-    marginLeft: 4,
-    marginTop: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.background,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    height: 48,
-    borderWidth: 1,
-    borderColor: theme.colors.divider,
-  },
-  input: {
-    flex: 1,
-    marginLeft: 10,
-    fontFamily: theme.typography.fontFamily.medium,
-    fontSize: theme.typography.sizes.sm,
-    color: theme.colors.textPrimary,
-  },
-  changeButton: {
-    backgroundColor: theme.colors.primary,
-    height: 48,
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 20,
-  },
-  changeButtonText: {
-    color: '#fff',
-    fontSize: theme.typography.sizes.sm,
-    fontFamily: theme.typography.fontFamily.bold,
-  },
   footer: {
     padding: theme.spacing.xxl,
     alignItems: 'center',
@@ -329,5 +263,61 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.fontFamily.regular,
     fontSize: theme.typography.sizes.xs,
     color: theme.colors.placeholder,
+  },
+  logoutCard: {
+    backgroundColor: 'transparent',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end'
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: theme.colors.heading
+  },
+  modalBody: { gap: 16 },
+  inputLabel: {
+    fontSize: 13,
+    fontFamily: theme.typography.fontFamily.semiBold,
+    color: theme.colors.textSecondary,
+    marginBottom: -8
+  },
+  modalInput: {
+    backgroundColor: theme.colors.background,
+    height: 52,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    fontSize: 15,
+    color: theme.colors.heading,
+    borderWidth: 1,
+    borderColor: theme.colors.divider
+  },
+  savePassBtn: {
+    backgroundColor: theme.colors.heading,
+    height: 56,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 8
+  },
+  savePassBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: theme.typography.fontFamily.bold
   }
 });

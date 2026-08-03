@@ -1,64 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, useWindowDimensions, Text, Pressable, ActivityIndicator } from 'react-native';
-import { Stack, useRouter, usePathname } from 'expo-router';
+import { View, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { Tabs, useRouter, usePathname } from 'expo-router';
 import { theme } from '../../theme';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import AdminToast from '../../components/AdminToast';
-
-function AdminSidebar() {
-  const router = useRouter();
-  const pathname = usePathname();
-
-  const NAV_ITEMS = [
-    { label: 'Admin Home', path: '/admin', icon: 'admin-panel-settings' },
-    { label: 'Manage Scholarships', path: '/admin/scholarships', icon: 'edit-note' },
-    { label: 'User Reports', path: '/admin/users', icon: 'people-alt' },
-    { label: 'Settings', path: '/admin/settings', icon: 'settings' },
-    { label: 'Back to App', path: '/(tabs)', icon: 'arrow-back' },
-  ];
-
-  return (
-    <View style={styles.sidebar}>
-      <View style={styles.logoContainer}>
-        <Text style={styles.logoText}>Admin Portal</Text>
-      </View>
-
-      <View style={styles.navContainer}>
-        {NAV_ITEMS.map((item) => {
-          const isActive = pathname === item.path;
-          return (
-            <Pressable
-              key={item.path}
-              style={[
-                styles.navItem,
-                isActive && styles.navItemActive
-              ]}
-              onPress={() => router.push(item.path)}
-            >
-              <MaterialIcons
-                name={item.icon}
-                size={22}
-                color={isActive ? theme.colors.primary : theme.colors.textSecondary}
-              />
-              <Text style={[
-                styles.navLabel,
-                isActive && styles.navLabelActive
-              ]}>
-                {item.label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-    </View>
-  );
-}
 
 export default function AdminLayout() {
-  const { width } = useWindowDimensions();
-  const isDesktop = width >= 768;
   const router = useRouter();
   const pathname = usePathname();
   const [isVerified, setIsVerified] = useState(false);
@@ -66,7 +13,6 @@ export default function AdminLayout() {
 
   useEffect(() => {
     let isMounted = true;
-
     const checkSecurity = async () => {
       try {
         const verified = await AsyncStorage.getItem('admin_verified');
@@ -75,7 +21,6 @@ export default function AdminLayout() {
         if (verified === 'true') {
           setIsVerified(true);
         } else if (pathname !== '/admin/login') {
-          // Only redirect if we are not already on the login page
           router.replace('/admin/login');
         }
       } catch (e) {
@@ -86,109 +31,102 @@ export default function AdminLayout() {
     };
 
     checkSecurity();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [pathname]); // Still watch pathname to catch manual navigation
+    return () => { isMounted = false; };
+  }, [pathname, isVerified]);
 
   if (checking) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.background }}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
 
-  // Allow rendering the Stack if we are on the login page OR if we are verified.
-  // This prevents the "null" return which can sometimes confuse the router's state.
-  const isAtLogin = pathname === '/admin/login';
-  if (!isVerified && !isAtLogin) {
-    return (
-      <View style={{ flex: 1, backgroundColor: theme.colors.background }} />
-    );
-  }
-
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <AdminToast />
-      <View style={styles.wrapper}>
-        {isDesktop && pathname !== '/admin/login' && <AdminSidebar />}
-        <View style={styles.mainContent}>
-          <Stack screenOptions={{
-            headerShown: !isDesktop && pathname !== '/admin/login',
-            headerStyle: { backgroundColor: theme.colors.surface },
-            headerTitleStyle: {
-              fontFamily: theme.typography.fontFamily.bold,
-              color: theme.colors.primary
-            },
-            headerTintColor: theme.colors.primary,
-            contentStyle: { backgroundColor: theme.colors.background }
-          }}>
-            <Stack.Screen name="index" options={{ title: 'Admin Dashboard' }} />
-            <Stack.Screen name="login" options={{ title: 'Security Login', headerShown: false }} />
-            <Stack.Screen name="scholarships" options={{ title: 'Manage Scholarships' }} />
-            <Stack.Screen name="edit-scholarship" options={{ title: 'Edit Scholarship' }} />
-            <Stack.Screen name="users" options={{ title: 'User Management' }} />
-            <Stack.Screen name="settings" options={{ title: 'Admin Settings' }} />
-          </Stack>
-        </View>
-      </View>
-    </SafeAreaView>
+    <Tabs screenOptions={{
+      tabBarActiveTintColor: theme.colors.primary,
+      tabBarInactiveTintColor: theme.colors.textSecondary,
+      tabBarStyle: {
+        backgroundColor: theme.colors.surface,
+        borderTopWidth: 1,
+        borderTopColor: theme.colors.divider,
+        height: Platform.OS === 'ios' ? 88 : 68,
+        paddingBottom: Platform.OS === 'ios' ? 30 : 12,
+        paddingTop: 8,
+        display: (pathname === '/admin/login' || !isVerified) ? 'none' : 'flex',
+      },
+      tabBarLabelStyle: {
+        fontFamily: theme.typography.fontFamily.bold,
+        fontSize: 11,
+      },
+      headerShown: false,
+    }}>
+      {/* Visible Bottom Nav Tabs */}
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Dashboard',
+          tabBarIcon: ({ color, focused }) => (
+            <MaterialCommunityIcons name={focused ? "view-dashboard" : "view-dashboard-outline"} size={24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="scholarships"
+        options={{
+          title: 'Scholarships',
+          tabBarIcon: ({ color, focused }) => (
+            <MaterialCommunityIcons name={focused ? "school" : "school-outline"} size={26} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="applications"
+        options={{
+          title: 'Applications',
+          tabBarIcon: ({ color, focused }) => (
+            <MaterialCommunityIcons name={focused ? "clipboard-list" : "clipboard-list-outline"} size={24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="inbox"
+        options={{
+          title: 'Inbox',
+          tabBarIcon: ({ color, focused }) => (
+            <MaterialCommunityIcons name={focused ? "email-multiple" : "email-outline"} size={24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color, focused }) => (
+            <MaterialIcons name={focused ? "account-circle" : "person-outline"} size={26} color={color} />
+          ),
+        }}
+      />
+
+      {/* Internal Screens — hidden from nav bar */}
+      <Tabs.Screen name="login" options={{ href: null }} />
+      <Tabs.Screen name="broadcast" options={{ href: null }} />
+      <Tabs.Screen name="users" options={{ href: null }} />
+      <Tabs.Screen name="moderation" options={{ href: null }} />
+      <Tabs.Screen name="mentors" options={{ href: null }} />
+      <Tabs.Screen name="analytics" options={{ href: null }} />
+      <Tabs.Screen name="logs" options={{ href: null }} />
+      <Tabs.Screen name="settings" options={{ href: null }} />
+      <Tabs.Screen name="edit-scholarship/[id]" options={{ href: null }} />
+    </Tabs>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  loadingContainer: {
     flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  wrapper: {
-    flex: 1,
-    flexDirection: 'row',
-  },
-  sidebar: {
-    width: 280,
-    backgroundColor: theme.colors.surface,
-    borderRightWidth: 1,
-    borderRightColor: theme.colors.border,
-    height: '100%',
-  },
-  logoContainer: {
-    padding: theme.spacing.lg,
-    paddingVertical: theme.spacing.xl,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.divider,
-  },
-  logoText: {
-    fontFamily: theme.typography.fontFamily.bold,
-    fontSize: theme.typography.sizes.xl,
-    color: theme.colors.primary,
-  },
-  navContainer: {
-    padding: theme.spacing.md,
-    gap: theme.spacing.xs,
-  },
-  navItem: {
-    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    padding: theme.spacing.md,
-    borderRadius: theme.borderRadius.md,
-    gap: theme.spacing.md,
-  },
-  navItemActive: {
-    backgroundColor: theme.colors.primaryLight,
-  },
-  navLabel: {
-    fontFamily: theme.typography.fontFamily.medium,
-    fontSize: theme.typography.sizes.base,
-    color: theme.colors.textSecondary,
-  },
-  navLabelActive: {
-    color: theme.colors.primary,
-    fontFamily: theme.typography.fontFamily.semiBold,
-  },
-  mainContent: {
-    flex: 1,
+    backgroundColor: theme.colors.background
   },
 });

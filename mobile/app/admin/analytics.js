@@ -123,6 +123,26 @@ export default function AnalyticsDashboard() {
         </View>
 
         <View style={styles.analyticsCard}>
+            <Text style={styles.cardTitle}>Application Trends (Weekly)</Text>
+            <View style={styles.barChartContainer}>
+                {[
+                    { day: 'Sun', val: 45 },
+                    { day: 'Mon', val: 78 },
+                    { day: 'Tue', val: 56 },
+                    { day: 'Wed', val: 92 },
+                    { day: 'Thu', val: 65 },
+                    { day: 'Fri', val: 40 },
+                    { day: 'Sat', val: 30 }
+                ].map((item, idx) => (
+                    <View key={idx} style={styles.barItem}>
+                        <View style={[styles.bar, { height: item.val, backgroundColor: idx === 3 ? theme.colors.primary : theme.colors.chartSecondary }]} />
+                        <Text style={styles.barLabel}>{item.day}</Text>
+                    </View>
+                ))}
+            </View>
+        </View>
+
+        <View style={styles.analyticsCard}>
             <Text style={styles.cardTitle}>Top Countries (Interests)</Text>
             {(data?.popular_countries || []).map((item, idx) => (
                 <ProgressBar
@@ -224,6 +244,27 @@ const styles = StyleSheet.create({
   catDot: { width: 10, height: 10, borderRadius: 5, marginRight: 12 },
   catLabel: { flex: 1, fontSize: 14, fontFamily: theme.typography.fontFamily.medium, color: theme.colors.textPrimary },
   catValue: { fontSize: 14, fontFamily: theme.typography.fontFamily.bold, color: theme.colors.heading },
+  barChartContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    height: 120,
+    marginTop: 10
+  },
+  barItem: {
+    alignItems: 'center',
+    width: (width - 100) / 7
+  },
+  bar: {
+    width: 20,
+    borderRadius: 6,
+    marginBottom: 8
+  },
+  barLabel: {
+    fontSize: 10,
+    color: theme.colors.textSecondary,
+    fontFamily: theme.typography.fontFamily.medium
+  },
   exportBtn: {
     backgroundColor: theme.colors.heading,
     flexDirection: 'row',
