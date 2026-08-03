@@ -172,95 +172,9 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
             "matches": serializer.data,
             "count": queryset.count()
         })
-
-    @action(detail=False, methods=['get'], url_path='matchmaker', permission_classes=[permissions.IsAuthenticated])
-    def matchmaker(self, request):
-        """
-        AI-Powered Matchmaker: Suggests scholarships based on student profile.
-        """
-        user = request.user
-        profile, _ = Profile.objects.get_or_create(user=user)
-        
-        scholarships = Scholarship.objects.filter(status='active', deadline__gte=timezone.now().date())
-        results = []
-        
-        # Build Profile Text for NLP
-        profile_text = f"{profile.target_countries} {profile.major_course} {profile.research_interests} {profile.bio} {profile.skills} {profile.academic_level}".lower()
-        
-        scholarship_texts = []
-        valid_scholarships = []
-        
-        # Pre-filter for CGPA
-        for s in scholarships:
-            base_score = 0
-            if s.min_cgpa:
-                if profile.cgpa and profile.cgpa >= s.min_cgpa:
-                    base_score += 40
-                else:
-                    continue # Skip if CGPA doesn't meet minimum
-            else:
-                base_score += 20
-                
-            # Add some base points for exact matches too to retain structured data weight
-            if profile.target_countries and s.country:
-                targets = [c.strip().lower() for c in str(profile.target_countries).split(',') if c.strip()]
-                if s.country.lower() in targets:
-                    base_score += 20
-            
-            if (profile.major_course or profile.research_interests) and s.field:
-                preferred = [f.strip().lower() for f in f"{profile.major_course}, {profile.research_interests}".split(',') if f.strip()]
-                if s.field.lower() in preferred:
-                    base_score += 20
-            
-            if profile.academic_level and s.level:
-                if profile.academic_level.lower() in s.level.lower():
-                    base_score += 10
-                    
-            valid_scholarships.append((s, base_score))
-            
-            # Build Scholarship Text for NLP
-            s_text = f"{s.title} {s.country} {s.field} {s.level} {s.description} {s.eligibility}".lower()
-            scholarship_texts.append(s_text)
-            
-        # NLP TF-IDF Cosine Similarity
-        if SKLEARN_AVAILABLE and valid_scholarships and profile_text.strip():
-            vectorizer = TfidfVectorizer(stop_words='english')
-            # Fit on profile + scholarships
-            tfidf_matrix = vectorizer.fit_transform([profile_text] + scholarship_texts)
-            
-            # Similarity between profile (index 0) and scholarships (index 1 to end)
-            cosine_similarities = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:]).flatten()
-            
-            for idx, (s, base_score) in enumerate(valid_scholarships):
-                # Scale similarity (0 to 1) to a score out of 50
-                nlp_score = int(cosine_similarities[idx] * 50)
-                final_score = base_score + nlp_score
-                
-                results.append({
-                    "scholarship": ScholarshipSerializer(s).data,
-                    "match_score": final_score
-                })
-        else:
-            # Fallback if sklearn is not available or profile is totally empty
-            for s, base_score in valid_scholarships:
-                results.append({
-                    "scholarship": ScholarshipSerializer(s).data,
-                    "match_score": base_score
-                })
-        
-        # Sort by match score
-        results = sorted(results, key=lambda x: x['match_score'], reverse=True)
-        
-        return Response({
-            "profile_summary": {
-                "cgpa": profile.cgpa,
-                "countries": profile.target_countries,
-                "major": profile.major_course,
-                "interests": profile.research_interests
-            },
-            "recommendations": results[:10] # Top 10 matches
-        })
-
+  """
+  azman
+  """
     @action(detail=False, methods=['get'], url_path='autocomplete', permission_classes=[permissions.AllowAny])
     def autocomplete(self, request):
         """

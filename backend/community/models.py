@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from djongo import models as djongo_models
 
 class Discussion(models.Model):
     CATEGORY_CHOICES = [
@@ -29,7 +30,7 @@ class Discussion(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def _str_(self):
+    def __str__(self):
         return self.title
 
     class Meta:
@@ -39,7 +40,7 @@ class PollOption(models.Model):
     discussion = models.ForeignKey(Discussion, on_delete=models.CASCADE, related_name='poll_options')
     text = models.CharField(max_length=255)
     
-    def _str_(self):
+    def __str__(self):
         return f"{self.text} ({self.discussion.title})"
 
     @property
@@ -60,15 +61,16 @@ class DiscussionComment(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def _str_(self):
+    def __str__(self):
         return f"Comment by {self.user.username} on {self.discussion.title}"
+
 class Story(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='stories')
     media = models.FileField(upload_to='stories/')
     caption = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def _str_(self):
+    def __str__(self):
         return f"Story by {self.user.username} at {self.created_at}"
 
 class StoryReaction(models.Model):
@@ -105,7 +107,7 @@ class MentorshipSession(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def _str_(self):
+    def __str__(self):
         return f"{self.topic} ({self.mentor.username} & {self.mentee.username})"
 
 class MentorConnection(models.Model):
@@ -122,13 +124,16 @@ class MentorConnection(models.Model):
     class Meta:
         unique_together = ('sender', 'receiver')
 
-    def _str_(self):
+    def __str__(self):
         return f"{self.sender.username} -> {self.receiver.username} ({self.status})"
 
 class ChatMessage(models.Model):
+    _id = djongo_models.ObjectIdField()
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
-    message = models.TextField()
+    message = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='chat_images/', blank=True, null=True)
+    reaction = models.CharField(max_length=10, blank=True, null=True)
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -138,7 +143,7 @@ class ChatMessage(models.Model):
     class Meta:
         ordering = ['created_at']
 
-    def _str_(self):
+    def __str__(self):
         return f"{self.sender.username} -> {self.receiver.username}: {self.message[:20]}..."
 
 class Report(models.Model):
@@ -156,7 +161,7 @@ class Report(models.Model):
     status = models.CharField(max_length=20, default='pending') # pending, resolved, dismissed
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def _str_(self):
+    def __str__(self):
         return f"Report on {self.reported_user.username} by {self.reporter.username}"
 
 class MentorReview(models.Model):
@@ -169,5 +174,5 @@ class MentorReview(models.Model):
     class Meta:
         unique_together = ('mentor', 'user')
 
-    def _str_(self):
+    def __str__(self):
         return f"Review for {self.mentor.username} by {self.user.username} ({self.rating} stars)"
