@@ -49,13 +49,7 @@ export default function LoginScreen() {
 
       const isExpoGo = Constants.executionEnvironment === 'storeClient';
       if (isExpoGo) {
-         Alert.alert(
-           "Expo Go Detected",
-           "Native Firebase Authentication does not work in Expo Go. Use 'npm run android' or the Web version.",
-           [{ text: "OK" }]
-         );
-         setLoading(false);
-         return;
+         console.log('[LOGIN] Expo Go detected, using Firebase Web SDK fallback.');
       }
 
       console.log('[LOGIN] Attempting sign-in for:', cleanEmail);

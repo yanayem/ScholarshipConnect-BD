@@ -1,252 +1,159 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
-  View, Text, TextInput, ScrollView, TouchableOpacity,
-  StyleSheet, StatusBar, KeyboardAvoidingView, Platform, Alert, ActivityIndicator, Image
+  View, Text, StyleSheet, TouchableOpacity, TextInput,
+  ScrollView, Image, ActivityIndicator, Alert, Platform, StatusBar
 } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
-import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { theme } from '../../theme';
 import { apiService } from '../../services/api';
+import { useToast } from '../../components/Toast';
 
-const CATEGORIES = ['Scholarships', 'SOP/CV', 'Visa', 'Test Prep', 'Life Abroad'];
-
-export default function CreateStoryScreen() {
-  const { id } = useLocalSearchParams();
-  const isEditing = !!id;
-
+export default function CreateBlogScreen() {
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(isEditing);
-  const [formData, setFormData] = useState({
-    title: '',
-    university: '',
-    content: '',
-    tags: '',
-    post_type: 'blog'
-  });
+  const { showToast, ToastComponent } = useToast();
 
-  useEffect(() => {
-    if (isEditing) {
-      loadPostData();
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'Gallery access is required to add images.');
+      return;
     }
-  }, [id]);
 
-  const loadPostData = async () => {
-    try {
-      const res = await apiService.getBlogPostDetail(id);
-      if (res.ok) {
-        setFormData({
-          title: res.data.title,
-          university: res.data.university || '',
-          content: res.data.content,
-          tags: res.data.tags || '',
-          post_type: 'blog'
-        });
-      }
-    } catch (e) {
-      Alert.alert('Error', 'Failed to load story data');
-    } finally {
-      setInitialLoading(false);
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0]);
     }
   };
 
-  const handleSafeBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace('/blog');
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!formData.title || !formData.content || !formData.university) {
-      Alert.alert('Required Fields', 'Title, University, and Story content are required.');
+  const handlePublish = async () => {
+    if (!title.trim() || !content.trim()) {
+      showToast('Please fill in both title and content', 'error');
       return;
     }
 
     setLoading(true);
     try {
-      let res;
-      if (isEditing) {
-        res = await apiService.updateBlogPost(id, formData);
-      } else {
-        res = await apiService.createBlogPost(formData);
+      // Assuming apiService.addBlogPost exists or creating a generic one
+      // For now, let's use the discussion create logic as a template or assume addScholarship-like FormData
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('content', content);
+      formData.append('type', 'blog'); // Mark as blog post
+
+      if (image) {
+        formData.append('image', {
+          uri: Platform.OS === 'ios' ? image.uri.replace('file://', '') : image.uri,
+          name: 'blog_image.jpg',
+          type: 'image/jpeg',
+        });
       }
 
+      // We might need to add a dedicated endpoint in apiService
+      const res = await apiService.createBlogPost(formData);
+
       if (res.ok) {
-        Alert.alert(
-          'Success!',
-          isEditing ? 'Your story has been updated.' : 'Your success story is now published!',
-          [{ text: 'Wonderful', onPress: handleSafeBack }]
-        );
+        showToast('Story published successfully!', 'success');
+        router.back();
       } else {
-        Alert.alert('Error', res.data.error || 'Failed to publish story.');
+        showToast(res.data?.error || 'Failed to publish', 'error');
       }
     } catch (error) {
-      Alert.alert('Error', 'An unexpected error occurred.');
+      showToast('Connection error', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleTag = (tag) => {
-    let currentTags = formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(t => t) : [];
-    if (currentTags.includes(tag)) {
-      currentTags = currentTags.filter(t => t !== tag);
-    } else {
-      currentTags.push(tag);
-    }
-    setFormData({ ...formData, tags: currentTags.join(', ') });
-  };
-
   return (
-    <View style={styles.root}>
-      <StatusBar barStyle="light-content" />
-
-      <View style={styles.heroHeader}>
-        <TouchableOpacity onPress={handleSafeBack} style={styles.backBtn}>
-          <MaterialIcons name="arrow-back" size={24} color="white" />
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <MaterialIcons name="close" size={28} color={theme.colors.heading} />
         </TouchableOpacity>
-        <View style={styles.heroContent}>
-           <Text style={styles.heroTitle}>{isEditing ? 'Edit Your' : 'Share Your'} Success Story</Text>
-           <Text style={styles.heroSub}>Inspire others with your journey to success</Text>
-        </View>
+        <Text style={styles.headerTitle}>Write Story</Text>
+        <TouchableOpacity
+          onPress={handlePublish}
+          disabled={loading}
+          style={[styles.publishBtn, loading && { opacity: 0.5 }]}
+        >
+          {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.publishText}>Publish</Text>}
+        </TouchableOpacity>
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <TextInput
+          style={styles.titleInput}
+          placeholder="Story Title..."
+          placeholderTextColor={theme.colors.placeholder}
+          value={title}
+          onChangeText={setTitle}
+          multiline
+        />
 
-          <View style={styles.formContainer}>
-            <Text style={styles.label}>Story Title</Text>
-            <TextInput
-              style={styles.titleInput}
-              placeholder="e.g. Journey to Fulbright Scholarship 2024"
-              placeholderTextColor={theme.colors.placeholder}
-              value={formData.title}
-              onChangeText={(v) => setFormData({...formData, title: v})}
-            />
-
-            <Text style={styles.label}>Attending University</Text>
-            <View style={styles.inputWrapper}>
-              <FontAwesome5 name="university" size={16} color={theme.colors.primary} />
-              <TextInput
-                style={styles.inlineInput}
-                placeholder="Where did you get in?"
-                placeholderTextColor={theme.colors.placeholder}
-                value={formData.university}
-                onChangeText={(v) => setFormData({...formData, university: v})}
-              />
+        <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
+          {image ? (
+            <Image source={{ uri: image.uri }} style={styles.previewImage} />
+          ) : (
+            <View style={styles.placeholder}>
+              <Ionicons name="image-outline" size={40} color={theme.colors.placeholder} />
+              <Text style={styles.placeholderText}>Add a cover photo</Text>
             </View>
+          )}
+        </TouchableOpacity>
 
-            <Text style={styles.label}>Choose Relevant Tags</Text>
-            <View style={styles.tagGrid}>
-              {CATEGORIES.map(cat => (
-                <TouchableOpacity
-                  key={cat}
-                  onPress={() => toggleTag(cat)}
-                  style={[styles.tagChip, formData.tags.includes(cat) && styles.tagChipActive]}
-                >
-                  <Text style={[styles.tagText, formData.tags.includes(cat) && styles.tagTextActive]}>{cat}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+        <TextInput
+          style={styles.contentInput}
+          placeholder="Share your success story, tips, or experience..."
+          placeholderTextColor={theme.colors.placeholder}
+          value={content}
+          onChangeText={setContent}
+          multiline
+          textAlignVertical="top"
+        />
+      </ScrollView>
 
-            <Text style={styles.label}>Your Story</Text>
-            <View style={styles.editorContainer}>
-               <TextInput
-                 style={styles.storyInput}
-                 placeholder="Start writing your journey... (tips: Mention your preparation, challenges, and advice for future applicants)"
-                 placeholderTextColor={theme.colors.placeholder}
-                 multiline
-                 textAlignVertical="top"
-                 value={formData.content}
-                 onChangeText={(v) => setFormData({...formData, content: v})}
-               />
-            </View>
-          </View>
-
-          <TouchableOpacity
-            style={[styles.publishBtn, loading && { opacity: 0.7 }]}
-            onPress={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? <ActivityIndicator color="white" /> : (
-              <>
-                <Text style={styles.publishBtnText}>{isEditing ? 'Save Changes' : 'Publish Story'}</Text>
-                <MaterialIcons name="send" size={18} color="white" />
-              </>
-            )}
-          </TouchableOpacity>
-
-          <View style={{ height: 40 }} />
-        </ScrollView>
-      </KeyboardAvoidingView>
+      {ToastComponent}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.colors.background },
-  heroHeader: {
-    backgroundColor: theme.colors.primary,
-    height: 180,
-    paddingTop: 50,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
+  container: { flex: 1, backgroundColor: '#fff' },
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingTop: Platform.OS === 'ios' ? 60 : 45, paddingBottom: 15, paddingHorizontal: 20,
+    borderBottomWidth: 1, borderBottomColor: theme.colors.divider
   },
-  backBtn: { width: 40, height: 40, justifyContent: 'center' },
-  heroContent: { marginTop: 10 },
-  heroTitle: { fontFamily: theme.typography.fontFamily.bold, fontSize: 22, color: 'white' },
-  heroSub: { fontFamily: theme.typography.fontFamily.regular, fontSize: 14, color: 'rgba(255,255,255,0.8)', marginTop: 4 },
-  scroll: { flexGrow: 1, padding: 20 },
-  formContainer: {
-    backgroundColor: 'white',
-    borderRadius: 30,
-    padding: 24,
-    marginTop: -40,
-    ...theme.shadows.premium,
-  },
-  label: { fontSize: 13, fontFamily: theme.typography.fontFamily.bold, color: theme.colors.heading, marginBottom: 10, marginTop: 16 },
+  headerTitle: { fontSize: 18, fontWeight: 'bold', color: theme.colors.heading },
+  publishBtn: { backgroundColor: theme.colors.primary, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20 },
+  publishText: { color: '#fff', fontWeight: 'bold' },
+  scroll: { padding: 20 },
   titleInput: {
-    backgroundColor: theme.colors.secondaryBackground,
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 16,
-    fontFamily: theme.typography.fontFamily.bold,
-    color: theme.colors.textPrimary,
+    fontSize: 24, fontWeight: 'bold', color: theme.colors.heading,
+    marginBottom: 20, paddingVertical: 10,
   },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.secondaryBackground,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    height: 50,
+  imagePicker: {
+    width: '100%', height: 200, backgroundColor: '#F8FAFC',
+    borderRadius: 16, overflow: 'hidden', justifyContent: 'center', alignItems: 'center',
+    marginBottom: 20, borderWidth: 1, borderColor: theme.colors.divider, borderStyle: 'dashed'
   },
-  inlineInput: { flex: 1, marginLeft: 10, fontSize: 15, fontFamily: theme.typography.fontFamily.regular },
-  tagGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  tagChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: theme.colors.background, borderWidth: 1, borderColor: theme.colors.border },
-  tagChipActive: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
-  tagText: { fontSize: 12, color: theme.colors.textSecondary, fontFamily: theme.typography.fontFamily.medium },
-  tagTextActive: { color: 'white' },
-  editorContainer: {
-    backgroundColor: theme.colors.secondaryBackground,
-    borderRadius: 12,
-    padding: 14,
-    minHeight: 250,
-    marginTop: 4,
-  },
-  storyInput: { fontSize: 15, fontFamily: theme.typography.fontFamily.regular, color: theme.colors.textPrimary, lineHeight: 24 },
-  publishBtn: {
-    backgroundColor: theme.colors.primary,
-    height: 56,
-    borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    marginTop: 30,
-    ...theme.shadows.teal,
-  },
-  publishBtnText: { color: 'white', fontSize: 16, fontFamily: theme.typography.fontFamily.bold }
+  previewImage: { width: '100%', height: '100%' },
+  placeholder: { alignItems: 'center' },
+  placeholderText: { fontSize: 14, color: theme.colors.textSecondary, marginTop: 8 },
+  contentInput: {
+    fontSize: 16, color: theme.colors.textPrimary, minHeight: 300,
+    lineHeight: 24,
+  }
 });

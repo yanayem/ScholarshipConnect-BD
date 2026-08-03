@@ -1,165 +1,422 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, StatusBar, Image
+  StyleSheet, StatusBar, Image, ActivityIndicator, RefreshControl, Dimensions,
+  Platform, Alert
 } from 'react-native';
 import { router } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../theme';
+import { apiService } from '../../services/api';
+import { Loader } from '../../components/Loader';
 
-const BLOG_POSTS = [
-  {
-    id: '1',
-    title: 'How I got the DAAD Scholarship in 2024',
-    author: 'Arif Ahmed',
-    university: 'Technical University of Munich',
-    date: '2 days ago',
-    readTime: '5 min read',
-    excerpt: 'Getting the DAAD scholarship was a dream come true. Here is my step-by-step guide on writing a winning motivation letter...',
-    image: 'https://images.unsplash.com/photo-1523050853021-eb30896dc19e?w=400',
-    tags: ['Germany', 'DAAD', 'Masters'],
-    bg: theme.colors.tealCard
-  },
-  {
-    id: '2',
-    title: 'My Journey to MEXT: From Dhaka to Tokyo',
-    author: 'Nusrat Jahan',
-    university: 'University of Tokyo',
-    date: '1 week ago',
-    readTime: '8 min read',
-    excerpt: 'The MEXT interview was the most challenging part. In this blog, I share the common questions and how I prepared for them...',
-    image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400',
-    tags: ['Japan', 'MEXT', 'PhD'],
-    bg: theme.colors.lavenderCard
-  },
-  {
-    id: '3',
-    title: 'Tips for Chevening Scholarship Applications',
-    author: 'Rakibul Hasan',
-    university: 'Oxford University',
-    date: '2 weeks ago',
-    readTime: '6 min read',
-    excerpt: 'Chevening looks for leadership qualities. I focused on my volunteering work and impact. Here is how I structured my essays...',
-    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400',
-    tags: ['UK', 'Chevening', 'Leadership'],
-    bg: theme.colors.peachCard
-  }
+const { width } = Dimensions.get('window');
+
+const REACTION_TYPES = [
+  { type: 'love', icon: '❤️', label: 'Love' },
 ];
 
 export default function BlogListScreen() {
+  const [posts, setPosts] = useState([]);
+  const [stories, setStories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  const loadPosts = async () => {
+    try {
+      const profileRes = await apiService.getProfile();
+      if (profileRes.ok) setCurrentUser(profileRes.data);
+
+      const storyRes = await apiService.getStories();
+      if (storyRes.ok) {
+        // Post-process stories if avatar_url is missing but profile_picture exists
+        const processedStories = storyRes.data.map(s => ({
+          ...s,
+          author_avatar_url: s.author_avatar_url || s.author_profile_picture
+        }));
+        setStories(processedStories);
+      }
+
+      const res = await apiService.getBlogPosts('blog');
+      if (res.ok) {
+        setPosts(res.data);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPosts();
+  }, []);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadPosts();
+  };
+
+  const handleReact = async (postId, reactionType) => {
+    if (!currentUser) {
+      Alert.alert('Login Required', 'Please login to react.');
+      return;
+    }
+
+    // Optimistic Update
+    const originalPosts = [...posts];
+    setPosts(prev => prev.map(p => {
+      if (p.id === postId) {
+        const wasReacted = p.user_reaction === reactionType;
+        return {
+          ...p,
+          user_reaction: wasReacted ? null : reactionType,
+          reactions_count: wasReacted ? p.reactions_count - 1 : (p.user_reaction ? p.reactions_count : p.reactions_count + 1)
+        };
+      }
+      return p;
+    }));
+
+    const res = await apiService.reactToBlogPost(postId, reactionType);
+    if (!res.ok) {
+      setPosts(originalPosts);
+      Alert.alert('Error', 'Failed to update reaction');
+    }
+  };
+
+  const renderStories = () => {
+    if (stories.length === 0) return null;
+    return (
+      <View style={styles.storiesSection}>
+        <Text style={styles.subHeading}>Daily Highlights</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.storiesScroll}>
+          {stories.map(story => (
+            <TouchableOpacity
+              key={story.id}
+              style={styles.storyCircleWrapper}
+              onPress={() => router.push(`/community/story/${story.id}`)}
+            >
+              <View style={styles.storyCircle}>
+                <Image
+                    source={{ uri: story.media || theme.images.scholarship }}
+                    style={styles.storyCircleImage}
+                />
+                <View style={styles.storyOverlay} />
+              </View>
+              <Text style={styles.storyCircleName} numberOfLines={1}>
+                {story.author_full_name || story.author_name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  };
+
+  const renderPost = (post) => (
+    <View key={post.id} style={styles.liPostContainer}>
+      {/* Header: Author & Meta */}
+      <View style={styles.liHeader}>
+        <View style={styles.liAvatar}>
+           <Image
+              source={{ uri: post.author_avatar_url || theme.images.avatar + (post.author_full_name || post.author_name) }}
+              style={styles.liAvatarImage}
+           />
+        </View>
+        <View style={styles.liAuthorInfo}>
+          <Text style={styles.liAuthorName}>{post.author_full_name || post.author_name}</Text>
+          <Text style={styles.liAuthorSub}>{post.university} • {new Date(post.created_at).toLocaleDateString()}</Text>
+        </View>
+      </View>
+
+      {/* Body: Text Content */}
+      <View style={styles.liBody}>
+        <Text style={styles.liTitle}>{post.title}</Text>
+        <Text style={styles.liContentText} numberOfLines={3}>
+          {post.content}
+        </Text>
+        <TouchableOpacity onPress={() => router.push(`/blog/${post.id}`)} style={styles.liSeeMoreBtn}>
+           <Text style={styles.liSeeMoreText}>...see more</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Media: If any image exists */}
+      {post.image_url ? (
+        <TouchableOpacity style={styles.liMediaContainer} onPress={() => router.push(`/blog/${post.id}`)}>
+           <Image source={{ uri: post.image_url }} style={styles.liMediaImage} resizeMode="cover" />
+        </TouchableOpacity>
+      ) : null}
+
+      {/* Engagement Stats */}
+      <View style={styles.liEngagement}>
+        <View style={styles.liStatGroup}>
+           <View style={styles.liStatIcon}>
+              <Ionicons name="heart" size={12} color={theme.colors.error} />
+           </View>
+           <Text style={styles.liStatText}>{post.reactions_count || 0}</Text>
+        </View>
+        <Text style={styles.liStatText}>{post.comments_count || 0} comments</Text>
+      </View>
+
+      {/* Action Bar */}
+      <View style={styles.liActionBar}>
+        <TouchableOpacity
+          style={styles.liActionBtn}
+          onPress={() => handleReact(post.id, 'love')}
+        >
+          <Ionicons
+            name={post.user_reaction === 'love' ? "heart" : "heart-outline"}
+            size={22}
+            color={post.user_reaction === 'love' ? theme.colors.error : theme.colors.textSecondary}
+          />
+          <Text style={[styles.liActionText, post.user_reaction === 'love' && { color: '#000000', fontWeight: 'bold' }]}>
+            Love
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.liActionBtn} onPress={() => router.push(`/blog/${post.id}`)}>
+           <Ionicons name="chatbubble-outline" size={20} color={theme.colors.textSecondary} />
+           <Text style={styles.liActionText}>Comment</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.liActionBtn}>
+           <Ionicons name="share-social-outline" size={20} color={theme.colors.textSecondary} />
+           <Text style={styles.liActionText}>Share</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
+      <StatusBar barStyle="dark-content" />
 
-      {/* Header */}
+      {/* Modern Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')}
-          style={styles.backBtn}
+          style={styles.headerAction}
         >
-          <MaterialIcons name="arrow-back" size={24} color={theme.colors.heading} />
+          <Ionicons name="arrow-back" size={24} color={theme.colors.heading} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Success Stories</Text>
+        <TouchableOpacity style={styles.headerAction}>
+           <Ionicons name="search-outline" size={24} color={theme.colors.heading} />
+        </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <View style={styles.topInfo}>
-          <Text style={styles.pageTitle}>Learn from the Winners</Text>
-          <Text style={styles.pageSub}>Real experiences from students who secured prestigious scholarships.</Text>
-        </View>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} />
+        }
+      >
 
-        {BLOG_POSTS.map(post => (
-          <TouchableOpacity
-            key={post.id}
-            style={[styles.postCard, { backgroundColor: post.bg }]}
-            onPress={() => router.push(`/blog/${post.id}`)}
-          >
-            <View style={styles.postContent}>
-              <View style={styles.tagRow}>
-                {post.tags.map(tag => (
-                  <View key={tag} style={styles.tag}>
-                    <Text style={styles.tagText}>{tag}</Text>
-                  </View>
-                ))}
-              </View>
 
-              <Text style={styles.postTitle}>{post.title}</Text>
-              <Text style={styles.excerpt} numberOfLines={2}>{post.excerpt}</Text>
+        {renderStories()}
 
-              <View style={styles.authorRow}>
-                <View style={styles.authorIcon}>
-                  <Text style={styles.authorInitial}>{post.author[0]}</Text>
+        {loading ? (
+            <Loader message="Fetching stories..." />
+        ) : (
+          <View style={styles.content}>
+            <View style={styles.postList}>
+              {posts.map(post => renderPost(post))}
+              {posts.length === 0 && (
+                <View style={styles.emptyContainer}>
+                  <Ionicons name="book-outline" size={64} color={theme.colors.placeholder} />
+                  <Text style={styles.emptyText}>No stories published yet.</Text>
                 </View>
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={styles.authorName}>{post.author}</Text>
-                  <Text style={styles.authorUni}>{post.university}</Text>
-                </View>
-              </View>
-
-              <View style={styles.metaRow}>
-                <View style={styles.metaItem}>
-                  <MaterialIcons name="access-time" size={14} color={theme.colors.textSecondary} />
-                  <Text style={styles.metaText}>{post.date} • {post.readTime}</Text>
-                </View>
-                <Text style={styles.readMore}>Read Story →</Text>
-              </View>
+              )}
             </View>
-          </TouchableOpacity>
-        ))}
+          </View>
+        )}
 
-        <TouchableOpacity
-          style={styles.shareYourStoryBtn}
-          onPress={() => router.push('/blog/create')}
-        >
-          <MaterialIcons name="edit" size={20} color="#fff" />
-          <Text style={styles.shareYourStoryText}>Share Your Story</Text>
-        </TouchableOpacity>
-
-        <View style={{ height: 40 }} />
+        <View style={{ height: 120 }} />
       </ScrollView>
+
+      <TouchableOpacity
+        style={[styles.fab, theme.shadows.teal]}
+        onPress={() => router.push('/blog/create-story')}
+      >
+        <Ionicons name="add" size={32} color="white" />
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.colors.background },
+  root: { flex: 1, backgroundColor: '#E9E5DF' }, // Neutral greyish background like LI
   header: {
-    height: 100, backgroundColor: theme.colors.background,
-    flexDirection: 'row', alignItems: 'center',
-    paddingTop: 40, paddingHorizontal: 20, gap: 12,
-    borderBottomWidth: 1, borderBottomColor: theme.colors.divider,
+    height: Platform.OS === 'ios' ? 110 : 90,
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: Platform.OS === 'ios' ? 50 : 30,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.divider,
   },
-  headerTitle: { color: theme.colors.heading, fontSize: 18, fontWeight: 'bold' },
-  backBtn: { padding: 4 },
-  scroll: { padding: 20 },
-  topInfo: { marginBottom: 28 },
-  pageTitle: { fontSize: 24, fontWeight: 'bold', color: theme.colors.heading },
-  pageSub: { fontSize: 14, color: theme.colors.textSecondary, marginTop: 6, lineHeight: 22 },
-  postCard: {
-    borderRadius: 24, marginBottom: 20,
-    borderWidth: 1, borderColor: theme.colors.divider,
+  headerTitle: { color: theme.colors.heading, fontSize: 18, fontFamily: theme.typography.fontFamily.bold },
+  headerAction: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
+  scroll: { paddingBottom: 20 },
+
+  welcomeSection: {
+    padding: 24,
+    backgroundColor: 'white',
+    marginTop: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.divider
+  },
+  welcomeTitle: { fontSize: 26, fontFamily: theme.typography.fontFamily.bold, color: theme.colors.heading, letterSpacing: -0.5 },
+  welcomeSub: { fontSize: 14, color: theme.colors.textSecondary, marginTop: 8, lineHeight: 20, fontFamily: theme.typography.fontFamily.regular },
+
+  subHeading: { fontSize: 12, fontFamily: theme.typography.fontFamily.bold, color: theme.colors.primary, marginLeft: 16, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1.5 },
+  storiesSection: {
+    paddingVertical: 15,
+    backgroundColor: 'white',
+    marginBottom: 12,
+  },
+  storiesScroll: { paddingHorizontal: 16, gap: 12 },
+  storyCircleWrapper: { alignItems: 'center', width: 70 },
+  storyCircle: { width: 66, height: 66, borderRadius: 33, borderWidth: 2, borderColor: theme.colors.primary, padding: 3, backgroundColor: 'white' },
+  storyCircleImage: { width: '100%', height: '100%', borderRadius: 30 },
+  storyOverlay: { ...StyleSheet.absoluteFillObject, borderRadius: 33, backgroundColor: 'rgba(0,0,0,0.02)' },
+  storyCircleName: { fontSize: 10, color: theme.colors.textPrimary, marginTop: 6, fontFamily: theme.typography.fontFamily.medium, textAlign: 'center' },
+
+  content: { },
+  postList: { gap: 0 },
+
+  // LinkedIn Style Post Container
+  liPostContainer: {
+    backgroundColor: 'white',
+    paddingTop: 12,
+    marginBottom: 8,
+    position: 'relative',
+  },
+  liHeader: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  liAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
     overflow: 'hidden',
-    ...theme.shadows.premium,
   },
-  postContent: { padding: 20 },
-  tagRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-  tag: { backgroundColor: 'rgba(255,255,255,0.7)', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 8 },
-  tagText: { color: theme.colors.heading, fontSize: 11, fontWeight: 'bold' },
-  postTitle: { fontSize: 18, fontWeight: 'bold', color: theme.colors.heading, marginBottom: 10, lineHeight: 24 },
-  excerpt: { fontSize: 14, color: theme.colors.textSecondary, lineHeight: 22, marginBottom: 20 },
-  authorRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  authorIcon: { width: 40, height: 40, borderRadius: 14, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', ...theme.shadows.soft },
-  authorInitial: { color: theme.colors.primary, fontWeight: 'bold', fontSize: 16 },
-  authorName: { fontSize: 14, fontWeight: 'bold', color: theme.colors.heading },
-  authorUni: { fontSize: 12, color: theme.colors.textSecondary, marginTop: 2 },
-  metaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)' },
-  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  metaText: { fontSize: 12, color: theme.colors.textSecondary },
-  readMore: { fontSize: 13, color: theme.colors.primary, fontWeight: 'bold' },
-  shareYourStoryBtn: {
-    backgroundColor: theme.colors.primary, borderRadius: 16, height: 56,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 10, marginTop: 12, ...theme.shadows.soft,
+  liAvatarImage: {
+    width: '100%',
+    height: '100%',
   },
-  shareYourStoryText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
+  liAvatarText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: theme.colors.primary,
+  },
+  liAuthorInfo: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  liAuthorName: {
+    fontSize: 16,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: theme.colors.heading,
+  },
+  liAuthorSub: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
+  },
+  liBody: {
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  liTitle: {
+    fontSize: 17,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: theme.colors.heading,
+    marginBottom: 8,
+  },
+  liContentText: {
+    fontSize: 14,
+    color: theme.colors.textPrimary,
+    lineHeight: 20,
+  },
+  liSeeMoreBtn: {
+    marginTop: 4,
+  },
+  liSeeMoreText: {
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    fontWeight: '600',
+  },
+  liMediaContainer: {
+    width: '100%',
+    height: 300,
+    backgroundColor: theme.colors.background,
+  },
+  liMediaImage: {
+    width: '100%',
+    height: '100%',
+  },
+  liEngagement: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.divider,
+  },
+  liStatGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  liStatIcon: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: theme.colors.errorLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  liStatText: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+  },
+  liActionBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 4,
+  },
+  liActionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    gap: 8,
+  },
+  liActionText: {
+    fontSize: 13,
+    color: theme.colors.textSecondary,
+    fontWeight: '600',
+  },
+
+  fab: {
+    position: 'absolute', bottom: 30, right: 24,
+    width: 64, height: 64, borderRadius: 32,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  emptyContainer: { alignItems: 'center', paddingVertical: 60, gap: 16 },
+  emptyText: { color: theme.colors.placeholder, fontSize: 15, textAlign: 'center' }
 });
