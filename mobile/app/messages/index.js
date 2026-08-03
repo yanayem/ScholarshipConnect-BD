@@ -5,13 +5,14 @@ import { MaterialIcons, Ionicons, Feather } from '@expo/vector-icons';
 import { theme } from '../../theme';
 import { apiService } from '../../services/api';
 
-export default function InboxScreen() {
+export default function InboxScreen({ isSupportOnly = false }) {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadConversations = async () => {
-    const res = await apiService.getConversations();
+    const params = isSupportOnly ? 'type=support' : '';
+    const res = await apiService.getConversations(params);
     if (res.ok) {
       setConversations(res.data);
     }
@@ -34,13 +35,13 @@ export default function InboxScreen() {
     <TouchableOpacity
       style={styles.chatCard}
       onPress={() => router.push({
-        pathname: `/messages/${item.user_id}`,
-        params: { name: item.full_name, avatar: item.avatar_url }
+        pathname: `/messages/${item.user_id || item.id || item._id}`,
+        params: { name: item.full_name || item.username, avatar: item.avatar_url }
       })}
     >
       <View style={styles.avatarWrapper}>
         <Image
-          source={{ uri: item.avatar_url || theme.images.avatar + item.full_name }}
+          source={{ uri: item.avatar_url || theme.images.avatar + (item.full_name || item.username) }}
           style={styles.avatar}
         />
         {item.unread_count > 0 && <View style={styles.unreadBadge} />}
@@ -48,9 +49,9 @@ export default function InboxScreen() {
 
       <View style={styles.chatInfo}>
         <View style={styles.chatHeader}>
-          <Text style={styles.userName} numberOfLines={1}>{item.full_name}</Text>
+          <Text style={styles.userName} numberOfLines={1}>{item.full_name || item.username}</Text>
           <Text style={styles.timeText}>
-            {new Date(item.last_message_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {item.last_message_time ? new Date(item.last_message_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
           </Text>
         </View>
         <View style={styles.msgPreviewRow}>
@@ -78,9 +79,7 @@ export default function InboxScreen() {
           <MaterialIcons name="arrow-back" size={24} color={theme.colors.heading} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Messages</Text>
-        <TouchableOpacity style={styles.searchBtn}>
-          <Feather name="search" size={20} color={theme.colors.textSecondary} />
-        </TouchableOpacity>
+        <View style={{ width: 40 }} />
       </View>
 
       {loading && !refreshing ? (
@@ -123,6 +122,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: theme.colors.divider
   },
   headerTitle: { fontSize: 20, fontWeight: 'bold', color: theme.colors.heading },
+  supportBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: theme.colors.primaryLight, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
+  supportText: { fontSize: 12, fontWeight: 'bold', color: theme.colors.primary },
   backBtn: { padding: 5 },
   searchBtn: { padding: 5 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
