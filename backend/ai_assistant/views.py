@@ -106,6 +106,7 @@ class AICheckEligibilityView(APIView):
             return Response({'analysis': result, 'usage': profile.ai_usage_count})
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 class AIImprovePostView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -207,8 +208,7 @@ class AIMatchmakerView(APIView):
             
             return Response({
                 'recommendations': recommendations[:limit],
-
-            'profile_summary': f"Matches for {profile.full_name or profile.user.username}.",
+                'profile_summary': f"Matches for {profile.full_name or profile.user.username}.",
                 'is_pro_results': is_pro,
                 'total_found': len(recommendations)
             })

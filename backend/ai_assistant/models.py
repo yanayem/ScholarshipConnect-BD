@@ -9,5 +9,5 @@ class AIRequestLog(models.Model):
     tokens_used = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def str(self):
+    def __str__(self):
         return f"{self.user.username} - {self.request_type} - {self.created_at}"

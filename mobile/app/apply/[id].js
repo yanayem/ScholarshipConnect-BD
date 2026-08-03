@@ -1,39 +1,108 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
-  StyleSheet, StatusBar, KeyboardAvoidingView, Platform, Alert
+  StyleSheet, StatusBar, KeyboardAvoidingView, Platform, Alert, ActivityIndicator, Linking
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { theme } from '../../theme';
+import { apiService } from '../../services/api';
+import { useToast } from '../../components/Toast';
 
 export default function ApplyScreen() {
-  const { id } = useLocalSearchParams();
+  const { id, prefilledSop } = useLocalSearchParams();
   const [loading, setLoading] = useState(false);
+  const { showToast, ToastComponent } = useToast();
+  const [scholarshipTitle, setScholarshipTitle] = useState('...');
+  const [officialLink, setOfficialLink] = useState(null);
 
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     phone: '',
     university: '',
-    sop: '',
+    cgpa: '',
+    ielts: '',
+    academicLevel: '',
+    sop: prefilledSop || '',
   });
 
-  const handleSubmit = () => {
+  const [isAutoFilled, setIsAutoFilled] = useState(false);
+
+  useEffect(() => {
+    const loadScholarship = async () => {
+      try {
+        const res = await apiService.getScholarshipDetail(id);
+        if (res.ok) {
+          setScholarshipTitle(res.data.title);
+          setOfficialLink(res.data.official_link);
+        }
+      } catch (e) {}
+    };
+    loadScholarship();
+
+    const loadProfile = async () => {
+      try {
+        const res = await apiService.getProfile();
+        if (res.ok) {
+          setFormData(prev => ({
+            ...prev,
+            fullName: res.data.full_name || '',
+            email: res.data.email || '',
+            phone: res.data.phone_number || '',
+            university: res.data.university || '',
+            cgpa: res.data.cgpa ? res.data.cgpa.toString() : '',
+            ielts: res.data.ielts_score ? res.data.ielts_score.toString() : '',
+            academicLevel: res.data.academic_level || '',
+          }));
+          setIsAutoFilled(true);
+        }
+      } catch (e) {}
+    };
+    loadProfile();
+  }, [id]);
+
+  const handleSubmit = async () => {
     if (!formData.fullName || !formData.email || !formData.sop) {
-      Alert.alert('Missing Info', 'Please fill in all required fields.');
+      showToast('Please fill in all required fields.', 'warning');
       return;
     }
 
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const payload = {
+        scholarship: id,
+        full_name: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        university: formData.university,
+        cgpa: formData.cgpa || null,
+        ielts_score: formData.ielts || null,
+        academic_level: formData.academicLevel,
+        sop: formData.sop,
+        application_type: 'Self',
+      };
+
+      const res = await apiService.applyForScholarship(payload);
+      if (res.ok) {
+        showToast('Application tracking saved!', 'success');
+        setTimeout(() => {
+          if (officialLink) {
+            Linking.openURL(officialLink).catch(err => {
+               showToast('Could not open official portal.', 'error');
+            });
+          }
+          router.replace('/(tabs)/applications');
+        }, 1500);
+      } else {
+        const errorMsg = res.data?.error || 'Failed to submit application';
+        showToast(errorMsg, 'error');
+      }
+    } catch (error) {
+      showToast('Network error occurred', 'error');
+    } finally {
       setLoading(false);
-      Alert.alert(
-        'Success!',
-        'Your application has been submitted successfully.',
-        [{ text: 'OK', onPress: () => router.replace('/(tabs)/applications') }]
-      );
-    }, 1500);
+    }
   };
 
   return (
@@ -56,10 +125,17 @@ export default function ApplyScreen() {
         style={{ flex: 1 }}
       >
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          {isAutoFilled && (
+            <View style={styles.autoFillBanner}>
+               <MaterialIcons name="bolt" size={18} color={theme.colors.success} />
+               <Text style={styles.autoFillText}>Profile info auto-filled for your convenience.</Text>
+            </View>
+          )}
+
           <View style={[styles.infoBox, { backgroundColor: theme.colors.tealCard }]}>
             <MaterialIcons name="info" size={20} color={theme.colors.primary} />
             <Text style={styles.infoText}>
-              Applying for Scholarship: <Text style={{fontWeight: 'bold', color: theme.colors.heading}}>#{id}</Text>
+              Applying for: <Text style={{fontWeight: 'bold', color: theme.colors.heading}}>{scholarshipTitle}</Text>
             </Text>
           </View>
 
@@ -76,17 +152,31 @@ export default function ApplyScreen() {
               />
             </View>
 
-            <Text style={styles.label}>Email Address</Text>
-            <View style={styles.inputWrap}>
-              <MaterialIcons name="alternate-email" size={20} color={theme.colors.placeholder} />
-              <TextInput
-                style={styles.input}
-                placeholder="john@example.com"
-                placeholderTextColor={theme.colors.placeholder}
-                keyboardType="email-address"
-                value={formData.email}
-                onChangeText={(v) => setFormData({...formData, email: v})}
-              />
+            <View style={styles.row}>
+                <View style={{ flex: 1, marginRight: 8 }}>
+                    <Text style={styles.label}>CGPA</Text>
+                    <View style={styles.inputWrap}>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="0.00"
+                            keyboardType="decimal-pad"
+                            value={formData.cgpa}
+                            onChangeText={(v) => setFormData({...formData, cgpa: v})}
+                        />
+                    </View>
+                </View>
+                <View style={{ flex: 1, marginLeft: 8 }}>
+                    <Text style={styles.label}>IELTS Score</Text>
+                    <View style={styles.inputWrap}>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="0.0"
+                            keyboardType="decimal-pad"
+                            value={formData.ielts}
+                            onChangeText={(v) => setFormData({...formData, ielts: v})}
+                        />
+                    </View>
+                </View>
             </View>
 
             <Text style={styles.label}>Statement of Purpose</Text>
@@ -116,13 +206,14 @@ export default function ApplyScreen() {
             disabled={loading}
           >
             <Text style={styles.submitBtnText}>
-              {loading ? 'Submitting...' : 'Submit Application'}
+              {loading ? 'Saving...' : 'Save & Open Official Portal'}
             </Text>
-            {!loading && <MaterialIcons name="send" size={18} color={theme.colors.heading} />}
+            {!loading && <MaterialIcons name="open-in-new" size={18} color={theme.colors.heading} />}
           </TouchableOpacity>
 
           <View style={{ height: 40 }} />
         </ScrollView>
+        {ToastComponent}
       </KeyboardAvoidingView>
     </View>
   );
@@ -138,6 +229,22 @@ const styles = StyleSheet.create({
   headerTitle: { color: theme.colors.heading, fontSize: 18, fontWeight: 'bold' },
   backBtn: { padding: 4 },
   scroll: { padding: 20 },
+  autoFillBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E6F4EA', // Light success green
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#34A853',
+  },
+  autoFillText: {
+    fontSize: 12,
+    color: '#1E4620',
+    fontWeight: '600',
+  },
   infoBox: {
     flexDirection: 'row',
     padding: 16, borderRadius: 16, marginBottom: 24, gap: 12, alignItems: 'center',
@@ -154,6 +261,12 @@ const styles = StyleSheet.create({
     height: 52
   },
   input: { flex: 1, fontSize: 15, color: theme.colors.textPrimary, marginLeft: 10 },
+  sectionTitle: {
+    fontSize: 16, fontWeight: 'bold', color: theme.colors.primary,
+    marginTop: 10, marginBottom: 15, borderLeftWidth: 4, borderLeftColor: theme.colors.primary,
+    paddingLeft: 10,
+  },
+  row: { flexDirection: 'row', alignItems: 'center' },
   textArea: {
     backgroundColor: theme.colors.secondaryBackgroundBackground,
     borderRadius: 12, padding: 16, minHeight: 140, marginLeft: 0, marginTop: 4

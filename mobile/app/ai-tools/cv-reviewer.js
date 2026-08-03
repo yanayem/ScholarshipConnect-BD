@@ -6,17 +6,14 @@ import { theme } from '../../theme';
 import { apiService } from '../../services/api';
 import { useToast } from '../../components/Toast';
 
+import { useUser } from '../../context/UserContext';
+
 export default function CVReviewerScreen() {
-    const [user, setUser] = useState(null);
+    const { user } = useUser();
     const [cvText, setCvText] = useState('');
     const [loading, setLoading] = useState(false);
     const { showToast, ToastComponent } = useToast();
 
-    useEffect(() => {
-        apiService.getProfile().then(res => {
-            if (res.ok) setUser(res.data);
-        });
-    }, []);
 
     const handleReview = async () => {
         if (!cvText || cvText.length < 100) {

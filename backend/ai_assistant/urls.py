@@ -1,7 +1,13 @@
 from django.urls import path
 from .views import (
-    AIWriteSOPView, AIReviewSOPView, AIReviewCVView, AICheckEligibilityView,
-    AIImprovePostView, AILiveSupportView, AIGenerateBioView, AIMatchmakerView
+    AIWriteSOPView, 
+    AIReviewSOPView, 
+    AIReviewCVView, 
+    AICheckEligibilityView,
+    AIImprovePostView,
+    AILiveSupportView,
+    AIGenerateBioView,
+    AIMatchmakerView
 )
 
 urlpatterns = [
