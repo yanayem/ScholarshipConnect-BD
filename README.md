@@ -196,6 +196,7 @@ The application follows a **Premium, Minimal, and Modern** design system focused
 - **Border Radius**: Professional **24px-36px** for cards and buttons.
 
 ---
+
 ## Project Structure
 
 ```text
@@ -205,64 +206,104 @@ ScholarshipConnectBD/
 │   │   ├── (auth)/               # Authentication Flow (Login, Register, Forgot)
 │   │   ├── (tabs)/               # Main App Navigation (Dashboard, Search, Saved, Profile)
 │   │   ├── admin/                # Android-Style Admin Console (Material 3)
+│   │   │   ├── index.js          # Admin Home (System Summary & Analytics)
+│   │   │   ├── moderation.js     # Community Standards & Report Management
+│   │   │   └── ...               # Analytics, Logs, Broadcast, Users
 │   │   ├── ai-tools/             # ScholarConnect AI Suite (SOP, CV, Eligibility)
-│   │   └── ...                   # Community, Mentorship, Messages, Blog
-│   ├── components/               # Reusable UI Components (Cards, Buttons, Inputs)
-│   ├── services/                 # Infrastructure Layer (API, Firebase)
-│   ├── constants/                # App Config (API_URL, Firebase Keys)
-│   └── theme.js                  # Centralized Dual-Layer Theme Engine
+│   │   ├── community/            # Discussion Forum & "Open Problems" Feed
+│   │   ├── mentorship/           # Mentor Discovery & Session Booking
+│   │   ├── messages/             # Real-time Chat (Edit/Unsend support)
+│   │   ├── profile/              # Scholar Profiles & Academic Records
+│   │   ├── scholarships/         # Dynamic Scholarship Detail Views
+│   │   ├── blog/                 # Success Stories & Application Guides
+│   │   ├── upgrade-pro.js        # Premium Subscription & Monetization Hub
+│   │   ├── leaderboard.js        # Gamified Contribution Rankings
+│   │   └── _layout.js            # Root Navigation & Theme Provider
+│   ├── components/               # Reusable UI Components
+│   │   ├── cards/                # Scholarship, Mentor, and Post cards
+│   │   ├── AutocompleteInput.js  # Smart academic field suggestions
+│   │   └── ...                   # Custom Buttons, Inputs, Loaders
+│   ├── services/                 # Infrastructure Layer
+│   │   ├── api.js                # Centralized Axios instance with Interceptors
+│   │   └── firebase.js           # Firebase Client SDK Configuration
+│   ├── constants/                # App Config, Brand Colors, and Shared Strings
+│   ├── theme.js                  # Centralized Dual-Layer Theme Engine
+│   └── package.json              # Project Dependencies & Scripts
 ├── backend/                      # Backend (Django REST Framework)
-│   ├── core/                     # Project Settings & Middleware
-│   ├── accounts/                 # User Profiles & ScholarPoints
-│   ├── scholarships/             # Scholarship Database & NLP Logic
-│   ├── community/                # Discussions, Polls, Stories & Chat
-│   ├── ai_assistant/             # LLM Integration (Groq/Gemini)
-│   ├── payments/                 # SSLCommerz Integration
-│   └── docs/                     # System Design & Diagrams
-└── DOCUMENTATION.md              # Full System Manual
+│   ├── core/                     # Project Settings & Firebase Auth Middleware
+│   ├── accounts/                 # User Profiles, ScholarPoints & Mentorship logic
+│   ├── scholarships/             # Scholarship Database & Verification Logic
+│   ├── community/                # Discussions, Polls, Stories & Chat API
+│   ├── applications/             # Application Tracking & Document Vault
+│   ├── ai_assistant/             # LLM Integration (Groq/Gemini) & Usage Logs
+│   ├── payments/                 # SSLCommerz Integration for Pro Tier
+│   ├── blog/                     # Success Stories & Educational Content
+│   ├── notifications/            # Push Notifications & System Broadcasts
+│   ├── media/                    # Secure Storage for User Documents & Media
+│   ├── docs/                     # System Design & Legacy Documentation
+│   │   ├── diagrams/             # SDLC, DFD, ERD, and Architecture diagrams
+│   │   └── SYSTEM_DESIGN.md      # Detailed system analysis and DFD details
+│   ├── manage.py                 # Django Management CLI
+│   └── .env                      # Secure Credentials (DB URI, Firebase Keys)
+├── DOCUMENTATION.md              # Complete User Manual & Technical Guide
+├── AI_MATCHMAKER.md              # AI Algorithm & NLP Technical Deep-dive
+├── erdigram.md                   # Entity-Relationship Diagram (Database)
+├── AGENTS.md                     # Developer Guide & Migration Notes
+├── LAYOUT_DOCUMENTATION.md       # UI Components & Theme Documentation
+└── README.md                     # Project Overview & Entry Point
 ```
 
 ---
 
-## Environment Setup
+## Getting Started
 
-### Backend Config (`backend/.env`)
-Ensure you have the following variables set up in your Django environment:
-| Variable | Description |
-| :--- | :--- |
-| `MONGODB_URI` | Connection string for MongoDB Atlas. |
-| `FIREBASE_SERVICE_ACCOUNT_KEY` | Path to your Firebase service account JSON. |
-| `GROQ_API_KEY` | Primary AI provider for SOP and CV tools. |
-| `GEMINI_API_KEY` | Fallback AI provider for analysis. |
-| `ADMIN_EMAILS` | Comma-separated list for automatic staff access. |
+### 1. Frontend (Mobile) Setup
+```bash
+cd mobile
+npm install
+# Ensure you have expo-linear-gradient and expo-image-picker installed
+npx expo start
+```
 
-### Frontend Config (`mobile/constants/Config.js`)
-Update the `localhost` variable in `Config.js` to match your PC's local IP address if testing on a physical device.
+### 2. Backend Setup
+```bash
+cd backend
+python -m venv venv
+.\venv\Scripts\activate
+pip install -r requirements.txt
+# Configure .env with MONGO_URI, FIREBASE_SERVICE_ACCOUNT_KEY, and ADMIN_EMAILS
+python manage.py migrate
+python manage.py runserver
+```
+
+### 3. Deployment (Mobile Standalone)
+To build a standalone APK for production:
+```bash
+cd mobile
+# 1. Update app.json (name, slug, android.package)
+# 2. Run prebuild
+npx expo prebuild --clean
+# 3. Build with EAS
+eas build -p android --profile preview
+```
+
+---
+
+## Security & Verification
+
+### Scholarship Verification System
+To maintain the quality and authenticity of data, the platform implements a dual-layer verification flow:
+1. **User Submission**: Any registered user can contribute by submitting a scholarship. These are initially marked as **`Pending`**.
+2. **Admin Review**: Staff members review pending submissions in the **Admin Home**.
+3. **Activation**: Only after admin approval does a scholarship become **`Live`** and visible to the community.
+
+### Firebase Authentication
+The app uses **Firebase SDK** for robust cross-platform authentication:
+- **Real-time Sync**: Automatic profile creation in the Django backend upon Firebase signup.
+- **ID Token Verification**: The backend verifies Firebase-issued JWT tokens for every API request, ensuring top-tier security.
 
 ---
 
-## API Endpoints (Quick Reference)
-| Category | Endpoint | Method |
-| :--- | :--- | :--- |
-| **Auth** | `/api/accounts/profile/` | GET/PATCH |
-| **Scholarships** | `/api/scholarships/` | GET/POST |
-| **AI Tools** | `/api/ai_assistant/matchmaker/` | GET |
-| **Community** | `/api/community/` | GET/POST |
-| **Payments** | `/api/payments/checkout/` | POST |
-
----
-
-## Deployment & Production
-- **Backend**: Deployable via Gunicorn/Nginx on AWS, Heroku, or DigitalOcean.
-- **Frontend**: Managed via **Expo Application Services (EAS)** for Play Store/App Store distribution.
-- **Web**: Optimized for **Vercel** with `react-native-web` support.
-
----
-
-## License
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
----
 ## Meet the Team
 
 | Student ID | Name | Designation | GitHub |
