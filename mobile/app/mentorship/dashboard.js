@@ -226,21 +226,7 @@ export default function MentorDashboardScreen() {
            </View>
         </View>
 
-        <TouchableOpacity
-          style={styles.editProfileBanner}
-          onPress={() => router.push('/messages')}
-        >
-          <View style={styles.bannerInfo}>
-            <View style={[styles.iconCircle, { backgroundColor: theme.colors.primaryLight }]}>
-               <MaterialIcons name="chat" size={20} color={theme.colors.primary} />
-            </View>
-            <View style={{ marginLeft: 12 }}>
-              <Text style={styles.bannerTitle}>Messages & Inbox</Text>
-              <Text style={styles.bannerSub}>Reply to students and manage your conversations.</Text>
-            </View>
-          </View>
-          <MaterialIcons name="chevron-right" size={24} color={theme.colors.divider} />
-        </TouchableOpacity>
+
 
         <TouchableOpacity
           style={styles.editProfileBanner}

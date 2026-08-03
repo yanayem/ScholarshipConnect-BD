@@ -9,6 +9,7 @@ import { Loader } from '../../components/Loader';
 export default function MentorProfileScreen() {
   const { id } = useLocalSearchParams();
   const [mentor, setMentor] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reviews, setReviews] = useState([]);
   const [showRatingModal, setShowRatingModal] = useState(false);
@@ -18,9 +19,15 @@ export default function MentorProfileScreen() {
 
   const fetchMentorDetails = async () => {
     try {
-      const res = await apiService.getMentors();
-      if (res.ok) {
-        const found = res.data.find(m => (m.user_id || m.user || m.id).toString() === id.toString());
+      const [mentorRes, profileRes] = await Promise.all([
+        apiService.getMentors(),
+        apiService.getProfile()
+      ]);
+
+      if (profileRes.ok) setCurrentUser(profileRes.data);
+
+      if (mentorRes.ok) {
+        const found = mentorRes.data.find(m => (m.user_id || m.user || m.id).toString() === id.toString());
         setMentor(found);
 
         // Fetch reviews
@@ -116,13 +123,15 @@ export default function MentorProfileScreen() {
         </View>
 
         <View style={styles.content}>
-          <TouchableOpacity
-            style={styles.rateMentorBtn}
-            onPress={() => setShowRatingModal(true)}
-          >
-            <MaterialIcons name="star-rate" size={20} color={theme.colors.primary} />
-            <Text style={styles.rateMentorBtnText}>Rate this Mentor</Text>
-          </TouchableOpacity>
+          {mentor.user_id !== currentUser?.user_id && (
+            <TouchableOpacity
+              style={styles.rateMentorBtn}
+              onPress={() => setShowRatingModal(true)}
+            >
+              <MaterialIcons name="star-rate" size={20} color={theme.colors.primary} />
+              <Text style={styles.rateMentorBtnText}>Rate this Mentor</Text>
+            </TouchableOpacity>
+          )}
           <Text style={styles.sectionTitle}>About Mentor</Text>
           <Text style={styles.bioText}>
             {mentor.mentorship_bio || mentor.bio || "Hello! I am a verified mentor on ScholarshipConnectBD. I specialize in helping students navigate their higher education journey."}
@@ -262,19 +271,20 @@ export default function MentorProfileScreen() {
       </Modal>
 
       <View style={styles.bottomBar}>
+        {mentor.user_id !== currentUser?.user_id && (
+          <TouchableOpacity
+            style={styles.messageBtn}
+            onPress={() => router.push({
+              pathname: `/messages/${mentor.user_id || mentor.user || mentor.id}`,
+              params: { name: mentor.full_name, avatar: mentor.avatar_url }
+            })}
+          >
+            <Ionicons name="chatbubble-ellipses-outline" size={20} color={theme.colors.primary} />
+            <Text style={styles.messageBtnText}>Message</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
-          style={styles.messageBtn}
-          onPress={() => router.push({
-            pathname: `/messages/${mentor.user_id || mentor.user || mentor.id}`,
-            params: { name: mentor.full_name || mentor.username, avatar: mentor.avatar_url }
-          })}
-        >
-          <Ionicons name="chatbubble-ellipses-outline" size={24} color={theme.colors.primary} />
-          <Text style={styles.messageBtnText}>Message</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.bookBtn}
+          style={[styles.bookBtn, mentor.user_id === currentUser?.user_id ? { flex: 1 } : { flex: 2 }]}
           onPress={() => router.push({
             pathname: '/mentorship/request',
             params: { mentorId: mentor.user_id || mentor.user || mentor.id, mentorName: mentor.full_name }
