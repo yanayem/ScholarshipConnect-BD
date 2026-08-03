@@ -48,7 +48,7 @@ ScholarshipConnectBD is a specialized mobile application built with **React Nati
 For a complete user manual, in-depth system architecture, Data Flow Diagrams (DFD), Entity-Relationship Diagrams (ERD), and our Agile (Scrum) SDLC Workflow, please refer to our core documentation:
 
 - **[Complete User Manual & Documentation](./DOCUMENTATION.md)**
-- **[System Design & Architecture](./docs/SYSTEM_DESIGN.md)**
+- **[System Design & Architecture](https://github.com/yanayem/ScholarshipConnect-BD/blob/main/backend/docs/SYSTEM_DESIGN.md)**
 
 ### Core Diagrams
 | Diagram Name | Preview Link |
