@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "public": false,
+  "builds": [
+    {
+      "src": "mobile/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
+    }
+  ],
+  "rewrites": [
+    { "source": "/(.*)", "destination": "mobile/$1" }
+  ]
+}
