@@ -10,6 +10,11 @@ import { Platform, NativeModules } from 'react-native';
 import * as Device from 'expo-device';
 
 const getApiUrl = () => {
+  // 0. Priority: Use environment variable if set (especially for Web/Vercel)
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL;
+  }
+
   let localhost = '192.168.0.163'; // Your PC's Local IP for Physical Devices
 
   // 1. For Web: Use the current hostname to avoid CORS/IP mismatch

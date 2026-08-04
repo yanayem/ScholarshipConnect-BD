@@ -16,13 +16,13 @@ if (Platform.OS === 'web' || isExpoGo) {
 
     // Values extracted from Firebase Console (Web App)
     const firebaseConfig = {
-        apiKey: "AIzaSyB2nt8ujKLj6rDUN6GwyOK36BZaJ_dxBwM",
-        authDomain: "scholarships-bd.firebaseapp.com",
-        projectId: "scholarships-bd",
-        storageBucket: "scholarships-bd.firebasestorage.app",
-        messagingSenderId: "1092212923801",
-        appId: "1:1092212923801:web:230adde622f8daecf0c708",
-        measurementId: "G-FX0EV392R7"
+        apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "AIzaSyB2nt8ujKLj6rDUN6GwyOK36BZaJ_dxBwM",
+        authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || "scholarships-bd.firebaseapp.com",
+        projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || "scholarships-bd",
+        storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || "scholarships-bd.firebasestorage.app",
+        messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "1092212923801",
+        appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || "1:1092212923801:web:230adde622f8daecf0c708",
+        measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-FX0EV392R7"
     };
 
     const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
