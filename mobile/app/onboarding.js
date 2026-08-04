@@ -40,7 +40,7 @@ export default function OnboardingScreen() {
   const slidesRef = useRef(null);
 
   const viewableItemsChanged = useRef(({ viewableItems }) => {
-    if (viewableItems && viewableItems.length > 0) {
+    if (viewableItems && viewableItems.length > 0 && viewableItems[0].index !== null) {
       setCurrentIndex(viewableItems[0].index);
     }
   }).current;
@@ -49,7 +49,10 @@ export default function OnboardingScreen() {
 
   const handleNext = async () => {
     if (currentIndex < slides.length - 1) {
-      slidesRef.current.scrollToIndex({ index: currentIndex + 1 });
+      slidesRef.current?.scrollToIndex({
+        index: currentIndex + 1,
+        animated: true
+      });
     } else {
       await finishOnboarding();
     }
@@ -65,6 +68,12 @@ export default function OnboardingScreen() {
       router.replace('/(auth)/login');
     }
   };
+
+  const getItemLayout = (_, index) => ({
+    length: width,
+    offset: width * index,
+    index,
+  });
 
   const renderItem = ({ item }) => (
     <View style={[styles.slide, { backgroundColor: item.bgColor }]}>
@@ -82,7 +91,7 @@ export default function OnboardingScreen() {
     <View style={styles.container}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor={slides[currentIndex].bgColor}
+        backgroundColor={slides[currentIndex]?.bgColor || theme.colors.primary}
       />
       <TouchableOpacity style={styles.skipBtn} onPress={finishOnboarding}>
         <Text style={styles.skipText}>Skip</Text>
@@ -100,7 +109,11 @@ export default function OnboardingScreen() {
         onViewableItemsChanged={viewableItemsChanged}
         viewabilityConfig={viewConfig}
         ref={slidesRef}
+        getItemLayout={getItemLayout}
+        scrollEventThrottle={16}
+        style={{ flex: 1 }}
       />
+
 
       <View style={styles.footer}>
         <View style={styles.paginator}>
@@ -119,15 +132,20 @@ export default function OnboardingScreen() {
             return (
               <Animated.View
                 key={i.toString()}
-                style={[styles.dot, { width: dotWidth, opacity, backgroundColor: slides[currentIndex].color }]}
+                style={[styles.dot, {
+                  width: dotWidth,
+                  opacity,
+                  backgroundColor: slides[currentIndex]?.color || theme.colors.primary
+                }]}
               />
             );
           })}
         </View>
 
         <TouchableOpacity
-          style={[styles.nextBtn, { backgroundColor: slides[currentIndex].color }]}
+          style={[styles.nextBtn, { backgroundColor: slides[currentIndex]?.color || theme.colors.primary }]}
           onPress={handleNext}
+          activeOpacity={0.8}
         >
           <Text style={styles.nextText}>
             {currentIndex === slides.length - 1 ? 'Get Started' : 'Next'}
@@ -180,7 +198,9 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    marginTop: -30
+    marginTop: -30,
+    zIndex: 100,
+    elevation: 10
   },
   paginator: { flexDirection: 'row', height: 64, alignItems: 'center' },
   dot: { height: 10, borderRadius: 5, marginHorizontal: 4 },
