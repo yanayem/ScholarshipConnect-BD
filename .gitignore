@@ -25,6 +25,7 @@ android/
 # Backend (Django)
 backend/venv/
 backend/.env
+mobile/.env
 __pycache__/
 *.py[cod]
 *$py.class
