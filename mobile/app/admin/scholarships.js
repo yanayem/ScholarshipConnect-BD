@@ -4,12 +4,11 @@
  * - Advanced filtering and real-time search.
  * - Connected to: apiService, theme.js, router.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, FlatList,
-  TextInput, TouchableOpacity, ActivityIndicator,
-  Alert, Platform, RefreshControl,
-  StatusBar
+  TextInput, TouchableOpacity, RefreshControl,
+  StatusBar, Alert
 } from 'react-native';
 import { theme } from '../../theme';
 import { MaterialIcons, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -18,6 +17,7 @@ import { apiService } from '../../services/api';
 import { useToast } from '../../components/Toast';
 import { Loader } from '../../components/Loader';
 import { useCallback } from 'react';
+import ScholarshipCard from '../../components/cards/ScholarshipCard';
 
 export default function ManageScholarships() {
   const [search, setSearch] = useState('');
@@ -92,62 +92,17 @@ export default function ManageScholarships() {
     (s.title || '').toLowerCase().includes(search.toLowerCase())
   );
 
-  const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <View style={styles.headerMain}>
-            <View style={[styles.statusDot, {
-                backgroundColor: item.status === 'active' ? theme.colors.success :
-                                 item.status === 'pending' ? theme.colors.warning :
-                                 theme.colors.error
-            }]} />
-            <Text style={styles.itemTitle} numberOfLines={1}>{item.title}</Text>
-        </View>
-        <TouchableOpacity onPress={() => handleDelete(item.id, item.title)}>
-            <MaterialCommunityIcons name="delete-sweep-outline" size={22} color={theme.colors.error} />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.cardBody}>
-        <View style={styles.metaInfo}>
-            <View style={styles.metaItem}>
-                <Ionicons name="calendar-outline" size={14} color={theme.colors.textSecondary} />
-                <Text style={styles.metaText}>{item.deadline}</Text>
-            </View>
-            <View style={styles.metaItem}>
-                <Ionicons name="location-outline" size={14} color={theme.colors.textSecondary} />
-                <Text style={styles.metaText}>{item.country}</Text>
-            </View>
-        </View>
-      </View>
-
-      <View style={styles.cardActions}>
-        {item.status === 'pending' && (
-          <View style={styles.approvalRow}>
-            <TouchableOpacity
-                style={[styles.btnAction, { backgroundColor: theme.colors.primary }]}
-                onPress={() => handleApprove(item.id, 'approve')}
-            >
-                <Text style={styles.btnText}>Approve</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={[styles.btnAction, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.error }]}
-                onPress={() => handleApprove(item.id, 'reject')}
-            >
-                <Text style={[styles.btnText, { color: theme.colors.error }]}>Reject</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        <TouchableOpacity
-            style={styles.editBtn}
-            onPress={() => router.push(`/admin/edit-scholarship/${item.id}`)}
-        >
-            <Text style={styles.editBtnText}>Edit Details</Text>
-            <MaterialIcons name="edit" size={16} color={theme.colors.primary} />
-        </TouchableOpacity>
-      </View>
-    </View>
+  const renderItem = ({ item, index }) => (
+    <ScholarshipCard
+      item={item}
+      index={index}
+      isAdmin={true}
+      onPress={() => router.push(`/scholarships/${item.id}`)}
+      onDelete={handleDelete}
+      onApprove={handleApprove}
+      onReject={handleApprove}
+      onEdit={(id) => router.push(`/admin/edit-scholarship/${id}`)}
+    />
   );
 
   return (
