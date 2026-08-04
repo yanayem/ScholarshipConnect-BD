@@ -5,6 +5,10 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/backend" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/backend/venv/Lib/site-packages" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/.idea/caches" />
+      <excludeFolder url="file://$MODULE_DIR$/mobile/.expo" />
+      <excludeFolder url="file://$MODULE_DIR$/mobile/android" />
+      <excludeFolder url="file://$MODULE_DIR$/mobile/node_modules" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
