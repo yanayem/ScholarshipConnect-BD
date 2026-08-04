@@ -35,30 +35,30 @@ const handleResponse = async (response) => {
   }
 
   if (response.status === 401) {
-    console.warn('[API] Unauthorized request detected. Token may be expired.');
+    console.warn('[API] Unauthorized request detected. Token may be invalid or expired.');
 
     const lastRefreshAttempt = await AsyncStorage.getItem('last_refresh_attempt');
     const now = Date.now();
 
-    // Limit automatic refresh attempts to once every 30 seconds to avoid loops
     if (!lastRefreshAttempt || (now - parseInt(lastRefreshAttempt)) > 30000) {
       try {
         await AsyncStorage.setItem('last_refresh_attempt', now.toString());
-        console.log('[API] Attempting to force-refresh Firebase token...');
-
-        // Force refresh from Firebase
+        console.log('[API] Attempting to auto-refresh token from Firebase...');
         const newToken = await firebaseAuth.getIdToken(true);
 
         if (newToken) {
-            console.log('[API] Token refreshed. Please retry the request.');
             await AsyncStorage.setItem('token', newToken);
+            console.log('[API] Token refreshed successfully.');
         } else {
-            console.warn('[API] No Firebase session. Logging out...');
-            await apiService.logout();
+            console.warn('[API] Firebase session lost. Logging out...');
+            // Using a safer way to call logout or clear storage
+            await AsyncStorage.multiRemove(['token', 'admin_verified', 'is_staff']);
+            await firebaseAuth.signOut();
         }
       } catch (e) {
-        console.error('[API] Auto-refresh failed:', e.message);
-        await apiService.logout();
+        console.error('[API] Failed to auto-refresh token:', e.message);
+        await AsyncStorage.multiRemove(['token', 'admin_verified', 'is_staff']);
+        await firebaseAuth.signOut();
       }
     }
   }
@@ -66,10 +66,17 @@ const handleResponse = async (response) => {
   // Post-process data to ensure URLs are absolute if they are relative media paths
   if (data && typeof data === 'object') {
     const processUrls = (obj) => {
+      const baseUrl = API_URL.replace('/api', '');
       for (const key in obj) {
-        if (typeof obj[key] === 'string' && obj[key].startsWith('/media/')) {
-          const baseUrl = API_URL.replace('/api', '');
-          obj[key] = `${baseUrl}${obj[key]}`;
+        if (typeof obj[key] === 'string') {
+          // Fix relative media paths
+          if (obj[key].startsWith('/media/')) {
+            obj[key] = `${baseUrl}${obj[key]}`;
+          }
+          // Fix Django returning 127.0.0.1 or localhost when running on device/emulator
+          else if (obj[key].includes('127.0.0.1:8000') || obj[key].includes('localhost:8000')) {
+            obj[key] = obj[key].replace(/127\.0\.0\.1:8000|localhost:8000/, API_URL.split('/')[2].split(':')[0] + ':8000');
+          }
         } else if (obj[key] && typeof obj[key] === 'object') {
           processUrls(obj[key]);
         }
@@ -81,15 +88,17 @@ const handleResponse = async (response) => {
   return { ok: response.ok, status: response.status, data };
 };
 
-const getAuthToken = async () => {
-  // Try to get token from Firebase SDK (auto-refreshes if needed)
-  let token = await firebaseAuth.getIdToken();
-
-  // Fallback to AsyncStorage only if Firebase is not ready/initialized
-  if (!token) {
-      token = await AsyncStorage.getItem('token');
+const getToken = async () => {
+  try {
+    const token = await firebaseAuth.getIdToken();
+    if (token) {
+      await AsyncStorage.setItem('token', token);
+      return token;
+    }
+  } catch (e) {
+    console.warn('[API] Firebase getToken failed, using cached:', e.message);
   }
-  return token;
+  return await AsyncStorage.getItem('token');
 };
 
 const getHeaders = async (includeToken = true) => {
@@ -97,9 +106,11 @@ const getHeaders = async (includeToken = true) => {
     'Content-Type': 'application/json',
   };
   if (includeToken) {
-    const token = await getAuthToken();
+    const token = await getToken();
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
+    } else {
+      console.log('[API] No token found');
     }
   }
   return headers;
@@ -161,7 +172,7 @@ export const apiService = {
 
   async updateProfile(profileData) {
     try {
-      const token = await getAuthToken();
+      const token = await getToken();
       const isFormData = !!profileData && typeof profileData.append === 'function';
 
       if (isFormData) {
@@ -240,7 +251,7 @@ export const apiService = {
 
   async addScholarship(scholarshipData) {
     try {
-      const token = await getAuthToken();
+      const token = await getToken();
       const isFormData = scholarshipData instanceof FormData;
 
       const response = await fetch(`${API_URL}/scholarships/`, {
@@ -256,7 +267,7 @@ export const apiService = {
 
   async updateScholarship(id, scholarshipData) {
     try {
-      const token = await getAuthToken();
+      const token = await getToken();
       const isFormData = scholarshipData instanceof FormData;
 
       const response = await fetch(`${API_URL}/scholarships/${id}/`, {
@@ -349,10 +360,10 @@ export const apiService = {
 
   async resolveReport(reportId, action) {
     try {
-      const response = await fetch(`${API_URL}/community/reports/${reportId}/resolve/`, {
-        method: 'POST',
+      const response = await fetch(`${API_URL}/community/reports/${reportId}/`, {
+        method: 'PATCH',
         headers: await getHeaders(),
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ status: action === 'delete' ? 'resolved' : 'dismissed' }),
       });
       return await handleResponse(response);
     } catch (error) {
@@ -436,16 +447,17 @@ export const apiService = {
 
   async createDiscussion(data) {
     try {
-      const token = await getAuthToken();
+      const token = await getToken();
       const formData = new FormData();
       if (data.title) formData.append('title', data.title);
       if (data.content) formData.append('content', data.content);
       if (data.category) formData.append('category', data.category);
       if (data.poll_question) formData.append('poll_question', data.poll_question);
       if (data.image) {
+        const uri = Platform.OS === 'ios' ? data.image.uri.replace('file://', '') : data.image.uri;
         formData.append('image', {
-          uri: Platform.OS === 'ios' ? data.image.uri.replace('file://', '') : data.image.uri,
-          name: data.image.fileName || 'discussion_image.jpg',
+          uri,
+          name: data.image.fileName || `img_${Date.now()}.jpg`,
           type: data.image.mimeType || 'image/jpeg'
         });
       }
@@ -454,7 +466,10 @@ export const apiService = {
       }
       const response = await fetch(`${API_URL}/community/`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
         body: formData,
       });
       return await handleResponse(response);
@@ -516,7 +531,7 @@ export const apiService = {
 
   async createStory(data) {
     try {
-      const token = await getAuthToken();
+      const token = await getToken();
       const formData = new FormData();
       if (data.caption) formData.append('caption', data.caption);
       if (data.media) {
@@ -565,7 +580,7 @@ export const apiService = {
 
   async createBlogPost(formData) {
     try {
-      const token = await getAuthToken();
+      const token = await getToken();
       const response = await fetch(`${API_URL}/blog/`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
@@ -1125,7 +1140,7 @@ export const apiService = {
 
   async sendMessage(receiverId, message, image = null, relatedAppId = null) {
     try {
-      const token = await getAuthToken();
+      const token = await getToken();
       const headers = { 'Authorization': `Bearer ${token}` };
 
       let body;
@@ -1214,19 +1229,6 @@ export const apiService = {
       return await handleResponse(response);
     } catch (error) {
       return networkError(error, 'Delete Message');
-    }
-  },
-
-  async resolveReport(id, action) {
-    try {
-      const response = await fetch(`${API_URL}/community/reports/${id}/`, {
-        method: 'PATCH',
-        headers: await getHeaders(),
-        body: JSON.stringify({ status: action === 'delete' ? 'resolved' : 'dismissed' }),
-      });
-      return await handleResponse(response);
-    } catch (error) {
-      return networkError(error, 'Resolve Report');
     }
   }
 };

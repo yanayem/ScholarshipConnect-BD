@@ -10,7 +10,7 @@ import Constants from 'expo-constants';
 let auth;
 const isExpoGo = Constants.executionEnvironment === 'storeClient';
 
-if (Platform.OS === 'web') {
+if (Platform.OS === 'web' || isExpoGo) {
     const { initializeApp, getApps, getApp } = require('firebase/app');
     const { getAuth } = require('firebase/auth');
 
@@ -26,7 +26,7 @@ if (Platform.OS === 'web') {
 
     const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
     auth = getAuth(app);
-} else if (!isExpoGo) {
+} else {
     try {
         const fbAuth = require('@react-native-firebase/auth');
         auth = fbAuth.default();
