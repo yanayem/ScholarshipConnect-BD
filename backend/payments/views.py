@@ -91,6 +91,7 @@ class BKashExecutePaymentView(views.APIView):
         except Payment.DoesNotExist:
             return Response({"error": "Invalid Payment ID"}, status=status.HTTP_404_NOT_FOUND)
 
+# Note: In production, use SSLCommerz Python SDK or their official API
 class CheckoutView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -114,26 +115,27 @@ class CheckoutView(views.APIView):
         )
 
         if payment_method == 'DirectCard':
-            try:
-                profile = Profile.objects.get(user=request.user)
-                profile.upgrade_to_pro(30)
-                
-                send_notification(
-                    user=request.user,
-                    title="Payment Successful! 💳",
-                    message=f"Your card payment of 500 BDT was successful. Enjoy 30 days of ScholarConnect Pro!",
-                    send_email=True
-                )
-                
-                return Response({
-                    "status": "success",
-                    "transaction_id": transaction_id,
-                    "message": "Direct Card Payment Simulated Successfully"
-                }, status=status.HTTP_201_CREATED)
-            except Exception as e:
-                return Response({"error": f"Payment successful but profile upgrade failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            profile = Profile.objects.get(user=request.user)
+            profile.upgrade_to_pro(30)
+            
+            send_notification(
+                user=request.user,
+                title="Payment Successful! 💳",
+                message=f"Your card payment of 500 BDT was successful. Enjoy 30 days of ScholarConnect Pro!",
+                send_email=True
+            )
+            
+            return Response({
+                "status": "success",
+                "transaction_id": transaction_id,
+                "message": "Direct Card Payment Simulated Successfully"
+            }, status=status.HTTP_201_CREATED)
 
         # SSLCommerz Integration Logic (Simplified for demonstration)
+        # In a real scenario, you would call SSLCommerz Init API here
+        # settings.SSLCOMMERZ_STORE_ID, settings.SSLCOMMERZ_STORE_PASS
+        
+        # This URL should be the one provided by SSLCommerz Init API
         gateway_url = f"https://sandbox.sslcommerz.com/gwprocess/v4/api.php?store_id=test_store&tran_id={transaction_id}&total_amount={amount}&currency=BDT&success_url=http://10.0.2.2:8000/api/payments/success/&fail_url=http://10.0.2.2:8000/api/payments/fail/"
 
         return Response({
@@ -146,13 +148,18 @@ class PaymentSuccessView(views.APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
+        # SSLCommerz sends data via POST to this success_url
         transaction_id = request.data.get('tran_id')
+        val_id = request.data.get('val_id') # Validation ID from SSLCommerz
+
         try:
             payment = Payment.objects.get(transaction_id=transaction_id)
             if payment.status != 'COMPLETED':
+                # In production: Verify payment with SSLCommerz Validation API using val_id
                 payment.status = 'COMPLETED'
                 payment.save()
                 
+                # Upgrade user to Pro
                 profile = Profile.objects.get(user=payment.user)
                 profile.upgrade_to_pro(30)
                 
@@ -162,6 +169,8 @@ class PaymentSuccessView(views.APIView):
                     message=f"Your payment of 500 BDT via SSLCommerz was successful. Your Pro membership is now active.",
                     send_email=True
                 )
+                
+                # Redirect to a success page or return response
                 return Response({"message": "Payment Successful. You are now a PRO member."}, status=status.HTTP_200_OK)
             return Response({"message": "Already processed"}, status=status.HTTP_200_OK)
         except Payment.DoesNotExist:

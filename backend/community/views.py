@@ -4,7 +4,7 @@ from django.db.models import Q
 from .models import Discussion, DiscussionComment, PollOption, PollVote, Story, StoryReaction, MentorshipSession, Report, MentorConnection, ChatMessage, MentorReview
 from .serializers import (
     DiscussionSerializer, DiscussionCommentSerializer, 
-    StorySerializer, StoryReactionSerializer, 
+    StorySerializer, 
     MentorshipSessionSerializer, ReportSerializer,
     MentorConnectionSerializer, ChatMessageSerializer,
     MentorReviewSerializer
@@ -14,7 +14,7 @@ from accounts.models import Profile
 from accounts.serializers import ProfileSerializer
 from notifications.models import Notification
 from notifications.utils import send_notification
-from itertools import chain
+from collections import Counter
 
 class DiscussionListCreateView(generics.ListCreateAPIView):
     queryset = Discussion.objects.all()
@@ -275,13 +275,7 @@ class ReportListView(generics.ListCreateAPIView):
         return [permissions.IsAdminUser()]
 
     def perform_create(self, serializer):
-        # We expect reported_user_id in request.data
-        reported_user_id = self.request.data.get('reported_user')
-        try:
-            reported_user = User.objects.get(id=reported_user_id)
-            serializer.save(reporter=self.request.user, reported_user=reported_user)
-        except User.DoesNotExist:
-            raise serializers.ValidationError({"error": "Reported user not found"})
+        serializer.save(reporter=self.request.user)
 
 class ReportActionView(generics.UpdateAPIView):
     queryset = Report.objects.all()
@@ -473,7 +467,6 @@ class ConversationListView(APIView):
         
         # Optimize unread counts safely (avoids Djongo boolean recursion bug)
         all_received = ChatMessage.objects.filter(receiver=user).only('sender_id', 'is_read')
-        from collections import Counter
         unread_counts = Counter(m.sender_id for m in all_received if not m.is_read)
         
         conversations = {}
