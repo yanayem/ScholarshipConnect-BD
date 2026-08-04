@@ -1,27 +1,29 @@
-from rest_framework import viewsets, permissions, status
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from .models import Notification
-from .serializers import NotificationSerializer
+from rest_framework import generics, permissions
+from .models import Notification, Broadcast
+from .serializers import NotificationSerializer, BroadcastSerializer
 
-class NotificationViewSet(viewsets.ModelViewSet):
+class NotificationListView(generics.ListAPIView):
     serializer_class = NotificationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return Notification.objects.filter(user=self.request.user).order_by('-created_at')
 
+class NotificationMarkReadView(generics.UpdateAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Notification.objects.all()
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save(is_read=True)
+
+class BroadcastListView(generics.ListCreateAPIView):
+    queryset = Broadcast.objects.all().order_by('-created_at')
+    serializer_class = BroadcastSerializer
+    permission_classes = [permissions.IsAdminUser]
+
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-    @action(detail=False, methods=['post'], url_path='mark-all-read')
-    def mark_all_read(self, request):
-        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
-        return Response({"message": "All notifications marked as read"}, status=status.HTTP_200_OK)
-
-    @action(detail=True, methods=['post'], url_path='mark-read')
-    def mark_read(self, request, pk=None):
-        notification = self.get_object()
-        notification.is_read = True
-        notification.save()
-        return Response({"message": "Notification marked as read"}, status=status.HTTP_200_OK)
+        serializer.save(sender=self.request.user)
