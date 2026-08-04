@@ -454,12 +454,18 @@ export const apiService = {
       if (data.category) formData.append('category', data.category);
       if (data.poll_question) formData.append('poll_question', data.poll_question);
       if (data.image) {
-        const uri = Platform.OS === 'ios' ? data.image.uri.replace('file://', '') : data.image.uri;
-        formData.append('image', {
-          uri,
-          name: data.image.fileName || `img_${Date.now()}.jpg`,
-          type: data.image.mimeType || 'image/jpeg'
-        });
+        if (Platform.OS === 'web') {
+          const response = await fetch(data.image.uri);
+          const blob = await response.blob();
+          formData.append('image', blob, data.image.fileName || `img_${Date.now()}.jpg`);
+        } else {
+          const uri = Platform.OS === 'ios' ? data.image.uri.replace('file://', '') : data.image.uri;
+          formData.append('image', {
+            uri,
+            name: data.image.fileName || `img_${Date.now()}.jpg`,
+            type: data.image.mimeType || 'image/jpeg'
+          });
+        }
       }
       if (data.poll_options && data.poll_options.length > 0) {
         formData.append('poll_options', JSON.stringify(data.poll_options));
@@ -535,11 +541,17 @@ export const apiService = {
       const formData = new FormData();
       if (data.caption) formData.append('caption', data.caption);
       if (data.media) {
-        formData.append('media', {
-          uri: Platform.OS === 'ios' ? data.media.uri.replace('file://', '') : data.media.uri,
-          name: data.media.fileName || 'story.jpg',
-          type: data.media.mimeType || 'image/jpeg'
-        });
+        if (Platform.OS === 'web') {
+          const response = await fetch(data.media.uri);
+          const blob = await response.blob();
+          formData.append('media', blob, data.media.fileName || 'story.jpg');
+        } else {
+          formData.append('media', {
+            uri: Platform.OS === 'ios' ? data.media.uri.replace('file://', '') : data.media.uri,
+            name: data.media.fileName || 'story.jpg',
+            type: data.media.mimeType || 'image/jpeg'
+          });
+        }
       }
       const response = await fetch(`${API_URL}/community/stories/`, {
         method: 'POST',
@@ -725,11 +737,19 @@ export const apiService = {
       formData.append('name', name);
       formData.append('doc_type', type);
       if (expiryDate) formData.append('expiry_date', expiryDate);
-      formData.append('file', {
-        uri: Platform.OS === 'ios' ? fileData.uri.replace('file://', '') : fileData.uri,
-        name: fileData.name || 'document.pdf',
-        type: fileData.mimeType || 'application/pdf'
-      });
+
+      if (Platform.OS === 'web') {
+        const response = await fetch(fileData.uri);
+        const blob = await response.blob();
+        formData.append('file', blob, fileData.name || 'document.pdf');
+      } else {
+        formData.append('file', {
+          uri: Platform.OS === 'ios' ? fileData.uri.replace('file://', '') : fileData.uri,
+          name: fileData.name || 'document.pdf',
+          type: fileData.mimeType || 'application/pdf'
+        });
+      }
+
       const response = await fetch(`${API_URL}/applications/documents/`, {
         method: 'POST',
         headers: await getHeaders(true),
@@ -1149,11 +1169,18 @@ export const apiService = {
         body.append('receiver', receiverId);
         if (message) body.append('message', message);
         if (relatedAppId) body.append('related_application_id', relatedAppId);
-        body.append('image', {
-          uri: Platform.OS === 'ios' ? image.uri.replace('file://', '') : image.uri,
-          name: image.fileName || 'chat_image.jpg',
-          type: image.type || 'image/jpeg'
-        });
+
+        if (Platform.OS === 'web') {
+          const response = await fetch(image.uri);
+          const blob = await response.blob();
+          body.append('image', blob, image.fileName || 'chat_image.jpg');
+        } else {
+          body.append('image', {
+            uri: Platform.OS === 'ios' ? image.uri.replace('file://', '') : image.uri,
+            name: image.fileName || 'chat_image.jpg',
+            type: image.type || 'image/jpeg'
+          });
+        }
       } else {
         body = JSON.stringify({ receiver: receiverId, message, related_application_id: relatedAppId });
         headers['Content-Type'] = 'application/json';

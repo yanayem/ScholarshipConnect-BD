@@ -12,8 +12,16 @@ import * as Device from 'expo-device';
 const getApiUrl = () => {
   let localhost = '192.168.0.163'; // Your PC's Local IP for Physical Devices
 
-  // 1. For Android Emulator, 10.0.2.2 is the dedicated loopback to the host machine.
-  if (Platform.OS === 'android' && !Device.isDevice) {
+  // 1. For Web: Use the current hostname to avoid CORS/IP mismatch
+  if (Platform.OS === 'web') {
+    if (typeof window !== 'undefined') {
+      localhost = window.location.hostname;
+    } else {
+      localhost = 'localhost';
+    }
+  }
+  // 2. For Android Emulator, 10.0.2.2 is the dedicated loopback to the host machine.
+  else if (Platform.OS === 'android' && !Device.isDevice) {
     localhost = '10.0.2.2';
     console.log('[API CONFIG] Android Emulator detected, using 10.0.2.2');
   }

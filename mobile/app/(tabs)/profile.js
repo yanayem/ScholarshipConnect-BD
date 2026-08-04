@@ -134,12 +134,18 @@ export default function ProfileScreen() {
       const finalType = `image/${extension === 'jpg' ? 'jpeg' : extension}`;
       const finalFileName = fileName || `profile_${Date.now()}.${extension}`;
 
-      // FormData-তে ইমেজ অ্যাপেন্ড করার জন্য রিঅ্যাক্ট নেটিভ স্টাইল
-      formData.append('profile_picture', {
-        uri: Platform.OS === 'android' ? uri : uri.replace('file://', ''),
-        name: finalFileName,
-        type: finalType,
-      });
+      // Handle file preparation for Web vs Native
+      if (Platform.OS === 'web') {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        formData.append('profile_picture', blob, finalFileName);
+      } else {
+        formData.append('profile_picture', {
+          uri: Platform.OS === 'android' ? uri : uri.replace('file://', ''),
+          name: finalFileName,
+          type: finalType,
+        });
+      }
 
       console.log('[UPLOAD] Attempting:', { finalFileName, finalType, uri });
 

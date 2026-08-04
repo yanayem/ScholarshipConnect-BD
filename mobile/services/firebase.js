@@ -14,14 +14,15 @@ if (Platform.OS === 'web' || isExpoGo) {
     const { initializeApp, getApps, getApp } = require('firebase/app');
     const { getAuth } = require('firebase/auth');
 
-    // Values extracted from google-services.json
+    // Values extracted from Firebase Console (Web App)
     const firebaseConfig = {
-        apiKey: "AIzaSyDV2ZZJNm0usC2OBE0dM1bjrmL7UurH06M",
+        apiKey: "AIzaSyB2nt8ujKLj6rDUN6GwyOK36BZaJ_dxBwM",
         authDomain: "scholarships-bd.firebaseapp.com",
         projectId: "scholarships-bd",
         storageBucket: "scholarships-bd.firebasestorage.app",
         messagingSenderId: "1092212923801",
-        appId: "1:1092212923801:web:placeholder" // Replace with actual Web App ID from Firebase Console
+        appId: "1:1092212923801:web:230adde622f8daecf0c708",
+        measurementId: "G-FX0EV392R7"
     };
 
     const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();

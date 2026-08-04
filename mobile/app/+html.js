@@ -21,8 +21,15 @@ export default function HTML({ children }) {
 
         {/* Add any additional <head> elements here (like fonts, meta tags, etc.) */}
         <style dangerouslySetInnerHTML={{ __html: `
-          body {
-            overflow: hidden;
+          html, body {
+            height: 100%;
+            overflow: auto;
+            background-color: #F8F2E7; /* Match theme.colors.background */
+          }
+          /* Improve fonts on web */
+          * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
           }
         ` }} />
       </head>

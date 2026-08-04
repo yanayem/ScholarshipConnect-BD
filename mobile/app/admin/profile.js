@@ -58,11 +58,17 @@ export default function AdminProfile() {
       const finalFileName = fileName || uri.split('/').pop() || 'profile.jpg';
       const finalType = mimeType || `image/${finalFileName.split('.').pop() || 'jpeg'}`;
 
-      formData.append('profile_picture', {
-        uri: Platform.OS === 'ios' ? uri.replace('file://', '') : uri,
-        name: finalFileName,
-        type: finalType,
-      });
+      if (Platform.OS === 'web') {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        formData.append('profile_picture', blob, finalFileName);
+      } else {
+        formData.append('profile_picture', {
+          uri: Platform.OS === 'ios' ? uri.replace('file://', '') : uri,
+          name: finalFileName,
+          type: finalType,
+        });
+      }
 
       const res = await apiService.updateProfile(formData);
       if (res && res.ok) {

@@ -21,6 +21,7 @@ import { firebaseAuth } from '../services/firebase';
 import { MentorModeProvider } from '../context/MentorModeContext';
 import { ToastProvider } from '../context/ToastContext';
 import { UserProvider } from '../context/UserContext';
+import { theme } from '../theme';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -63,17 +64,29 @@ export default function RootLayout() {
     <ToastProvider>
       <UserProvider>
         <MentorModeProvider>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
-            <Stack.Screen name="(auth)" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="scholarships/[id]" />
-            <Stack.Screen name="apply/[id]" />
-            <Stack.Screen name="reminders" />
-            <Stack.Screen name="documents" />
-            <Stack.Screen name="settings" />
-            <Stack.Screen name="edit-profile" options={{ presentation: 'modal' }} />
-          </Stack>
+          <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+            <View style={Platform.OS === 'web' ? {
+              flex: 1,
+              maxWidth: 600,
+              width: '100%',
+              alignSelf: 'center',
+              backgroundColor: theme.colors.surface,
+              // Shadow for web container to look like an app
+              boxShadow: '0 0 20px rgba(0,0,0,0.1)'
+            } : { flex: 1 }}>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="scholarships/[id]" />
+                <Stack.Screen name="apply/[id]" />
+                <Stack.Screen name="reminders" />
+                <Stack.Screen name="documents" />
+                <Stack.Screen name="settings" />
+                <Stack.Screen name="edit-profile" options={{ presentation: 'modal' }} />
+              </Stack>
+            </View>
+          </View>
         </MentorModeProvider>
       </UserProvider>
     </ToastProvider>
