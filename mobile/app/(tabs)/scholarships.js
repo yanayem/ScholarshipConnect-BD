@@ -14,6 +14,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { theme } from '../../theme';
 import { apiService } from '../../services/api';
+import { cacheService } from '../../services/cache';
 import { useToast } from '../../components/Toast';
 import { Loader } from '../../components/Loader';
 import ScholarshipCard from '../../components/cards/ScholarshipCard';
@@ -39,7 +40,23 @@ export default function ScholarshipsScreen() {
   const { showToast, ToastComponent } = useToast();
 
   const loadData = async (showLoading = true) => {
-    if (showLoading) setLoading(true);
+    // 1. Try Cache First
+    if (showLoading) {
+      const cachedData = await cacheService.get('scholarships_list');
+      const cachedProfile = await cacheService.get('user_profile');
+
+      if (cachedData) {
+        setScholarships(cachedData);
+        setLoading(false);
+      }
+      if (cachedProfile) {
+        setUserProfile(cachedProfile);
+      }
+    }
+
+    if (showLoading && !scholarships.length) setLoading(true);
+
+    // 2. Refresh from API
     try {
       const [scholarRes, profileRes] = await Promise.all([
         apiService.getScholarships(),
@@ -49,14 +66,16 @@ export default function ScholarshipsScreen() {
       if (scholarRes.ok) {
         const data = Array.isArray(scholarRes.data) ? scholarRes.data : (scholarRes.data?.results || []);
         setScholarships(data);
+        cacheService.set('scholarships_list', data, 15); // Cache for 15 mins
       }
 
       if (profileRes.ok) {
         setUserProfile(profileRes.data);
+        cacheService.set('user_profile', profileRes.data, 30); // Cache for 30 mins
       }
     } catch (error) {
       console.log('Failed to fetch data', error);
-      showToast('Network error loading data', 'error');
+      if (!scholarships.length) showToast('Network error loading data', 'error');
     } finally {
       setLoading(false);
       setRefreshing(false);

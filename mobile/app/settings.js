@@ -76,7 +76,6 @@ export default function SettingsScreen() {
 
   const [darkMode, setDarkMode] = useState(false);
   const [highContrast, setHighContrast] = useState(false);
-  const [offlineMode, setOfflineMode] = useState(false);
 
   const handleUpgrade = () => {
     if (user?.is_pro) {
@@ -208,22 +207,6 @@ export default function SettingsScreen() {
             onValueChange={togglePrivacyStatus}
             trackColor={{ false: theme.colors.divider, true: theme.colors.primary }}
             disabled={updating}
-          />
-        </View>
-        <View style={styles.item}>
-          <View style={styles.itemLeft}>
-            <View style={[styles.iconBox, { backgroundColor: theme.colors.background }]}>
-              <MaterialIcons name="cloud-download" size={22} color={theme.colors.primary} />
-            </View>
-            <View>
-                <Text style={styles.itemLabel}>Offline Mode</Text>
-                <Text style={styles.itemSub}>Access saved scholarships without internet</Text>
-            </View>
-          </View>
-          <Switch
-            value={offlineMode}
-            onValueChange={setOfflineMode}
-            trackColor={{ false: theme.colors.divider, true: theme.colors.primary }}
           />
         </View>
 
