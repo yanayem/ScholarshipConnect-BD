@@ -35,27 +35,29 @@ const handleResponse = async (response) => {
   }
 
   if (response.status === 401) {
-    console.warn('[API] Unauthorized request detected. Token may be invalid or expired.');
+    console.warn('[API] Unauthorized request detected. Token may be expired.');
 
-    // To prevent infinite retry loops, we check if we've already tried refreshing
     const lastRefreshAttempt = await AsyncStorage.getItem('last_refresh_attempt');
     const now = Date.now();
 
-    if (!isExpoGo && (!lastRefreshAttempt || (now - parseInt(lastRefreshAttempt)) > 30000)) {
+    // Limit automatic refresh attempts to once every 30 seconds to avoid loops
+    if (!lastRefreshAttempt || (now - parseInt(lastRefreshAttempt)) > 30000) {
       try {
         await AsyncStorage.setItem('last_refresh_attempt', now.toString());
-        console.log('[API] Attempting to auto-refresh token from Firebase...');
+        console.log('[API] Attempting to force-refresh Firebase token...');
+
+        // Force refresh from Firebase
         const newToken = await firebaseAuth.getIdToken(true);
 
         if (newToken) {
+            console.log('[API] Token refreshed. Please retry the request.');
             await AsyncStorage.setItem('token', newToken);
-            console.log('[API] Token refreshed successfully. Please retry the operation.');
         } else {
-            console.warn('[API] Firebase session lost. Logging out...');
+            console.warn('[API] No Firebase session. Logging out...');
             await apiService.logout();
         }
       } catch (e) {
-        console.error('[API] Failed to auto-refresh token:', e.message);
+        console.error('[API] Auto-refresh failed:', e.message);
         await apiService.logout();
       }
     }
@@ -79,16 +81,25 @@ const handleResponse = async (response) => {
   return { ok: response.ok, status: response.status, data };
 };
 
+const getAuthToken = async () => {
+  // Try to get token from Firebase SDK (auto-refreshes if needed)
+  let token = await firebaseAuth.getIdToken();
+
+  // Fallback to AsyncStorage only if Firebase is not ready/initialized
+  if (!token) {
+      token = await AsyncStorage.getItem('token');
+  }
+  return token;
+};
+
 const getHeaders = async (includeToken = true) => {
   const headers = {
     'Content-Type': 'application/json',
   };
   if (includeToken) {
-    const token = await AsyncStorage.getItem('token');
+    const token = await getAuthToken();
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
-    } else {
-      console.log('[API] No token found in AsyncStorage');
     }
   }
   return headers;
@@ -150,7 +161,7 @@ export const apiService = {
 
   async updateProfile(profileData) {
     try {
-      const token = await AsyncStorage.getItem('token');
+      const token = await getAuthToken();
       const isFormData = !!profileData && typeof profileData.append === 'function';
 
       if (isFormData) {
@@ -229,7 +240,7 @@ export const apiService = {
 
   async addScholarship(scholarshipData) {
     try {
-      const token = await AsyncStorage.getItem('token');
+      const token = await getAuthToken();
       const isFormData = scholarshipData instanceof FormData;
 
       const response = await fetch(`${API_URL}/scholarships/`, {
@@ -245,7 +256,7 @@ export const apiService = {
 
   async updateScholarship(id, scholarshipData) {
     try {
-      const token = await AsyncStorage.getItem('token');
+      const token = await getAuthToken();
       const isFormData = scholarshipData instanceof FormData;
 
       const response = await fetch(`${API_URL}/scholarships/${id}/`, {
@@ -425,7 +436,7 @@ export const apiService = {
 
   async createDiscussion(data) {
     try {
-      const token = await AsyncStorage.getItem('token');
+      const token = await getAuthToken();
       const formData = new FormData();
       if (data.title) formData.append('title', data.title);
       if (data.content) formData.append('content', data.content);
@@ -505,7 +516,7 @@ export const apiService = {
 
   async createStory(data) {
     try {
-      const token = await AsyncStorage.getItem('token');
+      const token = await getAuthToken();
       const formData = new FormData();
       if (data.caption) formData.append('caption', data.caption);
       if (data.media) {
@@ -554,7 +565,7 @@ export const apiService = {
 
   async createBlogPost(formData) {
     try {
-      const token = await AsyncStorage.getItem('token');
+      const token = await getAuthToken();
       const response = await fetch(`${API_URL}/blog/`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
@@ -1114,7 +1125,7 @@ export const apiService = {
 
   async sendMessage(receiverId, message, image = null, relatedAppId = null) {
     try {
-      const token = await AsyncStorage.getItem('token');
+      const token = await getAuthToken();
       const headers = { 'Authorization': `Bearer ${token}` };
 
       let body;

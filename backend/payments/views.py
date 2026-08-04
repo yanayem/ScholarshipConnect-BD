@@ -14,13 +14,15 @@ from accounts.models import Profile
 from notifications.utils import send_notification
 
 # Configure Stripe
-if stripe:
+if stripe is not None:
     stripe.api_key = "sk_test_placeholder" # Use env in production
 
 class StripePaymentIntentView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
+        if not stripe:
+            return Response({"error": "Stripe is not installed or configured on the server."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         try:
             amount = 50000 # 500.00 BDT in cents (Stripe uses smallest currency unit)
             intent = stripe.PaymentIntent.create(
