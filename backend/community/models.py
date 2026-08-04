@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from djongo import models as djongo_models
+from core.utils import compress_image
 
 class Discussion(models.Model):
     CATEGORY_CHOICES = [
@@ -29,6 +30,13 @@ class Discussion(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if self.image:
+            new_image = compress_image(self.image)
+            if new_image:
+                self.image = new_image
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -69,6 +77,13 @@ class Story(models.Model):
     media = models.FileField(upload_to='stories/')
     caption = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if self.media:
+            new_image = compress_image(self.media)
+            if new_image:
+                self.media = new_image
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Story by {self.user.username} at {self.created_at}"
@@ -139,6 +154,13 @@ class ChatMessage(models.Model):
 
     # Optional: Link to an application if the chat is about a specific application
     related_application_id = models.IntegerField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if self.image:
+            new_image = compress_image(self.image)
+            if new_image:
+                self.image = new_image
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ['created_at']

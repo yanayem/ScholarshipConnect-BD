@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from scholarships.models import Scholarship
+from core.utils import compress_image
 
 class SavedScholarship(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved_scholarships')
@@ -60,6 +61,13 @@ class UserDocument(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if self.file:
+            new_image = compress_image(self.file)
+            if new_image:
+                self.file = new_image
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.name} ({self.user.username})"

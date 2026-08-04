@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from core.fields import SafeDecimalField
+from core.utils import compress_image
 
 class Scholarship(models.Model):
     STATUS_CHOICES = [
@@ -31,6 +32,13 @@ class Scholarship(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if self.image:
+            new_image = compress_image(self.image)
+            if new_image:
+                self.image = new_image
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title

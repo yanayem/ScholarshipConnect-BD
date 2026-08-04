@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 import datetime
 from core.fields import SafeDecimalField
+from core.utils import compress_image
 
 class Profile(models.Model):
     ACADEMIC_LEVEL_CHOICES = [
@@ -59,6 +60,13 @@ class Profile(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if self.profile_picture:
+            new_image = compress_image(self.profile_picture)
+            if new_image:
+                self.profile_picture = new_image
+        super().save(*args, **kwargs)
 
     @property
     def is_currently_pro(self):
