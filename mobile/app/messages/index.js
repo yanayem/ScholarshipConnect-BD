@@ -11,13 +11,28 @@ export default function InboxScreen({ isSupportOnly = false }) {
   const [refreshing, setRefreshing] = useState(false);
 
   const loadConversations = async () => {
-    const params = isSupportOnly ? 'type=support' : '';
-    const res = await apiService.getConversations(params);
-    if (res.ok) {
-      setConversations(res.data);
+    try {
+      const params = isSupportOnly ? 'type=support' : '';
+      const res = await apiService.getConversations(params);
+
+      if (res.ok) {
+        let serverData = [];
+        if (Array.isArray(res.data)) {
+          serverData = res.data;
+        } else if (res.data && typeof res.data === 'object') {
+          // Handle wrapped data (e.g. from DRF pagination or custom wrappers)
+          serverData = res.data.results || res.data.conversations || res.data.data || [];
+        }
+        setConversations(serverData);
+      } else {
+        console.warn('[Inbox] Failed to load conversations:', res.status, res.data);
+      }
+    } catch (error) {
+      console.error('[Inbox] loadConversations error:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-    setLoading(false);
-    setRefreshing(false);
   };
 
   useEffect(() => {
@@ -90,7 +105,7 @@ export default function InboxScreen({ isSupportOnly = false }) {
         <FlatList
           data={conversations}
           renderItem={renderConversation}
-          keyExtractor={item => item.user_id.toString()}
+          keyExtractor={(item, index) => (item.user_id || item.id || item._id || index).toString()}
           contentContainerStyle={styles.list}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} />

@@ -17,7 +17,7 @@ class SavedScholarshipListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return SavedScholarship.objects.filter(user=self.request.user)
+        return SavedScholarship.objects.filter(user_id=self.request.user.id)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -29,7 +29,7 @@ class SavedScholarshipDestroyView(generics.DestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return SavedScholarship.objects.filter(user=self.request.user)
+        return SavedScholarship.objects.filter(user_id=self.request.user.id)
 
 # ==========================
 # Handle scholarship application submissions and view application history.
@@ -42,7 +42,7 @@ class ScholarshipApplicationListCreateView(generics.ListCreateAPIView):
         user = self.request.user
         if user.is_staff:
             return ScholarshipApplication.objects.all().order_by('-created_at')
-        return ScholarshipApplication.objects.filter(user=user).order_by('-created_at')
+        return ScholarshipApplication.objects.filter(user_id=user.id).order_by('-created_at')
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -111,7 +111,7 @@ class UserDocumentListCreateView(generics.ListCreateAPIView):
                 queryset = queryset.filter(user_id=user_id_param)
             return queryset.order_by('-created_at')
             
-        docs = UserDocument.objects.filter(user=user)
+        docs = UserDocument.objects.filter(user_id=user.id)
         
         try:
             from notifications.models import Notification
@@ -147,7 +147,7 @@ class DocumentDeleteView(generics.DestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return UserDocument.objects.filter(user=self.request.user)
+        return UserDocument.objects.filter(user_id=self.request.user.id)
 
 # ==========================
 # Admin-only view to update the processing status of applications.

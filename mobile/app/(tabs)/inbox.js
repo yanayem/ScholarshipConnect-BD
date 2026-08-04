@@ -11,12 +11,25 @@ export default function InboxScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const loadConversations = async () => {
-    const res = await apiService.getConversations();
-    if (res.ok) {
-      setConversations(res.data);
+    try {
+      const res = await apiService.getConversations();
+      if (res.ok) {
+        let serverData = [];
+        if (Array.isArray(res.data)) {
+          serverData = res.data;
+        } else if (res.data && typeof res.data === 'object') {
+          serverData = res.data.results || res.data.conversations || res.data.data || [];
+        }
+        setConversations(serverData);
+      } else {
+        console.warn('[InboxTab] Failed to load:', res.status);
+      }
+    } catch (error) {
+      console.error('[InboxTab] Error:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-    setLoading(false);
-    setRefreshing(false);
   };
 
   useEffect(() => {
@@ -112,7 +125,7 @@ export default function InboxScreen() {
         <FlatList
           data={conversations}
           renderItem={renderConversation}
-          keyExtractor={item => item.user_id.toString()}
+          keyExtractor={(item, index) => (item.user_id || item.id || item._id || index).toString()}
           contentContainerStyle={styles.list}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} />

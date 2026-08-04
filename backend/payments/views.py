@@ -1,5 +1,8 @@
 import uuid
-import stripe
+try:
+    import stripe
+except ImportError:
+    stripe = None
 import requests
 from rest_framework import views, status, permissions
 from rest_framework.response import Response
@@ -11,7 +14,8 @@ from accounts.models import Profile
 from notifications.utils import send_notification
 
 # Configure Stripe
-stripe.api_key = "sk_test_placeholder" # Use env in production
+if stripe:
+    stripe.api_key = "sk_test_placeholder" # Use env in production
 
 class StripePaymentIntentView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -77,7 +81,7 @@ class BKashExecutePaymentView(views.APIView):
             payment.status = 'COMPLETED'
             payment.save()
 
-            profile = Profile.objects.get(user=payment.user)
+            profile = Profile.objects.get(user_id=payment.user_id)
             profile.upgrade_to_pro(30)
             
             send_notification(
@@ -115,7 +119,7 @@ class CheckoutView(views.APIView):
         )
 
         if payment_method == 'DirectCard':
-            profile = Profile.objects.get(user=request.user)
+            profile = Profile.objects.get(user_id=request.user.id)
             profile.upgrade_to_pro(30)
             
             send_notification(
@@ -160,7 +164,7 @@ class PaymentSuccessView(views.APIView):
                 payment.save()
                 
                 # Upgrade user to Pro
-                profile = Profile.objects.get(user=payment.user)
+                profile = Profile.objects.get(user_id=payment.user_id)
                 profile.upgrade_to_pro(30)
                 
                 send_notification(
@@ -185,6 +189,6 @@ class PaymentHistoryView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        payments = Payment.objects.filter(user=request.user).order_by('-created_at')
+        payments = Payment.objects.filter(user_id=request.user.id).order_by('-created_at')
         serializer = PaymentSerializer(payments, many=True)
         return Response(serializer.data)
