@@ -3,7 +3,7 @@ from .models import Scholarship
 
 @admin.register(Scholarship)
 class ScholarshipAdmin(admin.ModelAdmin):
-    list_display = ('title', 'provider', 'country', 'level', 'deadline', 'status', 'submitted_by', 'is_featured', 'is_active')
+    list_display = ('title', 'provider', 'country', 'level', 'deadline', 'status', 'is_featured', 'is_active')
     search_fields = ('title', 'provider', 'country', 'category')
     list_filter = ('status', 'is_featured', 'country', 'category', 'deadline', 'level')
     list_editable = ('status', 'is_featured', 'deadline')

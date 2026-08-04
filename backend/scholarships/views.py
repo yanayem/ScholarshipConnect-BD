@@ -62,8 +62,8 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
                 if status_param:
                     queryset = queryset.filter(status=status_param)
             else:
-                # Regular user: see active OR their own submitted ones (safe ID filter for Djongo)
-                queryset = queryset.filter(Q(status='active') | Q(submitted_by_id=user.id))
+                # Regular user: see active OR their own submitted ones
+                queryset = queryset.filter(Q(status='active') | Q(submitted_by=user))
         else:
             # Guests
             queryset = queryset.filter(status='active')
@@ -172,6 +172,7 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
             "matches": serializer.data,
             "count": queryset.count()
         })
+
     @action(detail=False, methods=['get'], url_path='matchmaker', permission_classes=[permissions.IsAuthenticated])
     def matchmaker(self, request):
         """
@@ -259,6 +260,7 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
             },
             "recommendations": results[:10] # Top 10 matches
         })
+
     @action(detail=False, methods=['get'], url_path='autocomplete', permission_classes=[permissions.AllowAny])
     def autocomplete(self, request):
         """

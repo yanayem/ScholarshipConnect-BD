@@ -22,6 +22,7 @@ class Scholarship(models.Model):
     eligibility = models.TextField(blank=True, default='')
     official_link = models.URLField(blank=True, default='')
     image_url = models.URLField(blank=True, default='')
+    image = models.ImageField(upload_to='scholarships/', blank=True, null=True)
     is_featured = models.BooleanField(default=False)
 
     # Verification System
