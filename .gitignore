@@ -45,10 +45,15 @@ npm-debug.*
 yarn-debug.*
 yarn-error.*
 lint_errors.json
+*.diff
+*.patch
+patch.diff
+package.json
 
 # IDEs
 .vscode/
 .idea/
+.claude/
 *.swp
 *.swo
 
