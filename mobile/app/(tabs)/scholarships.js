@@ -7,15 +7,16 @@
 import { useState, useCallback } from 'react';
 import {
   View, Text, TextInput, ScrollView,
-  TouchableOpacity, StyleSheet, StatusBar, RefreshControl, Platform, Image
+  TouchableOpacity, StyleSheet, StatusBar, RefreshControl, Platform
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { theme } from '../../theme';
 import { apiService } from '../../services/api';
 import { useToast } from '../../components/Toast';
 import { Loader } from '../../components/Loader';
+import ScholarshipCard from '../../components/cards/ScholarshipCard';
 
 const COUNTRIES = ['All', 'Japan', 'UK', 'Germany', 'Europe', 'Australia', 'Korea', 'USA', 'China', 'Turkey', 'Canada'];
 const LEVELS = ['All', 'Bachelors', 'Masters', 'PhD', 'Diploma'];
@@ -265,100 +266,16 @@ export default function ScholarshipsScreen() {
             </TouchableOpacity>
           </View>
         ) : (
-          filtered.map((item, index) => {
-            const eligible = isEligible(item);
-            const daysLeft = getDaysLeft(item.deadline);
-
-            return (
-              <Animated.View
-                key={item.id}
-                entering={FadeInDown.delay(index * 50)}
-              >
-                <TouchableOpacity
-                  style={[styles.card, !eligible && styles.ineligibleCard]}
-                  activeOpacity={0.85}
-                  onPress={() => router.push(`/scholarships/${item.id}`)}
-                >
-                  {!eligible && (
-                    <View style={styles.ineligibleBadge}>
-                      <MaterialIcons name="info" size={12} color="#fff" />
-                      <Text style={styles.ineligibleText}>Low CGPA</Text>
-                    </View>
-                  )}
-
-                  <View style={styles.cardHeader}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.cardTitle}>{item.title}</Text>
-                      {item.status !== 'active' && (
-                          <View style={[styles.statusBadge, { backgroundColor: item.status === 'pending' ? theme.colors.warning : theme.colors.error }]}>
-                              <Text style={styles.statusBadgeText}>{item.status.toUpperCase()}</Text>
-                          </View>
-                      )}
-                    </View>
-                    <TouchableOpacity onPress={() => toggleBookmark(item)} style={styles.bookmarkBtn}>
-                      <MaterialIcons
-                        name={item.is_saved ? "bookmark" : "bookmark-outline"}
-                        size={24}
-                        color={item.is_saved ? theme.colors.primary : theme.colors.textSecondary}
-                      />
-                    </TouchableOpacity>
-                  </View>
-
-                  <View style={styles.metaRow}>
-                    <View style={[styles.metaBadge, { backgroundColor: theme.colors.tealCard }]}>
-                      <MaterialIcons name="place" size={13} color={theme.colors.primary} />
-                      <Text style={styles.metaText}>{item.country}</Text>
-                    </View>
-                    <View style={[styles.metaBadge, { backgroundColor: theme.colors.lavenderCard }]}>
-                      <MaterialIcons name="school" size={13} color={theme.colors.chartSecondary} />
-                      <Text style={[styles.metaText, {color: theme.colors.chartSecondary}]}>{item.level}</Text>
-                    </View>
-                    <View style={[styles.metaBadge, { backgroundColor: theme.colors.peachCard }]}>
-                      <MaterialIcons name="work" size={13} color={theme.colors.chartAccent} />
-                      <Text style={[styles.metaText, {color: theme.colors.chartAccent}]}>{item.field || 'General'}</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.cardBottom}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <Text style={styles.deadline}>
-                        <MaterialIcons name="event" size={13} color={theme.colors.error} /> {item.deadline}
-                      </Text>
-                    </View>
-                    <View style={[styles.amountBadge, { marginLeft: 10, flexShrink: 1 }]}>
-                      <Text style={styles.amountText} numberOfLines={1} ellipsizeMode="tail">{item.amount || 'Full Fund'}</Text>
-                    </View>
-                  </View>
-
-                  {/* Progress Bar for Deadline */}
-                  {daysLeft !== null && daysLeft > 0 && (
-                    <View style={styles.trackerContainer}>
-                      <View style={styles.trackerHeader}>
-                        <Text style={styles.trackerText}>Deadline Tracker</Text>
-                        <Text style={styles.daysLeftText}>{daysLeft} days left</Text>
-                      </View>
-                      <View style={styles.progressBarBg}>
-                        <View
-                          style={[
-                            styles.progressBarFill,
-                            { width: `${Math.min(100, 100 - (daysLeft / 90) * 100)}%`, backgroundColor: daysLeft < 15 ? theme.colors.error : theme.colors.primary }
-                          ]}
-                        />
-                      </View>
-                    </View>
-                  )}
-
-                  <TouchableOpacity
-                    style={styles.applyBtn}
-                    onPress={() => router.push(`/scholarships/${item.id}`)}
-                  >
-                    <Text style={styles.applyText}>View Scholarship</Text>
-                    <MaterialIcons name="chevron-right" size={20} color="#fff" />
-                  </TouchableOpacity>
-                </TouchableOpacity>
-              </Animated.View>
-            );
-          })
+          filtered.map((item, index) => (
+            <ScholarshipCard
+              key={item.id}
+              item={item}
+              index={index}
+              userProfile={userProfile}
+              onPress={() => router.push(`/scholarships/${item.id}`)}
+              onBookmark={toggleBookmark}
+            />
+          ))
         )}
         <View style={{ height: 40 }} />
       </ScrollView>
