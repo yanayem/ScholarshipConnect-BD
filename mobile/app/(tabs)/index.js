@@ -111,10 +111,12 @@ function StudentHome({ user, featured, loading, leaderboard, activeCountries, al
               onPress={() => router.push('/profile')}
               style={styles.profileBtn}
             >
-               {user?.avatar_url || user?.profile_picture ? (
+               {(user?.avatar_url || user?.profile_picture) ? (
                  <Image
                    source={{ uri: user?.avatar_url || user?.profile_picture }}
                    style={styles.headerAvatarSmall}
+                   key={user?.avatar_url || user?.profile_picture}
+                   defaultSource={{ uri: 'https://ui-avatars.com/api/?name=' + initials }}
                  />
                ) : (
                  <View style={styles.headerAvatarFallbackSmall}>
@@ -891,17 +893,18 @@ const styles = StyleSheet.create({
     padding: 2,
   },
   headerAvatarSmall: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     borderWidth: 1.5,
-    borderColor: theme.colors.primaryLight,
+    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.primaryLight,
   },
   headerAvatarFallbackSmall: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: theme.colors.primaryLight,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: theme.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
@@ -910,7 +913,7 @@ const styles = StyleSheet.create({
   avatarInitialTextSmall: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: theme.colors.primary,
+    color: '#fff',
   },
 
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, marginTop: 8 },
