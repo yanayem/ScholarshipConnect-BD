@@ -38,3 +38,6 @@ class AccountsConfig(AppConfig):
                         logger.warning(f"Firebase key not found at: {firebase_creds_path}")
                     else:
                         logger.warning("Firebase Admin SDK not initialized: FIREBASE_SERVICE_ACCOUNT_KEY not set.")
+
+        # Import signals to register them
+        import accounts.signals

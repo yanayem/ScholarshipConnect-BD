@@ -347,7 +347,7 @@ export default function SettingsScreen() {
           icon="help-outline"
           label="User Manual"
           subLabel="How to use the app & troubleshooting"
-          onPress={() => router.push('/user_app_manual')}
+          onPress={() => router.push('/manual')}
         />
         <SettingItem
           icon="info-outline"

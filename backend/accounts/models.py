@@ -1,7 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.utils import timezone
 import datetime
 from core.fields import SafeDecimalField
@@ -110,15 +108,6 @@ def get_safe_profile(self):
         return profile
 
 User.add_to_class('get_profile', get_safe_profile)
-
-# Signals to create/save profile when User is created
-@receiver(post_save, sender=User)
-def manage_user_profile(sender, instance, created, **kwargs):
-    """
-    Ensure a Profile exists for every User.
-    Using get_or_create to handle both new and existing users safely.
-    """
-    Profile.objects.get_or_create(user=instance)
 
 class AdminActivityLog(models.Model):
     admin = models.ForeignKey(User, on_delete=models.CASCADE)
