@@ -57,10 +57,14 @@
     "build:apk": "cd android && gradlew.bat assembleDebug",
     "build:release": "cd android && gradlew.bat assembleRelease",
     "web": "expo start --web",
+    "vercel-build": "npm run build:web",
     "build:web": "expo export --platform web",
     "backend": "cd ../backend && venv\\Scripts\\python.exe manage.py runserver 0.0.0.0:8000",
     "dev": "concurrently -k \"npm run backend\" \"npm run android\"",
     "dev:start": "concurrently -k \"npm run backend\" \"npm run start\""
   },
-  "private": true
+  "private": true,
+  "engines": {
+    "node": "\u003e=20.0.0"
+  }
 }
