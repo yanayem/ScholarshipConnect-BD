@@ -1,8 +1,5 @@
 import uuid
-try:
-    import stripe
-except ImportError:
-    stripe = None
+import stripe
 import requests
 from rest_framework import views, status, permissions
 from rest_framework.response import Response
@@ -14,15 +11,12 @@ from accounts.models import Profile
 from notifications.utils import send_notification
 
 # Configure Stripe
-if stripe is not None:
-    stripe.api_key = "sk_test_placeholder" # Use env in production
+stripe.api_key = "sk_test_placeholder" # Use env in production
 
 class StripePaymentIntentView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        if not stripe:
-            return Response({"error": "Stripe is not installed or configured on the server."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         try:
             amount = 50000 # 500.00 BDT in cents (Stripe uses smallest currency unit)
             intent = stripe.PaymentIntent.create(
@@ -83,7 +77,7 @@ class BKashExecutePaymentView(views.APIView):
             payment.status = 'COMPLETED'
             payment.save()
 
-            profile = Profile.objects.get(user_id=payment.user_id)
+            profile = Profile.objects.get(user=payment.user)
             profile.upgrade_to_pro(30)
             
             send_notification(
@@ -121,7 +115,7 @@ class CheckoutView(views.APIView):
         )
 
         if payment_method == 'DirectCard':
-            profile = Profile.objects.get(user_id=request.user.id)
+            profile = Profile.objects.get(user=request.user)
             profile.upgrade_to_pro(30)
             
             send_notification(
@@ -166,7 +160,7 @@ class PaymentSuccessView(views.APIView):
                 payment.save()
                 
                 # Upgrade user to Pro
-                profile = Profile.objects.get(user_id=payment.user_id)
+                profile = Profile.objects.get(user=payment.user)
                 profile.upgrade_to_pro(30)
                 
                 send_notification(
@@ -191,6 +185,6 @@ class PaymentHistoryView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        payments = Payment.objects.filter(user_id=request.user.id).order_by('-created_at')
+        payments = Payment.objects.filter(user=request.user).order_by('-created_at')
         serializer = PaymentSerializer(payments, many=True)
         return Response(serializer.data)

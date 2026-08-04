@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
   TextInput, Pressable, KeyboardAvoidingView,
-  Platform, Alert, Modal, TouchableOpacity,
+  Platform, Alert, Modal, TouchableOpacity, Image,
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { theme } from '../theme';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
+import * as ImagePicker from 'expo-image-picker';
 
 import { apiService } from '../services/api';
 import { useToast } from '../components/Toast';
@@ -33,6 +34,7 @@ export default function AddScholarship() {
   const router = useRouter();
   const { showToast, ToastComponent } = useToast();
   const [showCalendar, setShowCalendar] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     provider: '',
@@ -53,26 +55,48 @@ export default function AddScholarship() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0]);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!formData.title || !formData.deadline) {
       Alert.alert('Error', 'Please fill in all required fields (Title and Deadline)');
       return;
     }
     try {
-      const payload = {};
+      const data = new FormData();
+
+      // Add all text fields to FormData
       Object.keys(formData).forEach(key => {
-        if (formData[key] !== '' || key === 'title' || key === 'deadline') {
-           payload[key] = formData[key];
+        if (formData[key] !== '') {
+          if (key === 'min_cgpa') {
+            data.append(key, parseFloat(formData[key]) || 0.00);
+          } else {
+            data.append(key, formData[key]);
+          }
         }
       });
 
-      if (payload.min_cgpa) {
-        payload.min_cgpa = parseFloat(payload.min_cgpa);
-      } else {
-        payload.min_cgpa = 0.00;
+      // Add image if selected
+      if (selectedImage) {
+        data.append('image', {
+          uri: Platform.OS === 'ios' ? selectedImage.uri.replace('file://', '') : selectedImage.uri,
+          name: 'scholarship_image.jpg',
+          type: 'image/jpeg',
+        });
       }
 
-      const res = await apiService.addScholarship(payload);
+      const res = await apiService.addScholarship(data);
       if (res.ok) {
         showToast('Scholarship submitted for review!', 'success');
 
@@ -287,12 +311,31 @@ export default function AddScholarship() {
           />
 
           <InputField
-            label="Image URL"
+            label="Image URL (Optional)"
             name="image_url"
             value={formData.image_url}
             onChangeText={handleInputChange}
-            placeholder="https://... (Poster or Logo URL)"
+            placeholder="https://... (Fallback or Logo URL)"
           />
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Upload Banner Image</Text>
+            <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
+              {selectedImage ? (
+                <Image source={{ uri: selectedImage.uri }} style={styles.previewImage} />
+              ) : (
+                <View style={styles.imagePlaceholder}>
+                  <MaterialIcons name="add-a-photo" size={32} color={theme.colors.primary} />
+                  <Text style={styles.imagePickerText}>Select Scholarship Poster</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            {selectedImage && (
+              <TouchableOpacity onPress={() => setSelectedImage(null)} style={styles.removeImgBtn}>
+                <Text style={styles.removeImgText}>Remove Image</Text>
+              </TouchableOpacity>
+            )}
+          </View>
 
           <InputField
             label="Description"
@@ -441,4 +484,38 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.fontFamily.bold,
     color: theme.colors.heading,
   },
+  imagePicker: {
+    height: 180,
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    marginTop: 5,
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+  },
+  imagePlaceholder: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  imagePickerText: {
+    color: theme.colors.primary,
+    fontSize: 14,
+    fontFamily: theme.typography.fontFamily.medium,
+  },
+  removeImgBtn: {
+    marginTop: 8,
+    alignSelf: 'flex-end',
+  },
+  removeImgText: {
+    color: theme.colors.error,
+    fontSize: 12,
+    fontWeight: 'bold',
+  }
 });

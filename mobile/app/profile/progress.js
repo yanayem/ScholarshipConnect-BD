@@ -139,7 +139,7 @@ export default function ProgressScreen() {
            <View style={styles.tipCard}>
               <MaterialIcons name="lightbulb" size={24} color={theme.colors.primary} />
               <Text style={styles.tipText}>
-                Students with a completed "Vault" are 3x more likely to submit applications before deadlines.
+                Students with a completed &quot;Vault&quot; are 3x more likely to submit applications before deadlines.
               </Text>
            </View>
         </View>

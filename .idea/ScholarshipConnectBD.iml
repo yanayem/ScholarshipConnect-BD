@@ -9,6 +9,8 @@
       <excludeFolder url="file://$MODULE_DIR$/mobile/.expo" />
       <excludeFolder url="file://$MODULE_DIR$/mobile/android" />
       <excludeFolder url="file://$MODULE_DIR$/mobile/node_modules" />
+      <excludeFolder url="file://$MODULE_DIR$/backend/venv" />
+      <excludeFolder url="file://$MODULE_DIR$/mobile/node_modules_old" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

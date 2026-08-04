@@ -48,7 +48,7 @@ export default function PaymentSuccessScreen() {
                     <Text style={styles.title}>Payment Successful!</Text>
                     <Text style={styles.subtitle}>Welcome to ScholarConnect Pro</Text>
 
-                    <View style={styles.receiptCard}>
+                    <View style={[styles.receiptCard, theme.shadows.soft]}>
                         <Text style={styles.receiptLabel}>Transaction ID</Text>
                         <Text style={styles.receiptValue}>{tran_id || 'SC-PRO-88291'}</Text>
 

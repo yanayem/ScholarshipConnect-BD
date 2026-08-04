@@ -14,14 +14,17 @@ import {
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
-import React, { useEffect } from 'react';
-import { UserProvider } from '../context/UserContext';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Platform } from 'react-native';
+import Constants from 'expo-constants';
+import { firebaseAuth } from '../services/firebase';
 import { MentorModeProvider } from '../context/MentorModeContext';
 import { ToastProvider } from '../context/ToastContext';
+import { UserProvider } from '../context/UserContext';
 
 SplashScreen.preventAutoHideAsync();
 
-function RootLayoutContent() {
+export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': Inter_400Regular,
     'Inter-Medium': Inter_500Medium,
@@ -30,20 +33,26 @@ function RootLayoutContent() {
   });
 
   useEffect(() => {
+    // Hide splash screen immediately if there's an error
     if (fontError) {
       console.error('Font loading error:', fontError);
       SplashScreen.hideAsync();
     }
 
     if (fontsLoaded) {
-      SplashScreen.hideAsync();
+      // Enforce 1.5s branded splash visibility as per AGENTS.md
+      const timer = setTimeout(async () => {
+        await SplashScreen.hideAsync();
+      }, 1500);
+      return () => clearTimeout(timer);
     }
 
-    const timer = setTimeout(() => {
+    // Safety timeout: Ensure splash screen hides even if everything fails
+    const safetyTimer = setTimeout(() => {
       SplashScreen.hideAsync();
-    }, 3000);
+    }, 5000);
 
-    return () => clearTimeout(timer);
+    return () => clearTimeout(safetyTimer);
   }, [fontsLoaded, fontError]);
 
   if (!fontsLoaded && !fontError) {
@@ -51,26 +60,20 @@ function RootLayoutContent() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="scholarships/[id]" />
-      <Stack.Screen name="apply/[id]" />
-      <Stack.Screen name="reminders" />
-      <Stack.Screen name="documents" />
-      <Stack.Screen name="settings" />
-      <Stack.Screen name="edit-profile" options={{ presentation: 'modal' }} />
-    </Stack>
-  );
-}
-
-export default function RootLayout() {
-  return (
     <ToastProvider>
       <UserProvider>
         <MentorModeProvider>
-          <RootLayoutContent />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="scholarships/[id]" />
+            <Stack.Screen name="apply/[id]" />
+            <Stack.Screen name="reminders" />
+            <Stack.Screen name="documents" />
+            <Stack.Screen name="settings" />
+            <Stack.Screen name="edit-profile" options={{ presentation: 'modal' }} />
+          </Stack>
         </MentorModeProvider>
       </UserProvider>
     </ToastProvider>

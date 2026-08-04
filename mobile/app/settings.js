@@ -8,6 +8,32 @@ import { apiService } from '../services/api';
 import { API_URL } from '../constants/Config';
 import { Loader } from '../components/Loader';
 
+const SettingItem = ({ icon, label, onPress, rightElement, color = theme.colors.textPrimary, subLabel, iconType = 'material' }) => (
+  <TouchableOpacity style={styles.item} onPress={onPress}>
+    <View style={styles.itemLeft}>
+      <View style={[styles.iconBox, { backgroundColor: theme.colors.background }]}>
+        {iconType === 'material' ? (
+          <MaterialIcons name={icon} size={22} color={theme.colors.primary} />
+        ) : iconType === 'ionicons' ? (
+          <Ionicons name={icon} size={22} color={theme.colors.primary} />
+        ) : (
+          <FontAwesome5 name={icon} size={18} color={theme.colors.primary} />
+        )}
+      </View>
+      <View>
+        <Text style={[styles.itemLabel, { color }]}>{label}</Text>
+        {subLabel && <Text style={styles.itemSub}>{subLabel}</Text>}
+      </View>
+    </View>
+    {rightElement || <MaterialIcons name="chevron-right" size={24} color={theme.colors.divider} />}
+  </TouchableOpacity>
+);
+
+const SectionHeader = ({ title }) => (
+  <View style={styles.sectionHeader}>
+    <Text style={styles.sectionTitle}>{title}</Text>
+  </View>
+);
 export default function SettingsScreen() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -78,33 +104,6 @@ export default function SettingsScreen() {
       router.push('/upgrade-pro');
     }
   };
-
-  const SettingItem = ({ icon, label, onPress, rightElement, color = theme.colors.textPrimary, subLabel, iconType = 'material' }) => (
-    <TouchableOpacity style={styles.item} onPress={onPress}>
-      <View style={styles.itemLeft}>
-        <View style={[styles.iconBox, { backgroundColor: theme.colors.background }]}>
-          {iconType === 'material' ? (
-            <MaterialIcons name={icon} size={22} color={theme.colors.primary} />
-          ) : iconType === 'ionicons' ? (
-            <Ionicons name={icon} size={22} color={theme.colors.primary} />
-          ) : (
-            <FontAwesome5 name={icon} size={18} color={theme.colors.primary} />
-          )}
-        </View>
-        <View>
-          <Text style={[styles.itemLabel, { color }]}>{label}</Text>
-          {subLabel && <Text style={styles.itemSub}>{subLabel}</Text>}
-        </View>
-      </View>
-      {rightElement || <MaterialIcons name="chevron-right" size={24} color={theme.colors.divider} />}
-    </TouchableOpacity>
-  );
-
-  const SectionHeader = ({ title }) => (
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-    </View>
-  );
 
   if (loading) {
     return <Loader message="Accessing settings..." />;
@@ -346,8 +345,9 @@ export default function SettingsScreen() {
         />
         <SettingItem
           icon="help-outline"
-          label="Help Center"
-          onPress={() => Alert.alert('Help', 'Contact us at support@scholarshipconnect.bd')}
+          label="User Manual"
+          subLabel="How to use the app & troubleshooting"
+          onPress={() => router.push('/user_app_manual')}
         />
         <SettingItem
           icon="info-outline"

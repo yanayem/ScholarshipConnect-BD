@@ -62,3 +62,24 @@ package.json
 
 # Local tracking
 CHANGES.md
+AI_MATCHMAKER.md
+LAYOUT_DOCUMENTATION.md
+erdigram.md
+backend/.expo/README.md
+mobile/app/ai-tools/aitool.md
+mobile/components/COMPONENTS.md
+
+# Debug/Utility Scripts & Temporary Files
+backend/check_images.py
+backend/cleanup_chat.py
+backend/clear_demo_data.py
+backend/debug_profiles.py
+backend/fix_profiles.py
+backend/fix_scholarships.py
+backend/populate_admin_data.py
+backend/test_online_image.py
+backend/error*.html
+index.html
+mobile/scripts/reset-project.js
+mobile/scripts/update_colors.js
+mobile/node_modules_old/

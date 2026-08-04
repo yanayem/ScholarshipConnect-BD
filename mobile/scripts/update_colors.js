@@ -1,7 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const directoryPath = path.join(__dirname, '../app');
+// Fix: __dirname might not be available in some environments
+const directoryPath = path.join(process.cwd(), 'app');
 
 const colorMapping = {
   // Primary (Soft Terracotta)

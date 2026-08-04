@@ -6,3 +6,4 @@ class NotificationAdmin(admin.ModelAdmin):
     list_display = ('user', 'title', 'is_read', 'created_at')
     list_filter = ('is_read', 'created_at')
     search_fields = ('user__username', 'title', 'message')
+    readonly_fields = ('created_at',)

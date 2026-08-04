@@ -425,10 +425,10 @@ class ChatHistoryView(generics.ListAPIView):
                 print(f"[CHAT ERROR] Could not resolve user ID: {other_id}")
                 return ChatMessage.objects.none()
             
-            # Filter messages where these two users are participants - use IDs for Djongo reliability
+            # Filter messages where these two users are participants
             return ChatMessage.objects.filter(
-                (Q(sender_id=user.id) & Q(receiver_id=actual_user.id)) |
-                (Q(sender_id=actual_user.id) & Q(receiver_id=user.id))
+                (Q(sender=user) & Q(receiver=actual_user)) |
+                (Q(sender=actual_user) & Q(receiver=user))
             ).order_by('created_at')
             
         except Exception as e:
@@ -465,14 +465,14 @@ class ConversationListView(APIView):
         user = request.user
         is_support_view = request.query_params.get('type') == 'support'
         
-        # Find distinct conversation partners using IDs for Djongo reliability
-        sent_to = set(ChatMessage.objects.filter(sender_id=user.id).values_list('receiver_id', flat=True).distinct())
-        received_from = set(ChatMessage.objects.filter(receiver_id=user.id).values_list('sender_id', flat=True).distinct())
+        # Find distinct conversation partners
+        sent_to = set(ChatMessage.objects.filter(sender=user).values_list('receiver_id', flat=True).distinct())
+        received_from = set(ChatMessage.objects.filter(receiver=user).values_list('sender_id', flat=True).distinct())
         
         other_user_ids = sent_to.union(received_from)
         
         # Optimize unread counts safely (avoids Djongo boolean recursion bug)
-        all_received = ChatMessage.objects.filter(receiver_id=user.id).only('sender_id', 'is_read')
+        all_received = ChatMessage.objects.filter(receiver=user).only('sender_id', 'is_read')
         from collections import Counter
         unread_counts = Counter(m.sender_id for m in all_received if not m.is_read)
         

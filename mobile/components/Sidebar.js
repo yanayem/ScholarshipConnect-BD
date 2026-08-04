@@ -20,7 +20,7 @@ const NAV_ITEMS = [
   { label: 'Applications', path: '/(tabs)/applications', icon: 'bookmark' },
   { label: 'Community', path: '/(tabs)/community', icon: 'forum' },
   { label: 'Support', path: 'action:support', icon: 'support-agent' },
-  { label: 'User Manual', path: '/manual', icon: 'help-outline' },
+  { label: 'User Manual', path: '/user_app_manual', icon: 'help-outline' },
   { label: 'Profile', path: '/(tabs)/profile', icon: 'person' },
   { label: 'Admin Panel', path: '/admin', icon: 'admin-panel-settings' },
 ];

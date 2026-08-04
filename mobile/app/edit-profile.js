@@ -429,7 +429,7 @@ export default function EditProfileScreen() {
           </View>
           <Text style={styles.completionHint}>
             {completion < 50 ? '💡 Complete your profile for AI Matchmaking' :
-             completion < 80 ? 'High accuracy matching is almost ready!' :
+             completion < 80 ? '🚀 High accuracy matching is almost ready!' :
              '🌟 Your profile is elite! Ready for applications.'}
           </Text>
         </View>
