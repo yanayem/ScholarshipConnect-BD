@@ -156,12 +156,61 @@ class AIMatchmakerView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        """
-        Calls the matchmaker logic from ScholarshipViewSet.
-        """
-        from scholarships.views import ScholarshipViewSet
-        # Instantiate the viewset to access its action
-        viewset = ScholarshipViewSet()
-        viewset.request = request
-        viewset.format_kwarg = None
-        return viewset.matchmaker(request)
+        try:
+            # Safely get profile
+            profile, _ = Profile.objects.get_or_create(user=request.user)
+            is_pro = profile.is_currently_pro
+            
+            scholarships = Scholarship.objects.filter(status='active')
+            
+            recommendations = []
+            
+            target_countries = [c.strip().lower() for c in (profile.target_countries or "").split(',') if c.strip()]
+            pref_fields = [f.strip().lower() for f in f"{profile.major_course}, {profile.research_interests}".split(',') if f.strip()]
+            
+            for s in scholarships:
+                score = 0
+                s_country = (s.country or "").lower()
+                s_field = (s.field or "").lower()
+                
+                # Check country match
+                for tc in target_countries:
+                    if tc in s_country or s_country in tc:
+                        score += 50
+                        break
+                
+                # Check field match
+                for pf in pref_fields:
+                    if pf in s_field or s_field in pf:
+                        score += 40
+                        break
+                
+                # Bonus for bio relevance
+                if profile.bio and (s.title.lower()[:15] in profile.bio.lower()):
+                    score += 10
+                
+                if score > 0:
+                    recommendations.append({
+                        'scholarship': {
+                            'id': s.id,
+                            'title': s.title,
+                            'provider': s.provider,
+                            'country': s.country,
+                            'level': s.level,
+                        },
+                        'match_score': score if score <= 100 else 100
+                    })
+            
+            recommendations.sort(key=lambda x: x['match_score'], reverse=True)
+            
+            # Pro users get more matches
+            limit = 10 if is_pro else 3
+            
+            return Response({
+                'recommendations': recommendations[:limit],
+                'profile_summary': f"Matches for {profile.full_name or profile.user.username}.",
+                'is_pro_results': is_pro,
+                'total_found': len(recommendations)
+            })
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
