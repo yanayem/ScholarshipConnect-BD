@@ -47,30 +47,24 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
         user = self.request.user
         status_param = self.request.query_params.get('status')
         
-        print(f"[DEBUG] Scholarship QuerySet for User: {user} (Authenticated: {user.is_authenticated})")
-        
         # Base queryset
         queryset = Scholarship.objects.all()
         
-        # Filtering by status logic:
-        # 1. Staff can see all scholarships (except rejected by default), or filter by a specific status.
-        # 2. Regular users see all 'active' scholarships PLUS their own 'pending' submissions.
-        # 3. Guests only see 'active' scholarships.
-        # 4. Rejected scholarships are EXCLUDED from main lists (only visible in specialized feedback page).
-        
-        if user and user.is_authenticated:
-            if user.is_staff:
-                if status_param:
-                    queryset = queryset.filter(status=status_param)
+        # Filtering logic for lists:
+        # Staff see everything (except rejected by default).
+        # Users see active + their own.
+        # We only apply these filters for the 'list' action to allow retrieve/update/delete on all items.
+        if self.action == 'list':
+            if user and user.is_authenticated:
+                if user.is_staff:
+                    if status_param:
+                        queryset = queryset.filter(status=status_param)
+                    else:
+                        queryset = queryset.exclude(status='rejected')
                 else:
-                    # For admins, exclude rejected by default so the list stays clean
-                    queryset = queryset.exclude(status='rejected')
+                    queryset = queryset.filter(Q(status='active') | Q(submitted_by=user)).exclude(status='rejected')
             else:
-                # Regular user: see active OR their own submitted ones (but not rejected)
-                queryset = queryset.filter(Q(status='active') | Q(submitted_by=user)).exclude(status='rejected')
-        else:
-            # Guests
-            queryset = queryset.filter(status='active')
+                queryset = queryset.filter(status='active')
             
         return queryset
 
@@ -84,6 +78,12 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
             submitted_by=user if user.is_authenticated else None, 
             status=status_val
         )
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        print(f"[DEBUG] Deleting Scholarship: {instance.title} (ID: {instance.id})")
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAdminUser])
     def approve(self, request, pk=None):
