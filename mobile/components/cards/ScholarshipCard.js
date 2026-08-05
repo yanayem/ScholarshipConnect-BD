@@ -59,6 +59,14 @@ export default function ScholarshipCard({
           </View>
 
           {!isAdmin && onBookmark && (
+            <TouchableOpacity onPress={() => onBookmark(item)} style={styles.bookmarkBtn}>
+              <MaterialIcons
+                name={item.is_saved ? "bookmark" : "bookmark-outline"}
+                size={24}
+                color={item.is_saved ? theme.colors.primary : theme.colors.textSecondary}
+              />
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.metaRow}>
