@@ -96,6 +96,7 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
             action_verb = 'rejected'
             action_title = 'Rejected'
             scholarship.status = 'rejected'
+            scholarship.admin_note = note
         else:
             return Response({"error": "Invalid action. Use 'approve' or 'reject'."}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -128,7 +129,8 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
             send_notification(
                 user=scholarship.submitted_by,
                 title=f"Scholarship {action_title}",
-                message=notification_message
+                message=notification_message,
+                scholarship_id=scholarship.id
             )
         
         return Response({
@@ -311,6 +313,15 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
         
         # Return top 5 suggestions
         return Response(suggestions[:5])
+
+    @action(detail=False, methods=['get'], url_path='my_submissions', permission_classes=[permissions.IsAuthenticated])
+    def my_submissions(self, request):
+        """
+        Returns only the scholarships submitted by the current user.
+        """
+        queryset = Scholarship.objects.filter(submitted_by=request.user).order_by('-created_at')
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get'], url_path='admin-stats', permission_classes=[permissions.IsAdminUser])
     def admin_stats(self, request):

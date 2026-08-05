@@ -128,7 +128,8 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
             send_notification(
                 user=scholarship.submitted_by,
                 title=f"Scholarship {action_title}",
-                message=notification_message
+                message=notification_message,
+                scholarship_id=scholarship.id
             )
         
         return Response({
@@ -311,3 +312,12 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
         
         # Return top 5 suggestions
         return Response(suggestions[:5])
+
+    @action(detail=False, methods=['get'], url_path='my-submissions', permission_classes=[permissions.IsAuthenticated])
+    def my_submissions(self, request):
+        """
+        Returns only the scholarships submitted by the current user.
+        """
+        queryset = Scholarship.objects.filter(submitted_by=request.user).order_by('-created_at')
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

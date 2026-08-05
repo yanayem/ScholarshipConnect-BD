@@ -2,7 +2,7 @@ from .models import Notification
 from django.core.mail import send_mail
 from django.conf import settings
 
-def send_notification(user, title, message, send_email=False):
+def send_notification(user, title, message, send_email=False, scholarship_id=None):
     """
     Helper function to create a notification for a specific user and optionally send an email.
     """
@@ -10,7 +10,8 @@ def send_notification(user, title, message, send_email=False):
         notification = Notification.objects.create(
             user=user,
             title=title,
-            message=message
+            message=message,
+            scholarship_id=scholarship_id
         )
         
         if send_email and user.email:

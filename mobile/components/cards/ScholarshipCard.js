@@ -69,8 +69,12 @@ export default function ScholarshipCard({
           )}
 
           {isAdmin && onDelete && (
-            <TouchableOpacity onPress={() => onDelete(item.id, item.title)} style={styles.deleteBtn}>
-              <MaterialCommunityIcons name="delete-sweep-outline" size={22} color={theme.colors.error} />
+            <TouchableOpacity
+              onPress={() => onDelete(item.id, item.title)}
+              style={styles.deleteBtn}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
+              <MaterialCommunityIcons name="delete-sweep-outline" size={24} color={theme.colors.error} />
             </TouchableOpacity>
           )}
         </View>

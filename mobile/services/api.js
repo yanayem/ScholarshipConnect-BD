@@ -279,6 +279,18 @@ export const apiService = {
     }
   },
 
+  async getMySubmissions() {
+    try {
+      const response = await fetch(`${API_URL}/scholarships/my_submissions/`, {
+        method: 'GET',
+        headers: await getHeaders(true),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get My Submissions');
+    }
+  },
+
   async addScholarship(scholarshipData) {
     try {
       const isFormData = scholarshipData instanceof FormData;

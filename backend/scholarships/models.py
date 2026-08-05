@@ -31,6 +31,7 @@ class Scholarship(models.Model):
     # Verification System
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     submitted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    admin_note = models.TextField(blank=True, default='')
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

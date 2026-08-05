@@ -261,6 +261,20 @@ export default function ScholarshipDetails() {
 
         {/* Content Body */}
         <View style={styles.body}>
+            {/* Rejection Note Section (Visible only for submitted by user) */}
+            {details.status === 'rejected' && details.admin_note && (
+                <View style={styles.rejectionSection}>
+                    <View style={styles.rejectionHeader}>
+                        <MaterialIcons name="report-problem" size={24} color={UI.colors.error} />
+                        <Text style={[styles.bodyHeading, { color: UI.colors.error, marginBottom: 0 }]}>Rejection Feedback</Text>
+                    </View>
+                    <View style={styles.rejectionBox}>
+                        <Text style={styles.rejectionText}>{details.admin_note}</Text>
+                        <Text style={styles.rejectionSubtext}>Please address the feedback above and submit a new request if applicable.</Text>
+                    </View>
+                </View>
+            )}
+
             {/* AI Tools Bar */}
             <View style={styles.aiBar}>
                 <TouchableOpacity
@@ -566,6 +580,36 @@ const styles = StyleSheet.create({
   },
   descriptionSection: {
     marginBottom: 30,
+  },
+  rejectionSection: {
+    marginBottom: 30,
+    backgroundColor: '#FFF5F5',
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#FED7D7',
+  },
+  rejectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  rejectionBox: {
+    marginTop: 4,
+  },
+  rejectionText: {
+    fontSize: 15,
+    fontFamily: UI.fonts.bold,
+    color: UI.colors.error,
+    lineHeight: 22,
+  },
+  rejectionSubtext: {
+    fontSize: 12,
+    fontFamily: UI.fonts.medium,
+    color: UI.colors.textMuted,
+    marginTop: 8,
+    fontStyle: 'italic',
   },
   aiBar: {
     flexDirection: 'row',
