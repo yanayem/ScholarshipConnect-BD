@@ -62,8 +62,8 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
         user = self.request.user
         status_param = self.request.query_params.get('status')
         
-        # Base queryset with optimization
-        queryset = Scholarship.objects.select_related('submitted_by').all()
+        # Base queryset
+        queryset = Scholarship.objects.all()
         
         # Filtering logic for lists:
         # Staff see everything (except rejected by default).
