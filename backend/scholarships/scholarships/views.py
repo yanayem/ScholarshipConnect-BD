@@ -53,17 +53,21 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
         queryset = Scholarship.objects.all()
         
         # Filtering by status logic:
-        # 1. Staff can see all scholarships, or filter by a specific status.
-        # 2. Regular users see all 'active' scholarships PLUS their own 'pending/rejected' submissions.
+        # 1. Staff can see all scholarships (except rejected by default), or filter by a specific status.
+        # 2. Regular users see all 'active' scholarships PLUS their own 'pending' submissions.
         # 3. Guests only see 'active' scholarships.
+        # 4. Rejected scholarships are EXCLUDED from main lists (only visible in specialized feedback page).
         
         if user and user.is_authenticated:
             if user.is_staff:
                 if status_param:
                     queryset = queryset.filter(status=status_param)
+                else:
+                    # For admins, exclude rejected by default so the list stays clean
+                    queryset = queryset.exclude(status='rejected')
             else:
-                # Regular user: see active OR their own submitted ones
-                queryset = queryset.filter(Q(status='active') | Q(submitted_by=user))
+                # Regular user: see active OR their own submitted ones (but not rejected)
+                queryset = queryset.filter(Q(status='active') | Q(submitted_by=user)).exclude(status='rejected')
         else:
             # Guests
             queryset = queryset.filter(status='active')
