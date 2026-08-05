@@ -122,7 +122,7 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
             
             # Send notification to the user who submitted the scholarship
             display_points = points_change if points_change > 0 else -points_change
-            notification_message = f"Your submission '{scholarship.title}' has been {action_verb}. {display_points} ScholarPoints {'awarded 🌟' if points_change > 0 else 'deducted ⚠️'}."
+            notification_message = f"Your submission '{scholarship.title}' has been {action_verb}. {display_points} ScholarPoints {'awarded' if points_change > 0 else 'deducted'}."
             
             send_notification(
                 user=scholarship.submitted_by,
