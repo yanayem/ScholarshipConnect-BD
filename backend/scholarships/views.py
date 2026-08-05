@@ -94,9 +94,21 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
             status=status_val
         )
 
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAdminUser])
+    def destroy(self, request, *args, **kwargs):
+        print(f"[DEBUG] Destroy request received for ID: {kwargs.get('pk')}")
+        instance = self.get_object()
+        print(f"[DEBUG] Deleting scholarship: {instance.title}")
+        self.perform_destroy(instance)
+        print(f"[DEBUG] Deletion complete")
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def approve(self, request, pk=None):
         print(f"[DEBUG] Approve action triggered for ID: {pk}")
+        if not request.user.is_staff:
+            print(f"[DEBUG] User {request.user.username} is NOT staff")
+            return Response({"error": "Admin access required"}, status=status.HTTP_403_FORBIDDEN)
+
         scholarship = self.get_object()
         print(f"[DEBUG] Found scholarship: {scholarship.title}")
         action_type = str(request.data.get('action', '')).lower()
