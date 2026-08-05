@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { apiService } from '../services/api';
+import { firebaseAuth } from '../services/firebase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const UserContext = createContext();
@@ -37,7 +38,17 @@ export const UserProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    fetchProfile();
+    const initializeAuth = async () => {
+      // Check if we have a token in storage first
+      const hasToken = await AsyncStorage.getItem('token');
+      if (hasToken) {
+        // If we expect to be logged in, wait for Firebase to restore session
+        await firebaseAuth.waitForUser();
+      }
+      await fetchProfile();
+    };
+
+    initializeAuth();
   }, []);
 
   return (

@@ -95,5 +95,27 @@ export const firebaseAuth = {
             return auth.onAuthStateChanged(callback);
         }
         return () => {};
+    },
+
+    /**
+     * Helper to wait for Firebase to initialize and return the current user
+     * @returns {Promise<any>}
+     */
+    waitForUser() {
+        return new Promise((resolve) => {
+            const user = auth?.currentUser;
+            if (user) return resolve(user);
+
+            const unsubscribe = this.onAuthStateChanged((u) => {
+                unsubscribe();
+                resolve(u);
+            });
+
+            // Absolute timeout of 5 seconds to prevent hanging
+            setTimeout(() => {
+                unsubscribe();
+                resolve(auth?.currentUser || null);
+            }, 5000);
+        });
     }
 };

@@ -33,7 +33,15 @@ export const cacheService = {
       if (!item) return null;
 
       const cacheData = JSON.parse(item);
-      return cacheData.value;
+      const { value, timestamp, expiry } = cacheData;
+
+      // Check if expired (if expiry is set and > 0)
+      if (expiry && expiry > 0 && (Date.now() - timestamp) > expiry) {
+        await AsyncStorage.removeItem(CACHE_PREFIX + key);
+        return null;
+      }
+
+      return value;
     } catch (e) {
       return null;
     }

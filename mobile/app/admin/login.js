@@ -8,13 +8,14 @@ import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
   KeyboardAvoidingView, Platform, ScrollView,
-  StatusBar, Dimensions, Alert, TextInput
+  StatusBar, Dimensions, TextInput
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { theme } from '../../theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiService } from '../../services/api';
+import { useToast } from '../../components/Toast';
 
 const { width, height } = Dimensions.get('window');
 
@@ -23,11 +24,12 @@ export default function AdminSecurityLogin() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { showToast, ToastComponent } = useToast();
   const router = useRouter();
 
   const handleVerify = async () => {
     if (!username || !password) {
-      Alert.alert('Error', 'Please enter admin username and password');
+      showToast('Please enter admin username and password', 'warning');
       return;
     }
 
@@ -36,16 +38,18 @@ export default function AdminSecurityLogin() {
       const response = await apiService.adminLogin(username.trim(), password.trim());
 
       if (response.ok) {
-        await apiService.setToken(response.data.access);
+        // Do NOT overwrite the Firebase token with the Django JWT.
+        // The backend uses Firebase authentication globally.
         await AsyncStorage.setItem('admin_verified', 'true');
+        showToast('Access Granted! Welcome Admin.', 'success');
         router.replace('/admin');
       } else {
         const errorMsg = response.data.detail || 'Invalid admin credentials.';
-        Alert.alert('Access Denied', errorMsg);
+        showToast(errorMsg, 'error');
       }
     } catch (error) {
       console.error(error);
-      Alert.alert('Error', 'Could not verify admin status. Check your connection.');
+      showToast('Could not verify admin status. Check your connection.', 'error');
     } finally {
       setLoading(false);
     }
@@ -145,6 +149,7 @@ export default function AdminSecurityLogin() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      {ToastComponent}
     </View>
   );
 }
