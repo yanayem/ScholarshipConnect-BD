@@ -59,24 +59,6 @@ export default function ScholarshipCard({
           </View>
 
           {!isAdmin && onBookmark && (
-            <TouchableOpacity onPress={() => onBookmark(item)} style={styles.bookmarkBtn}>
-              <MaterialIcons
-                name={item.is_saved ? "bookmark" : "bookmark-outline"}
-                size={24}
-                color={item.is_saved ? theme.colors.primary : theme.colors.textSecondary}
-              />
-            </TouchableOpacity>
-          )}
-
-          {isAdmin && onDelete && (
-            <TouchableOpacity
-              onPress={() => onDelete(item.id, item.title)}
-              style={styles.deleteBtn}
-              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-            >
-              <MaterialCommunityIcons name="delete-sweep-outline" size={24} color={theme.colors.error} />
-            </TouchableOpacity>
-          )}
         </View>
 
         <View style={styles.metaRow}>
@@ -131,6 +113,28 @@ export default function ScholarshipCard({
         {/* Admin Actions */}
         {isAdmin && (
           <View style={styles.adminActions}>
+            <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
+                {onEdit && (
+                <TouchableOpacity
+                    style={styles.editBtn}
+                    onPress={() => onEdit(item.id)}
+                >
+                    <MaterialIcons name="edit" size={16} color={theme.colors.primary} />
+                    <Text style={styles.editBtnText}>Edit</Text>
+                </TouchableOpacity>
+                )}
+
+                {onDelete && (
+                <TouchableOpacity
+                    style={styles.deleteActionBtn}
+                    onPress={() => onDelete(item.id, item.title)}
+                >
+                    <MaterialCommunityIcons name="delete-outline" size={18} color={theme.colors.error} />
+                    <Text style={styles.deleteActionText}>Remove</Text>
+                </TouchableOpacity>
+                )}
+            </View>
+
             {item.status === 'pending' && onApprove && onReject && (
               <View style={styles.approvalRow}>
                 <TouchableOpacity
@@ -146,16 +150,6 @@ export default function ScholarshipCard({
                   <Text style={[styles.btnText, { color: theme.colors.error }]}>Reject</Text>
                 </TouchableOpacity>
               </View>
-            )}
-
-            {onEdit && (
-              <TouchableOpacity
-                style={styles.editBtn}
-                onPress={() => onEdit(item.id)}
-              >
-                <Text style={styles.editBtnText}>Edit Details</Text>
-                <MaterialIcons name="edit" size={16} color={theme.colors.primary} />
-              </TouchableOpacity>
             )}
           </View>
         )}
@@ -255,11 +249,21 @@ const styles = StyleSheet.create({
   editBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   editBtnText: {
     fontSize: 13,
     fontFamily: theme.typography.fontFamily.bold,
     color: theme.colors.primary,
+  },
+  deleteActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  deleteActionText: {
+    fontSize: 13,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: theme.colors.error,
   },
 });
