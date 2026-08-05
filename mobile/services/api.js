@@ -403,12 +403,12 @@ export const apiService = {
     }
   },
 
-  async approveScholarship(id, action) {
+  async approveScholarship(id, action, note = '') {
     try {
       const response = await fetch(`${API_URL}/scholarships/${id}/approve/`, {
         method: 'POST',
         headers: await getHeaders(),
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ action, note }),
       });
       return await handleResponse(response);
     } catch (error) {

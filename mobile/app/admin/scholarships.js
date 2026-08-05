@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, FlatList,
   TextInput, TouchableOpacity, RefreshControl,
-  StatusBar, Alert
+  StatusBar, Alert, Modal
 } from 'react-native';
 import { theme } from '../../theme';
 import { MaterialIcons, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -24,6 +24,9 @@ export default function ManageScholarships() {
   const [scholarships, setScholarships] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [rejectingItem, setRejectingItem] = useState(null);
+  const [rejectionNote, setRejectionNote] = useState('');
+  const [isRejectModalVisible, setIsRejectModalVisible] = useState(false);
   const router = useRouter();
   const { showToast, ToastComponent } = useToast();
 
@@ -75,13 +78,51 @@ export default function ManageScholarships() {
   };
 
   const handleApprove = async (id, action) => {
+    if (action === 'approve') {
+      Alert.alert(
+        'Confirm Approval',
+        'Are you sure you want to approve this scholarship?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Approve',
+            style: 'default',
+            onPress: async () => {
+              try {
+                const res = await apiService.approveScholarship(id, action);
+                if (res.ok) {
+                  showToast('Scholarship approved', 'success');
+                  loadScholarships();
+                } else {
+                  showToast('Failed to approve', 'error');
+                }
+              } catch (err) {
+                showToast('Network error', 'error');
+              }
+            }
+          }
+        ]
+      );
+    } else if (action === 'reject') {
+      const item = scholarships.find(s => s.id === id);
+      setRejectingItem(item);
+      setRejectionNote('');
+      setIsRejectModalVisible(true);
+    }
+  };
+
+  const confirmRejection = async () => {
+    if (!rejectingItem) return;
+
     try {
-      const res = await apiService.approveScholarship(id, action);
+      const res = await apiService.approveScholarship(rejectingItem.id, 'reject', rejectionNote);
       if (res.ok) {
-        showToast(`Scholarship ${action}ed`, 'success');
+        showToast('Scholarship rejected', 'success');
+        setIsRejectModalVisible(false);
+        setRejectingItem(null);
         loadScholarships();
       } else {
-        showToast(`Failed to ${action}`, 'error');
+        showToast('Failed to reject', 'error');
       }
     } catch (err) {
       showToast('Network error', 'error');
@@ -162,6 +203,48 @@ export default function ManageScholarships() {
       >
         <MaterialIcons name="add" size={28} color="#FFF" />
       </TouchableOpacity>
+
+      {/* Rejection Modal */}
+      <Modal
+        visible={isRejectModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsRejectModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Reject Scholarship</Text>
+            <Text style={styles.modalText}>
+              Are you sure you want to reject "{rejectingItem?.title}"? This will deduct 50 points from the user.
+            </Text>
+
+            <Text style={styles.modalLabel}>Optional Note (Reason for rejection):</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="e.g., Missing document link, expired..."
+              value={rejectionNote}
+              onChangeText={setRejectionNote}
+              multiline
+            />
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.modalBtnCancel]}
+                onPress={() => setIsRejectModalVisible(false)}
+              >
+                <Text style={styles.modalBtnTextCancel}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.modalBtnReject]}
+                onPress={confirmRejection}
+              >
+                <Text style={styles.modalBtnTextReject}>Confirm Reject</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {ToastComponent}
     </View>
   );
@@ -324,5 +407,76 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 0,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 24,
+    padding: 24,
+    ...theme.shadows.soft,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: theme.colors.heading,
+    marginBottom: 12,
+  },
+  modalText: {
+    fontSize: 14,
+    fontFamily: theme.typography.fontFamily.medium,
+    color: theme.colors.textPrimary,
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  modalLabel: {
+    fontSize: 13,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: theme.colors.textSecondary,
+    marginBottom: 8,
+  },
+  modalInput: {
+    backgroundColor: theme.colors.background,
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 14,
+    minHeight: 80,
+    textAlignVertical: 'top',
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: theme.colors.divider,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBtnCancel: {
+    backgroundColor: theme.colors.background,
+    borderWidth: 1,
+    borderColor: theme.colors.divider,
+  },
+  modalBtnReject: {
+    backgroundColor: theme.colors.error,
+  },
+  modalBtnTextCancel: {
+    fontSize: 14,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: theme.colors.textSecondary,
+  },
+  modalBtnTextReject: {
+    fontSize: 14,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: '#FFF',
   },
 });

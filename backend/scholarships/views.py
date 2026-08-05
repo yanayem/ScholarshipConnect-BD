@@ -85,6 +85,7 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
     def approve(self, request, pk=None):
         scholarship = self.get_object()
         action_type = str(request.data.get('action', '')).lower()
+        note = request.data.get('note', '').strip()
         previous_status = scholarship.status
         
         if action_type == 'approve':
@@ -101,28 +102,28 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
         scholarship.save()
 
         # Points System Logic
-        # Only grant/deduct points if moving from 'pending' to 'active' or 'rejected'
-        # to avoid awarding points multiple times if an admin toggles status.
         if previous_status == 'pending' and scholarship.submitted_by:
             profile = scholarship.submitted_by.get_profile()
             points_change = 0
             msg = ""
             
             if scholarship.status == 'active':
-                points_change = 200 # Reward for valid submission
+                points_change = 200
                 msg = f"Scholarship approved. 200 points awarded to {scholarship.submitted_by.username}."
             elif scholarship.status == 'rejected':
-                points_change = -50 # Deduction for invalid/spam submission
+                points_change = -50
                 msg = f"Scholarship rejected. 50 points deducted from {scholarship.submitted_by.username}."
             
             if points_change != 0:
                 profile.scholar_points += points_change
                 profile.save()
-                print(f"[POINTS] {msg} New Total: {profile.scholar_points}")
             
             # Send notification to the user who submitted the scholarship
             display_points = points_change if points_change > 0 else -points_change
             notification_message = f"Your submission '{scholarship.title}' has been {action_verb}. {display_points} ScholarPoints {'awarded' if points_change > 0 else 'deducted'}."
+            
+            if note:
+                notification_message += f" Note from admin: {note}"
             
             send_notification(
                 user=scholarship.submitted_by,
