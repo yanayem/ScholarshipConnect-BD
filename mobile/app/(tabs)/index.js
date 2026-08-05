@@ -608,32 +608,11 @@ export default function HomeScreen() {
 
   useEffect(() => {
     const loadData = async () => {
-      // 1. First, try to load from cache for instant display
-      const cachedScholarships = await cacheService.get('home_scholarships');
-      const cachedLeaderboard = await cacheService.get('home_leaderboard');
-
-      if (cachedScholarships) {
-        setAllScholarships(cachedScholarships);
-        setFeatured(
-          cachedScholarships
-            .filter(s => s.is_featured && new Date(s.deadline) >= new Date())
-            .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
-            .slice(0, 3)
-        );
-        const countries = [...new Set(cachedScholarships.map(s => s.country))].filter(Boolean).slice(0, 8);
-        setActiveCountries(countries);
-        setLoading(false); // Stop loading if we have cached data
-      }
-
-      if (cachedLeaderboard) {
-        setLeaderboard(cachedLeaderboard.slice(0, 3));
-      }
-
-      // 2. Then, fetch fresh data from API in background
       try {
-        const [scholarRes, leaderRes] = await Promise.all([
+        const [scholarRes, leaderRes, blogRes] = await Promise.all([
           apiService.getScholarships(),
-          apiService.getLeaderboard()
+          apiService.getLeaderboard(),
+          apiService.getBlogPosts()
         ]);
 
         if (scholarRes.ok) {
@@ -647,18 +626,14 @@ export default function HomeScreen() {
           );
           const countries = [...new Set(data.map(s => s.country))].filter(Boolean).slice(0, 8);
           setActiveCountries(countries);
-
-          // Save to cache for next time
-          cacheService.set('home_scholarships', data, 30); // Cache for 30 mins
         }
 
         if (leaderRes.ok) {
           setLeaderboard(leaderRes.data.slice(0, 3));
-          cacheService.set('home_leaderboard', leaderRes.data, 60); // Cache for 1 hour
         }
 
       } catch (error) {
-        console.error('Failed to fetch fresh home data', error);
+        console.error('Failed to load home data', error);
       } finally {
         setLoading(false);
       }

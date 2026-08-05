@@ -76,24 +76,46 @@ export default function AddScholarship() {
     try {
       const data = new FormData();
 
-      // Add all text fields to FormData
+      // Add all text fields to FormData, skipping empty ones
       Object.keys(formData).forEach(key => {
-        if (formData[key] !== '') {
+        const value = formData[key];
+        if (value !== '' && value !== null && value !== undefined) {
           if (key === 'min_cgpa') {
-            data.append(key, parseFloat(formData[key]) || 0.00);
+            data.append(key, parseFloat(value) || 0);
           } else {
-            data.append(key, formData[key]);
+            data.append(key, value);
           }
         }
       });
 
       // Add image if selected
       if (selectedImage) {
-        data.append('image', {
-          uri: Platform.OS === 'ios' ? selectedImage.uri.replace('file://', '') : selectedImage.uri,
-          name: 'scholarship_image.jpg',
-          type: 'image/jpeg',
-        });
+        if (Platform.OS === 'web') {
+          try {
+            const response = await fetch(selectedImage.uri);
+            const blob = await response.blob();
+
+            console.log(`[Web Image] Blob size: ${blob.size}, type: ${blob.type}`);
+
+            if (blob.size === 0) {
+              throw new Error('Selected image is empty.');
+            }
+
+            const fileName = selectedImage.fileName || 'scholarship_image.jpg';
+            const file = new File([blob], fileName, { type: blob.type || 'image/jpeg' });
+            data.append('image', file);
+          } catch (fetchError) {
+            console.error('[Web Image Fetch Error]', fetchError);
+            Alert.alert('Image Error', 'Failed to process the selected image. Please try another one.');
+            return;
+          }
+        } else {
+          data.append('image', {
+            uri: Platform.OS === 'ios' ? selectedImage.uri.replace('file://', '') : selectedImage.uri,
+            name: 'scholarship_image.jpg',
+            type: 'image/jpeg',
+          });
+        }
       }
 
       const res = await apiService.addScholarship(data);

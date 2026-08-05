@@ -129,22 +129,48 @@ export default function EditScholarship() {
     try {
       const data = new FormData();
 
-      // Add all text fields to FormData
+      // Add all text fields to FormData, skipping empty ones to keep payload clean
       Object.keys(formData).forEach(key => {
-        if (key === 'min_cgpa') {
-          data.append(key, parseFloat(formData[key]) || 0.00);
-        } else {
-          data.append(key, formData[key]);
+        const value = formData[key];
+        if (value !== '' && value !== null && value !== undefined) {
+          if (key === 'min_cgpa') {
+            data.append(key, parseFloat(value) || 0);
+          } else {
+            data.append(key, value);
+          }
         }
       });
 
       // Add image if selected
       if (selectedImage) {
-        data.append('image', {
-          uri: Platform.OS === 'ios' ? selectedImage.uri.replace('file://', '') : selectedImage.uri,
-          name: 'scholarship_update.jpg',
-          type: 'image/jpeg',
-        });
+        if (Platform.OS === 'web') {
+          try {
+            // Using a more reliable way to convert base64/blob to File on Web
+            const response = await fetch(selectedImage.uri);
+            const blob = await response.blob();
+
+            console.log(`[Web Image] Blob size: ${blob.size}, type: ${blob.type}`);
+
+            if (blob.size === 0) {
+              throw new Error('Selected image is empty.');
+            }
+
+            const fileName = selectedImage.fileName || 'scholarship_update.jpg';
+            const file = new File([blob], fileName, { type: blob.type || 'image/jpeg' });
+            data.append('image', file);
+          } catch (fetchError) {
+            console.error('[Web Image Fetch Error]', fetchError);
+            Alert.alert('Image Error', 'Failed to process the selected image. Please try another one.');
+            setSaving(false);
+            return;
+          }
+        } else {
+          data.append('image', {
+            uri: Platform.OS === 'ios' ? selectedImage.uri.replace('file://', '') : selectedImage.uri,
+            name: 'scholarship_update.jpg',
+            type: 'image/jpeg',
+          });
+        }
       }
 
       const res = await apiService.updateScholarship(id, data);

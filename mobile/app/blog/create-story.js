@@ -52,11 +52,17 @@ export default function CreateBlogScreen() {
       formData.append('type', 'blog'); // Mark as blog post
 
       if (image) {
-        formData.append('image', {
-          uri: Platform.OS === 'ios' ? image.uri.replace('file://', '') : image.uri,
-          name: 'blog_image.jpg',
-          type: 'image/jpeg',
-        });
+        if (Platform.OS === 'web') {
+          const response = await fetch(image.uri);
+          const blob = await response.blob();
+          formData.append('image', blob, 'blog_image.jpg');
+        } else {
+          formData.append('image', {
+            uri: Platform.OS === 'ios' ? image.uri.replace('file://', '') : image.uri,
+            name: 'blog_image.jpg',
+            type: 'image/jpeg',
+          });
+        }
       }
 
       // We might need to add a dedicated endpoint in apiService
