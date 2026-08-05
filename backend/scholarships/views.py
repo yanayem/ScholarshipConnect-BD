@@ -341,6 +341,15 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
         # Return top 5 suggestions
         return Response(suggestions[:5])
 
+    @action(detail=False, methods=['get'], url_path='check-admin', permission_classes=[permissions.IsAuthenticated])
+    def check_admin(self, request):
+        return Response({
+            "username": request.user.username,
+            "email": request.user.email,
+            "is_staff": request.user.is_staff,
+            "is_superuser": request.user.is_superuser
+        })
+
     @action(detail=False, methods=['get'], url_path='submission-feedback', permission_classes=[permissions.IsAuthenticated])
     def submission_feedback(self, request):
         """
