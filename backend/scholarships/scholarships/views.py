@@ -313,7 +313,7 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
         # Return top 5 suggestions
         return Response(suggestions[:5])
 
-    @action(detail=False, methods=['get'], url_path='my-submissions', permission_classes=[permissions.IsAuthenticated])
+    @action(detail=False, methods=['get'], url_path='my_submissions', permission_classes=[permissions.IsAuthenticated])
     def my_submissions(self, request):
         """
         Returns only the scholarships submitted by the current user.
