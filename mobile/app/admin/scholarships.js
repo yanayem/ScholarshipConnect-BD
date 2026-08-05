@@ -28,7 +28,18 @@ export default function ManageScholarships() {
   const [rejectingItem, setRejectingItem] = useState(null);
   const [rejectionNote, setRejectionNote] = useState('');
   const [isRejectModalVisible, setIsRejectModalVisible] = useState(false);
-  const [processingId, setProcessingId] = useState(null); // New state to track which item is being updated
+  const [processingId, setProcessingId] = useState(null);
+
+  // New: Generic Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    actionType: '', // 'approve' or 'delete'
+    targetId: null,
+    targetTitle: ''
+  });
+
   const router = useRouter();
   const { showToast, ToastComponent } = useToast();
 
@@ -58,75 +69,65 @@ export default function ManageScholarships() {
   );
 
   const handleDelete = (id, title) => {
-    const performDelete = async () => {
-      setProcessingId(id);
-      try {
-        const res = await apiService.deleteScholarship(id);
-        if (res.ok) {
-          showToast('Scholarship deleted', 'success');
-          setScholarships(prev => prev.filter(s => s.id !== id));
-        } else {
-          showToast('Failed to delete', 'error');
-        }
-      } catch (err) {
-        showToast('Network error', 'error');
-      } finally {
-        setProcessingId(null);
-      }
-    };
-
-    if (Platform.OS === 'web') {
-      const confirmed = window.confirm(`Permanently remove "${title}"?`);
-      if (confirmed) performDelete();
-    } else {
-      Alert.alert(
-        'Confirm Deletion',
-        `Permanently remove "${title}"?`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Delete', style: 'destructive', onPress: performDelete }
-        ]
-      );
-    }
+    setConfirmModal({
+        visible: true,
+        title: 'Confirm Deletion',
+        message: `Are you sure you want to permanently remove "${title}"? This action cannot be undone.`,
+        actionType: 'delete',
+        targetId: id,
+        targetTitle: title
+    });
   };
 
   const handleApprove = async (id, action) => {
     if (action === 'approve') {
-      const performApprove = async () => {
-        setProcessingId(id);
-        try {
-          const res = await apiService.approveScholarship(id, action);
-          if (res.ok) {
-            showToast('Scholarship approved', 'success');
-            await loadScholarships(true);
-          } else {
-            showToast(res.data?.error || 'Failed to approve', 'error');
-          }
-        } catch (err) {
-          showToast('Network error', 'error');
-        } finally {
-          setProcessingId(null);
-        }
-      };
-
-      if (Platform.OS === 'web') {
-        const confirmed = window.confirm('Are you sure you want to approve this scholarship?');
-        if (confirmed) performApprove();
-      } else {
-        Alert.alert(
-          'Confirm Approval',
-          'Are you sure you want to approve this scholarship?',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Approve', style: 'default', onPress: performApprove }
-          ]
-        );
-      }
+        const item = scholarships.find(s => s.id === id);
+        setConfirmModal({
+            visible: true,
+            title: 'Confirm Approval',
+            message: `Are you sure you want to approve "${item?.title}"? This will make it visible to all users and award 200 points to the submitter.`,
+            actionType: 'approve',
+            targetId: id,
+            targetTitle: item?.title || ''
+        });
     } else if (action === 'reject') {
       const item = scholarships.find(s => s.id === id);
       setRejectingItem(item);
       setRejectionNote('');
       setIsRejectModalVisible(true);
+    }
+  };
+
+  const executeConfirmedAction = async () => {
+    const { actionType, targetId } = confirmModal;
+    if (!targetId) return;
+
+    setProcessingId(targetId);
+    setConfirmModal(prev => ({ ...prev, visible: false }));
+
+    try {
+      let res;
+      if (actionType === 'approve') {
+        res = await apiService.approveScholarship(targetId, 'approve');
+        if (res.ok) {
+          showToast('Scholarship approved', 'success');
+          await loadScholarships(true);
+        } else {
+          showToast(res.data?.error || 'Failed to approve', 'error');
+        }
+      } else if (actionType === 'delete') {
+        res = await apiService.deleteScholarship(targetId);
+        if (res.ok) {
+          showToast('Scholarship deleted', 'success');
+          setScholarships(prev => prev.filter(s => s.id !== targetId));
+        } else {
+          showToast('Failed to delete', 'error');
+        }
+      }
+    } catch (err) {
+      showToast('Network error', 'error');
+    } finally {
+      setProcessingId(null);
     }
   };
 
@@ -266,6 +267,41 @@ export default function ManageScholarships() {
                 onPress={confirmRejection}
               >
                 <Text style={styles.modalBtnTextReject}>Confirm Reject</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Generic Confirmation Modal (Replaces window.confirm/Alert) */}
+      <Modal
+        visible={confirmModal.visible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setConfirmModal({ ...confirmModal, visible: false })}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{confirmModal.title}</Text>
+            <Text style={styles.modalText}>{confirmModal.message}</Text>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.modalBtnCancel]}
+                onPress={() => setConfirmModal({ ...confirmModal, visible: false })}
+              >
+                <Text style={styles.modalBtnTextCancel}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                    styles.modalBtn,
+                    confirmModal.actionType === 'delete' ? styles.modalBtnReject : { backgroundColor: theme.colors.primary }
+                ]}
+                onPress={executeConfirmedAction}
+              >
+                <Text style={styles.modalBtnTextReject}>
+                    {confirmModal.actionType === 'delete' ? 'Delete' : 'Approve'}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
