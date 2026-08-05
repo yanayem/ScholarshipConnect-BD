@@ -588,11 +588,11 @@ export default function ProfileScreen() {
                 style={styles.menuItem}
                 onPress={() => {
                   setMenuVisible(false);
-                  router.push('/profile/my-submissions');
+                  router.push('/profile/submission-feedback');
                 }}
               >
                 <MaterialIcons name="assignment" size={24} color={theme.colors.primary} />
-                <Text style={styles.menuText}>My Submissions</Text>
+                <Text style={styles.menuText}>Submission Feedback</Text>
               </TouchableOpacity>
 
               <TouchableOpacity

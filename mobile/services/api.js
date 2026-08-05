@@ -279,15 +279,15 @@ export const apiService = {
     }
   },
 
-  async getMySubmissions() {
+  async getSubmissionFeedback() {
     try {
-      const response = await fetch(`${API_URL}/scholarships/my_submissions/`, {
+      const response = await fetch(`${API_URL}/scholarships/submission-feedback/`, {
         method: 'GET',
         headers: await getHeaders(true),
       });
       return await handleResponse(response);
     } catch (error) {
-      return networkError(error, 'Get My Submissions');
+      return networkError(error, 'Get Submission Feedback');
     }
   },
 

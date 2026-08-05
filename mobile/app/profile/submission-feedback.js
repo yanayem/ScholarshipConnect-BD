@@ -12,7 +12,7 @@ import { useToast } from '../../components/Toast';
 import { Loader } from '../../components/Loader';
 import ScholarshipCard from '../../components/cards/ScholarshipCard';
 
-export default function MySubmissionsScreen() {
+export default function SubmissionFeedbackScreen() {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -22,13 +22,13 @@ export default function MySubmissionsScreen() {
   const loadSubmissions = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const res = await apiService.getMySubmissions();
+      const res = await apiService.getSubmissionFeedback();
       if (res.ok) {
         setSubmissions(res.data);
       }
     } catch (error) {
-      console.log('Error loading my submissions', error);
-      showToast('Error loading submissions', 'error');
+      console.log('Error loading submission feedback', error);
+      showToast('Error loading feedback', 'error');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -43,26 +43,25 @@ export default function MySubmissionsScreen() {
 
   const renderItem = ({ item, index }) => (
     <View style={styles.cardContainer}>
-        <ScholarshipCard
-            item={item}
-            index={index}
-            onPress={() => router.push(`/scholarships/${item.id}`)}
-        />
-        {item.status === 'rejected' && item.admin_note && (
-            <View style={styles.noteBox}>
-                <View style={styles.noteHeader}>
-                    <MaterialIcons name="feedback" size={16} color={theme.colors.error} />
-                    <Text style={styles.noteTitle}>Admin Feedback</Text>
+        <View style={styles.simpleCard}>
+            <View style={styles.cardInfo}>
+                <MaterialCommunityIcons name="alert-circle-outline" size={24} color={theme.colors.error} />
+                <View style={{ flex: 1 }}>
+                    <Text style={styles.simpleTitle} numberOfLines={2}>{item.title}</Text>
+                    <Text style={styles.dateText}>Submitted on {new Date(item.created_at).toLocaleDateString()}</Text>
                 </View>
-                <Text style={styles.noteText}>{item.admin_note}</Text>
             </View>
-        )}
-        {item.status === 'active' && (
-            <View style={[styles.statusBanner, { backgroundColor: theme.colors.success + '10' }]}>
-                <MaterialIcons name="check-circle" size={16} color={theme.colors.success} />
-                <Text style={[styles.statusText, { color: theme.colors.success }]}>This scholarship is now live!</Text>
-            </View>
-        )}
+
+            {item.admin_note && (
+                <View style={styles.noteBox}>
+                    <View style={styles.noteHeader}>
+                        <MaterialIcons name="feedback" size={16} color={theme.colors.error} />
+                        <Text style={styles.noteTitle}>Rejection Reason</Text>
+                    </View>
+                    <Text style={styles.noteText}>{item.admin_note}</Text>
+                </View>
+            )}
+        </View>
     </View>
   );
 
@@ -75,7 +74,7 @@ export default function MySubmissionsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <MaterialIcons name="arrow-back" size={24} color={theme.colors.heading} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>My Submissions</Text>
+        <Text style={styles.headerTitle}>Submission Feedback</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -91,13 +90,13 @@ export default function MySubmissionsScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadSubmissions(true)} />}
           ListEmptyComponent={
             <View style={styles.centered}>
-              <MaterialCommunityIcons name="clipboard-text-outline" size={64} color={theme.colors.placeholder} />
-              <Text style={styles.emptyText}>You haven't submitted any scholarships yet.</Text>
+              <MaterialCommunityIcons name="clipboard-check-outline" size={64} color={theme.colors.placeholder} />
+              <Text style={styles.emptyText}>No rejected submissions or feedback found.</Text>
               <TouchableOpacity
                 style={styles.submitBtn}
                 onPress={() => router.push('/add-scholarship')}
               >
-                <Text style={styles.submitBtnText}>Submit Now</Text>
+                <Text style={styles.submitBtnText}>Submit New Scholarship</Text>
               </TouchableOpacity>
             </View>
           }
@@ -137,45 +136,56 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   cardContainer: {
-    marginBottom: 20,
+    marginBottom: 16,
+  },
+  simpleCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.divider,
+    ...theme.shadows.soft,
+  },
+  cardInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+  },
+  simpleTitle: {
+    fontSize: 16,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: theme.colors.heading,
+    flex: 1,
   },
   noteBox: {
     backgroundColor: '#FFF5F5',
-    padding: 15,
+    padding: 12,
     borderRadius: 12,
-    marginTop: -10, // Slight overlap with card for connected feel
     borderWidth: 1,
     borderColor: '#FED7D7',
-    zIndex: -1,
+    marginBottom: 12,
   },
   noteHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 6,
+    marginBottom: 4,
   },
   noteTitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: theme.typography.fontFamily.bold,
     color: theme.colors.error,
     textTransform: 'uppercase',
   },
   noteText: {
-    fontSize: 14,
-    color: theme.colors.textPrimary,
-    lineHeight: 20,
-  },
-  statusBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 12,
-    borderRadius: 12,
-    marginTop: -10,
-    zIndex: -1,
-  },
-  statusText: {
     fontSize: 13,
+    color: theme.colors.textPrimary,
+    lineHeight: 18,
+  },
+  dateText: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
     fontFamily: theme.typography.fontFamily.medium,
   },
   centered: {

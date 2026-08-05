@@ -96,6 +96,7 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
             action_verb = 'rejected'
             action_title = 'Rejected'
             scholarship.status = 'rejected'
+            scholarship.admin_note = note
         else:
             return Response({"error": "Invalid action. Use 'approve' or 'reject'."}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -313,11 +314,14 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
         # Return top 5 suggestions
         return Response(suggestions[:5])
 
-    @action(detail=False, methods=['get'], url_path='my_submissions', permission_classes=[permissions.IsAuthenticated])
-    def my_submissions(self, request):
+    @action(detail=False, methods=['get'], url_path='submission-feedback', permission_classes=[permissions.IsAuthenticated])
+    def submission_feedback(self, request):
         """
-        Returns only the scholarships submitted by the current user.
+        Returns only the rejected scholarships submitted by the current user.
         """
-        queryset = Scholarship.objects.filter(submitted_by=request.user).order_by('-created_at')
+        queryset = Scholarship.objects.filter(
+            submitted_by=request.user, 
+            status='rejected'
+        ).order_by('-created_at')
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
