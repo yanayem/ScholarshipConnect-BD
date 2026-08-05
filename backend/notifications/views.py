@@ -1,4 +1,5 @@
 from rest_framework import generics, permissions
+from django.contrib.auth.models import User
 from .models import Notification, Broadcast
 from .serializers import NotificationSerializer, BroadcastSerializer
 
@@ -26,4 +27,17 @@ class BroadcastListView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAdminUser]
 
     def perform_create(self, serializer):
-        serializer.save(sender=self.request.user)
+        broadcast = serializer.save(sender=self.request.user)
+        
+        # When a broadcast is created, send it to all users as a notification
+        # Using bulk_create for better performance
+        users = User.objects.all()
+        notifications = [
+            Notification(
+                user=user,
+                title=f"Broadcast: {broadcast.title}",
+                message=broadcast.message
+            ) for user in users
+        ]
+        
+        Notification.objects.bulk_create(notifications)

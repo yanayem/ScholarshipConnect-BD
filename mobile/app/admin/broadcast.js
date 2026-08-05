@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, StatusBar, Alert, ActivityIndicator, RefreshControl } from 'react-native';
+import {
+    View, Text, StyleSheet, TextInput, TouchableOpacity,
+    ScrollView, StatusBar, Alert, ActivityIndicator,
+    RefreshControl, Platform
+} from 'react-native';
 import { theme } from '../../theme';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -33,18 +37,43 @@ export default function BroadcastScreen() {
     };
 
     const handleSend = async () => {
-        if (!title || !message) return Alert.alert('Error', 'Please fill all fields');
-        setSending(true);
-        const res = await apiService.sendBroadcast(title, message);
-        if (res.ok) {
-            Alert.alert('Success', 'Push notification sent to all users!');
-            setTitle('');
-            setMessage('');
-            loadBroadcasts();
-        } else {
-            Alert.alert('Error', 'Failed to send broadcast');
+        if (!title || !message) {
+            if (Platform.OS === 'web') {
+                window.alert('Please fill all fields');
+            } else {
+                Alert.alert('Error', 'Please fill all fields');
+            }
+            return;
         }
-        setSending(false);
+
+        setSending(true);
+        try {
+            const res = await apiService.sendBroadcast(title, message);
+            if (res.ok) {
+                if (Platform.OS === 'web') {
+                    window.alert('Broadcast sent successfully to all users!');
+                } else {
+                    Alert.alert('Success', 'Broadcast sent successfully to all users!');
+                }
+                setTitle('');
+                setMessage('');
+                loadBroadcasts();
+            } else {
+                if (Platform.OS === 'web') {
+                    window.alert(res.data?.error || 'Failed to send broadcast');
+                } else {
+                    Alert.alert('Error', res.data?.error || 'Failed to send broadcast');
+                }
+            }
+        } catch (err) {
+            if (Platform.OS === 'web') {
+                window.alert('Network error. Failed to send broadcast.');
+            } else {
+                Alert.alert('Error', 'Network error. Failed to send broadcast.');
+            }
+        } finally {
+            setSending(false);
+        }
     };
 
     return (

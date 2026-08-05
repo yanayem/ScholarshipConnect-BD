@@ -13,3 +13,4 @@ class BroadcastSerializer(serializers.ModelSerializer):
     class Meta:
         model = Broadcast
         fields = ['id', 'sender', 'sender_name', 'title', 'message', 'created_at']
+        read_only_fields = ['sender']
