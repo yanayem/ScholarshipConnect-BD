@@ -109,62 +109,69 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
             print(f"[DEBUG] User {request.user.username} is NOT staff")
             return Response({"error": "Admin access required"}, status=status.HTTP_403_FORBIDDEN)
 
-        scholarship = self.get_object()
-        print(f"[DEBUG] Found scholarship: {scholarship.title}")
-        action_type = str(request.data.get('action', '')).lower()
-        note = request.data.get('note', '').strip()
-        previous_status = scholarship.status
-        
-        if action_type == 'approve':
-            action_verb = 'approved'
-            action_title = 'Approved'
-            scholarship.status = 'active'
-        elif action_type == 'reject':
-            action_verb = 'rejected'
-            action_title = 'Rejected'
-            scholarship.status = 'rejected'
-            scholarship.admin_note = note
-        else:
-            return Response({"error": "Invalid action. Use 'approve' or 'reject'."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        scholarship.save()
+        try:
+            scholarship = self.get_object()
+            print(f"[DEBUG] Found scholarship: {scholarship.title}")
+            
+            action_type = str(request.data.get('action', '')).lower()
+            note = request.data.get('note', '').strip()
+            previous_status = scholarship.status
+            
+            if action_type == 'approve':
+                action_verb = 'approved'
+                action_title = 'Approved'
+                scholarship.status = 'active'
+            elif action_type == 'reject':
+                action_verb = 'rejected'
+                action_title = 'Rejected'
+                scholarship.status = 'rejected'
+                scholarship.admin_note = note
+            else:
+                return Response({"error": "Invalid action. Use 'approve' or 'reject'."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            scholarship.save()
 
-        # Points System Logic
-        if previous_status == 'pending' and scholarship.submitted_by:
-            profile = scholarship.submitted_by.get_profile()
-            points_change = 0
-            msg = ""
+            # Points System Logic
+            if previous_status == 'pending' and scholarship.submitted_by:
+                try:
+                    profile = scholarship.submitted_by.get_profile()
+                    points_change = 0
+                    
+                    if scholarship.status == 'active':
+                        points_change = 200
+                    elif scholarship.status == 'rejected':
+                        points_change = -50
+                    
+                    if points_change != 0:
+                        profile.scholar_points += points_change
+                        # Use update_fields to avoid triggering full model validation/save logic
+                        # which might fail if other fields (like profile_picture) are corrupted
+                        profile.save(update_fields=['scholar_points'])
+                    
+                    # Send notification
+                    display_points = points_change if points_change > 0 else -points_change
+                    notification_message = f"Your submission '{scholarship.title}' has been {action_verb}. {display_points} ScholarPoints {'awarded' if points_change > 0 else 'deducted'}."
+                    
+                    if note:
+                        notification_message += f" Note from admin: {note}"
+                    
+                    send_notification(
+                        user=scholarship.submitted_by,
+                        title=f"Scholarship {action_title}",
+                        message=notification_message,
+                        scholarship_id=scholarship.id
+                    )
+                except Exception as e:
+                    print(f"[DEBUG ERROR] Points/Notification failed: {str(e)}")
             
-            if scholarship.status == 'active':
-                points_change = 200
-                msg = f"Scholarship approved. 200 points awarded to {scholarship.submitted_by.username}."
-            elif scholarship.status == 'rejected':
-                points_change = -50
-                msg = f"Scholarship rejected. 50 points deducted from {scholarship.submitted_by.username}."
-            
-            if points_change != 0:
-                profile.scholar_points += points_change
-                profile.save()
-            
-            # Send notification to the user who submitted the scholarship
-            display_points = points_change if points_change > 0 else -points_change
-            notification_message = f"Your submission '{scholarship.title}' has been {action_verb}. {display_points} ScholarPoints {'awarded' if points_change > 0 else 'deducted'}."
-            
-            if note:
-                notification_message += f" Note from admin: {note}"
-            
-            send_notification(
-                user=scholarship.submitted_by,
-                title=f"Scholarship {action_title}",
-                message=notification_message,
-                scholarship_id=scholarship.id
-            )
-        
-        return Response({
-            "message": f"Scholarship {action_type}d successfully", 
-            "status": scholarship.status,
-            "points_updated": True if previous_status == 'pending' and scholarship.submitted_by else False
-        })
+            return Response({
+                "message": f"Scholarship {action_type}d successfully", 
+                "status": scholarship.status,
+                "points_updated": True if previous_status == 'pending' and scholarship.submitted_by else False
+            })
+        except Exception as e:
+            print(f"[DEBUG ERROR] Approve action failed: {str(e)}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=['post'], url_path='bulk-upload', permission_classes=[permissions.IsAdminUser])
     def bulk_upload(self, request):

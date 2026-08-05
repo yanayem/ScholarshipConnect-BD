@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.db.models import Avg
+from django.db import DatabaseError
 from .models import Profile, AdminActivityLog
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -38,13 +39,21 @@ class ProfileSerializer(serializers.ModelSerializer):
     def get_rating(self, obj):
         if not obj.is_mentor:
             return 0
-        avg = obj.user.mentor_reviews.aggregate(Avg('rating'))['rating__avg']
-        return round(float(avg), 1) if avg else 0
+        try:
+            # We must be careful with Djongo aggregates
+            avg_data = obj.user.mentor_reviews.aggregate(Avg('rating'))
+            avg = avg_data.get('rating__avg')
+            return round(float(avg), 1) if avg else 0
+        except:
+            return 0
 
     def get_reviews_count(self, obj):
         if not obj.is_mentor:
             return 0
-        return obj.user.mentor_reviews.count()
+        try:
+            return obj.user.mentor_reviews.count()
+        except:
+            return 0
 
     def validate_cgpa(self, value):
         if value is None or value == "":

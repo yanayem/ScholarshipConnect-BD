@@ -13,15 +13,19 @@ import { firebaseAuth } from './firebase';
 const isExpoGo = Constants.executionEnvironment === 'storeClient';
 
 const handleResponse = async (response) => {
+  const contentType = response.headers.get("content-type");
   const text = await response.text();
 
   if (!response.ok) {
-    // Don't spam console.error for 401s as they are often handled by auto-refresh
     if (response.status === 401) {
       console.warn(`[API 401] Unauthorized: ${response.url}`);
     } else {
       console.error(`[API ERROR] ${response.status} from ${response.url}`);
-      console.error(`[API ERROR BODY]`, text.substring(0, 300));
+      if (contentType && contentType.includes("text/html")) {
+        console.error("[API ERROR] Server crashed and returned HTML instead of JSON.");
+      } else {
+        console.error(`[API ERROR BODY]`, text.substring(0, 300));
+      }
     }
   } else {
     console.log(`[API SUCCESS] ${response.status} from ${response.url}`);
@@ -29,14 +33,20 @@ const handleResponse = async (response) => {
 
   let data;
   try {
-    if (text && (text.trim().startsWith('{') || text.trim().startsWith('['))) {
+    if (contentType && contentType.includes("application/json")) {
+      data = text ? JSON.parse(text) : {};
+    } else if (text && (text.trim().startsWith('{') || text.trim().startsWith('['))) {
       data = JSON.parse(text);
     } else {
       data = text ? { message: text } : {};
     }
   } catch (e) {
-    console.error(`[API] Parse Error (${response.status}) from ${response.url}. Raw response snippet:`, text.substring(0, 200));
-    data = { error: 'Invalid JSON response from server', details: text };
+    if (contentType && contentType.includes("text/html")) {
+      data = { error: 'Server Database Error (HTML received)', details: 'The server encountered an error and returned an HTML page. Check backend logs.' };
+    } else {
+      console.error(`[API] Parse Error (${response.status}) from ${response.url}. Raw response snippet:`, text.substring(0, 200));
+      data = { error: 'Invalid response format from server', details: text.substring(0, 500) };
+    }
   }
 
   if (response.status === 401) {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { MaterialIcons, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { theme } from '../../theme';
@@ -71,7 +71,7 @@ export default function ScholarshipCard({
           {isAdmin && onDelete && (
             <TouchableOpacity
               onPress={() => onDelete(item.id, item.title)}
-              style={styles.deleteCornerBtn}
+              style={[styles.deleteCornerBtn, Platform.OS === 'web' && { top: 5, right: 5 }]}
               hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
             >
               <MaterialCommunityIcons name="delete-circle" size={28} color={theme.colors.error} />

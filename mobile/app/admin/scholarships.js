@@ -8,7 +8,8 @@ import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, FlatList,
   TextInput, TouchableOpacity, RefreshControl,
-  StatusBar, Alert, Modal
+  StatusBar, Alert, Modal, ActivityIndicator,
+  Platform
 } from 'react-native';
 import { theme } from '../../theme';
 import { MaterialIcons, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -27,6 +28,7 @@ export default function ManageScholarships() {
   const [rejectingItem, setRejectingItem] = useState(null);
   const [rejectionNote, setRejectionNote] = useState('');
   const [isRejectModalVisible, setIsRejectModalVisible] = useState(false);
+  const [processingId, setProcessingId] = useState(null); // New state to track which item is being updated
   const router = useRouter();
   const { showToast, ToastComponent } = useToast();
 
@@ -57,6 +59,7 @@ export default function ManageScholarships() {
 
   const handleDelete = (id, title) => {
     const performDelete = async () => {
+      setProcessingId(id);
       try {
         const res = await apiService.deleteScholarship(id);
         if (res.ok) {
@@ -67,45 +70,58 @@ export default function ManageScholarships() {
         }
       } catch (err) {
         showToast('Network error', 'error');
+      } finally {
+        setProcessingId(null);
       }
     };
 
-    Alert.alert(
-      'Confirm Deletion',
-      `Permanently remove "${title}"?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: performDelete }
-      ]
-    );
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm(`Permanently remove "${title}"?`);
+      if (confirmed) performDelete();
+    } else {
+      Alert.alert(
+        'Confirm Deletion',
+        `Permanently remove "${title}"?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Delete', style: 'destructive', onPress: performDelete }
+        ]
+      );
+    }
   };
 
   const handleApprove = async (id, action) => {
     if (action === 'approve') {
-      Alert.alert(
-        'Confirm Approval',
-        'Are you sure you want to approve this scholarship?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Approve',
-            style: 'default',
-            onPress: async () => {
-              try {
-                const res = await apiService.approveScholarship(id, action);
-                if (res.ok) {
-                  showToast('Scholarship approved', 'success');
-                  loadScholarships();
-                } else {
-                  showToast('Failed to approve', 'error');
-                }
-              } catch (err) {
-                showToast('Network error', 'error');
-              }
-            }
+      const performApprove = async () => {
+        setProcessingId(id);
+        try {
+          const res = await apiService.approveScholarship(id, action);
+          if (res.ok) {
+            showToast('Scholarship approved', 'success');
+            await loadScholarships(true);
+          } else {
+            showToast(res.data?.error || 'Failed to approve', 'error');
           }
-        ]
-      );
+        } catch (err) {
+          showToast('Network error', 'error');
+        } finally {
+          setProcessingId(null);
+        }
+      };
+
+      if (Platform.OS === 'web') {
+        const confirmed = window.confirm('Are you sure you want to approve this scholarship?');
+        if (confirmed) performApprove();
+      } else {
+        Alert.alert(
+          'Confirm Approval',
+          'Are you sure you want to approve this scholarship?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Approve', style: 'default', onPress: performApprove }
+          ]
+        );
+      }
     } else if (action === 'reject') {
       const item = scholarships.find(s => s.id === id);
       setRejectingItem(item);
@@ -117,32 +133,42 @@ export default function ManageScholarships() {
   const confirmRejection = async () => {
     if (!rejectingItem) return;
 
+    setProcessingId(rejectingItem.id);
     try {
       const res = await apiService.approveScholarship(rejectingItem.id, 'reject', rejectionNote);
       if (res.ok) {
         showToast('Scholarship rejected', 'success');
         setIsRejectModalVisible(false);
         setRejectingItem(null);
-        loadScholarships();
+        await loadScholarships(true);
       } else {
-        showToast('Failed to reject', 'error');
+        showToast(res.data?.error || 'Failed to reject', 'error');
       }
     } catch (err) {
       showToast('Network error', 'error');
+    } finally {
+      setProcessingId(null);
     }
   };
 
   const renderItem = ({ item, index }) => (
-    <ScholarshipCard
-      item={item}
-      index={index}
-      isAdmin={true}
-      onPress={() => router.push(`/scholarships/${item.id}`)}
-      onDelete={handleDelete}
-      onApprove={handleApprove}
-      onReject={handleApprove}
-      onEdit={(id) => router.push(`/admin/edit-scholarship/${id}`)}
-    />
+    <View style={processingId === item.id ? { opacity: 0.6 } : null}>
+      <ScholarshipCard
+        item={item}
+        index={index}
+        isAdmin={true}
+        onPress={() => router.push(`/scholarships/${item.id}`)}
+        onDelete={handleDelete}
+        onApprove={handleApprove}
+        onReject={handleApprove}
+        onEdit={(id) => router.push(`/admin/edit-scholarship/${id}`)}
+      />
+      {processingId === item.id && (
+        <View style={styles.processingOverlay}>
+          <ActivityIndicator color={theme.colors.primary} />
+        </View>
+      )}
+    </View>
   );
 
   return (
@@ -480,4 +506,12 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.fontFamily.bold,
     color: '#FFF',
   },
+  processingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,255,255,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 24,
+    zIndex: 10,
+  }
 });
