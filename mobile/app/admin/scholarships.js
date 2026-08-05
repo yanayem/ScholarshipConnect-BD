@@ -33,8 +33,11 @@ export default function ManageScholarships() {
   const loadScholarships = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const statusParam = filterStatus === 'all' ? '' : `status=${filterStatus}`;
-      const res = await apiService.getScholarships(statusParam);
+      let params = filterStatus === 'all' ? '' : `status=${filterStatus}`;
+      if (search) {
+        params += (params ? '&' : '') + `search=${search}`;
+      }
+      const res = await apiService.getScholarships(params);
       if (res.ok) {
         setScholarships(res.data);
       }
@@ -49,7 +52,7 @@ export default function ManageScholarships() {
   useFocusEffect(
     useCallback(() => {
       loadScholarships(scholarships.length > 0);
-    }, [filterStatus])
+    }, [filterStatus, search])
   );
 
   const handleDelete = (id, title) => {
@@ -129,10 +132,6 @@ export default function ManageScholarships() {
     }
   };
 
-  const filtered = scholarships.filter(s =>
-    (s.title || '').toLowerCase().includes(search.toLowerCase())
-  );
-
   const renderItem = ({ item, index }) => (
     <ScholarshipCard
       item={item}
@@ -159,6 +158,8 @@ export default function ManageScholarships() {
                 style={styles.searchInput}
                 value={search}
                 onChangeText={setSearch}
+                returnKeyType="search"
+                onSubmitEditing={() => loadScholarships()}
             />
         </View>
 
@@ -181,7 +182,7 @@ export default function ManageScholarships() {
         <Loader message="Fetching scholarship records..." />
       ) : (
         <FlatList
-          data={filtered}
+          data={scholarships}
           renderItem={renderItem}
           keyExtractor={item => item.id.toString()}
           contentContainerStyle={styles.list}

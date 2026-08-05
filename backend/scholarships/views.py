@@ -43,12 +43,27 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'deadline', 'min_cgpa']
     ordering = ['-created_at']
 
+    def list(self, request, *args, **kwargs):
+        # Optimization: Prefetch saved status for authenticated users to avoid N+1 in serializer
+        response = super().list(request, *args, **kwargs)
+        return response
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        user = self.request.user
+        if user and user.is_authenticated:
+            # Fetch all saved scholarship IDs for this user at once
+            from applications.models import SavedScholarship
+            saved_scholarships = SavedScholarship.objects.filter(user=user).values_list('scholarship_id', 'id')
+            context['saved_dict'] = {s_id: save_id for s_id, save_id in saved_scholarships}
+        return context
+
     def get_queryset(self):
         user = self.request.user
         status_param = self.request.query_params.get('status')
         
-        # Base queryset
-        queryset = Scholarship.objects.all()
+        # Base queryset with optimization
+        queryset = Scholarship.objects.select_related('submitted_by').all()
         
         # Filtering logic for lists:
         # Staff see everything (except rejected by default).

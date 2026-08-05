@@ -89,6 +89,18 @@ const handleResponse = async (response) => {
     processUrls(data);
   }
 
+  // Handle paginated responses automatically by extracting results array
+  if (data && typeof data === 'object' && data.results && Array.isArray(data.results)) {
+    // We store the meta info in a non-enumerable property if we need it later,
+    // but return the array to keep compatibility with existing code.
+    const results = data.results;
+    Object.defineProperty(results, '_pagination', {
+      value: { count: data.count, next: data.next, previous: data.previous },
+      enumerable: false
+    });
+    data = results;
+  }
+
   return { ok: response.ok, status: response.status, data };
 };
 
