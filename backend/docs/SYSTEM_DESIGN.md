@@ -146,4 +146,34 @@ The persistence layer ensuring high availability and flexible data schemas.
 *   **MongoDB Atlas:** A cloud-based NoSQL database holding collections for Users, Scholarships, Applications, Documents, Community Chats, Payments, and AI Logs. It communicates with Django seamlessly via Djongo/Motor.
 
 ---
+
+## 5. Use Case Diagram
+
+The Use Case Diagram defines the interactions between the system's users (Actors) and the platform's core functionalities. It provides a high-level overview of what each user role can achieve within the ScholarshipConnectBD ecosystem.
+
+### Use Case Diagram
+
+![Use Case Diagram](./diagrams/05_use_case.png)
+*(Figure: UML Use Case Diagram of ScholarshipConnectBD)*
+
+### Actors & Core Interactions:
+
+#### 1. Student (Primary User)
+*   **Discovery & AI:** Can search for scholarships and use the AI Matchmaker to check eligibility.
+*   **Application & Vault:** Uploads documents securely and applies directly to targeted scholarships.
+*   **Community:** Can post questions, earn ScholarPoints, and book 1-on-1 mentorship sessions.
+*   **Monetization:** Upgrades to the Pro tier using integrated payment gateways or earned points.
+
+#### 2. Mentor (Verified Expert)
+*   **Guidance:** Manages their schedule, reviews incoming mentorship requests, and communicates with mentees via real-time chat.
+
+#### 3. Admin (System Manager)
+*   **Moderation & Control:** Approves community-submitted scholarships, moderates forum content, analyzes system metrics, and broadcasts global alerts.
+
+#### 4. External Systems
+*   **Firebase Auth:** Handles the secure registration and login token generation.
+*   **AI Engine (Groq/Gemini):** Processes SOP generation and NLP-based eligibility matching.
+*   **SSLCommerz:** Facilitates financial transactions for Pro upgrades.
+
+---
 *(Note: Additional diagrams like DFD, ERD, Use Case, Sequence, and Class diagrams will be added below in subsequent phases).*
