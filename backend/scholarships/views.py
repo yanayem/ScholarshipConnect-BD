@@ -94,15 +94,11 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
             status=status_val
         )
 
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        print(f"[DEBUG] Deleting Scholarship: {instance.title} (ID: {instance.id})")
-        self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAdminUser])
     def approve(self, request, pk=None):
+        print(f"[DEBUG] Approve action triggered for ID: {pk}")
         scholarship = self.get_object()
+        print(f"[DEBUG] Found scholarship: {scholarship.title}")
         action_type = str(request.data.get('action', '')).lower()
         note = request.data.get('note', '').strip()
         previous_status = scholarship.status
