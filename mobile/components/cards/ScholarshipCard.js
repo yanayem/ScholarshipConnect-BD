@@ -67,21 +67,66 @@ export default function ScholarshipCard({
               />
             </TouchableOpacity>
           )}
+          {isAdmin && onDelete && (
+            <TouchableOpacity
+              onPress={() => onDelete(item.id, item.title)}
+              style={styles.deleteCornerBtn}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
+              <MaterialCommunityIcons name="delete-circle" size={28} color={theme.colors.error} />
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.metaRow}>
           <View style={[styles.metaBadge, { backgroundColor: theme.colors.tealCard }]}>
             <MaterialIcons name="place" size={13} color={theme.colors.primary} />
             <Text style={styles.metaText}>{item.country}</Text>
-          </View>
+            {isAdmin && onDelete && (
+            <TouchableOpacity
+              onPress={() => onDelete(item.id, item.title)}
+              style={styles.deleteCornerBtn}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
+              <MaterialCommunityIcons name="delete-circle" size={28} color={theme.colors.error} />
+            </TouchableOpacity>
+          )}
+        </View>
           <View style={[styles.metaBadge, { backgroundColor: theme.colors.lavenderCard }]}>
             <MaterialIcons name="school" size={13} color={theme.colors.chartSecondary} />
             <Text style={[styles.metaText, { color: theme.colors.chartSecondary }]}>{item.level}</Text>
-          </View>
+            {isAdmin && onDelete && (
+            <TouchableOpacity
+              onPress={() => onDelete(item.id, item.title)}
+              style={styles.deleteCornerBtn}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
+              <MaterialCommunityIcons name="delete-circle" size={28} color={theme.colors.error} />
+            </TouchableOpacity>
+          )}
+        </View>
           <View style={[styles.metaBadge, { backgroundColor: theme.colors.peachCard }]}>
             <MaterialIcons name="work" size={13} color={theme.colors.chartAccent} />
             <Text style={[styles.metaText, { color: theme.colors.chartAccent }]}>{item.field || 'General'}</Text>
-          </View>
+            {isAdmin && onDelete && (
+            <TouchableOpacity
+              onPress={() => onDelete(item.id, item.title)}
+              style={styles.deleteCornerBtn}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
+              <MaterialCommunityIcons name="delete-circle" size={28} color={theme.colors.error} />
+            </TouchableOpacity>
+          )}
+        </View>
+          {isAdmin && onDelete && (
+            <TouchableOpacity
+              onPress={() => onDelete(item.id, item.title)}
+              style={styles.deleteCornerBtn}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
+              <MaterialCommunityIcons name="delete-circle" size={28} color={theme.colors.error} />
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.cardBottom}>
@@ -89,12 +134,39 @@ export default function ScholarshipCard({
             <Text style={styles.deadline}>
               <MaterialIcons name="event" size={13} color={theme.colors.error} /> {item.deadline}
             </Text>
-          </View>
+            {isAdmin && onDelete && (
+            <TouchableOpacity
+              onPress={() => onDelete(item.id, item.title)}
+              style={styles.deleteCornerBtn}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
+              <MaterialCommunityIcons name="delete-circle" size={28} color={theme.colors.error} />
+            </TouchableOpacity>
+          )}
+        </View>
           <View style={[styles.amountBadge, { marginLeft: 10, flexShrink: 1 }]}>
             <Text style={styles.amountText} numberOfLines={1} ellipsizeMode="tail">
               {item.amount || 'Full Fund'}
             </Text>
-          </View>
+            {isAdmin && onDelete && (
+            <TouchableOpacity
+              onPress={() => onDelete(item.id, item.title)}
+              style={styles.deleteCornerBtn}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
+              <MaterialCommunityIcons name="delete-circle" size={28} color={theme.colors.error} />
+            </TouchableOpacity>
+          )}
+        </View>
+          {isAdmin && onDelete && (
+            <TouchableOpacity
+              onPress={() => onDelete(item.id, item.title)}
+              style={styles.deleteCornerBtn}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
+              <MaterialCommunityIcons name="delete-circle" size={28} color={theme.colors.error} />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Progress Bar for Deadline (User only) */}
@@ -103,7 +175,16 @@ export default function ScholarshipCard({
             <View style={styles.trackerHeader}>
               <Text style={styles.trackerText}>Deadline Tracker</Text>
               <Text style={styles.daysLeftText}>{daysLeft} days left</Text>
-            </View>
+              {isAdmin && onDelete && (
+            <TouchableOpacity
+              onPress={() => onDelete(item.id, item.title)}
+              style={styles.deleteCornerBtn}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
+              <MaterialCommunityIcons name="delete-circle" size={28} color={theme.colors.error} />
+            </TouchableOpacity>
+          )}
+        </View>
             <View style={styles.progressBarBg}>
               <View
                 style={[
@@ -114,8 +195,26 @@ export default function ScholarshipCard({
                   }
                 ]}
               />
-            </View>
-          </View>
+              {isAdmin && onDelete && (
+            <TouchableOpacity
+              onPress={() => onDelete(item.id, item.title)}
+              style={styles.deleteCornerBtn}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
+              <MaterialCommunityIcons name="delete-circle" size={28} color={theme.colors.error} />
+            </TouchableOpacity>
+          )}
+        </View>
+            {isAdmin && onDelete && (
+            <TouchableOpacity
+              onPress={() => onDelete(item.id, item.title)}
+              style={styles.deleteCornerBtn}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
+              <MaterialCommunityIcons name="delete-circle" size={28} color={theme.colors.error} />
+            </TouchableOpacity>
+          )}
+        </View>
         )}
 
         {/* Admin Actions */}
@@ -141,7 +240,16 @@ export default function ScholarshipCard({
                     <Text style={styles.deleteActionText}>Remove</Text>
                 </TouchableOpacity>
                 )}
-            </View>
+              {isAdmin && onDelete && (
+            <TouchableOpacity
+              onPress={() => onDelete(item.id, item.title)}
+              style={styles.deleteCornerBtn}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
+              <MaterialCommunityIcons name="delete-circle" size={28} color={theme.colors.error} />
+            </TouchableOpacity>
+          )}
+        </View>
 
             {item.status === 'pending' && onApprove && onReject && (
               <View style={styles.approvalRow}>
@@ -157,9 +265,27 @@ export default function ScholarshipCard({
                 >
                   <Text style={[styles.btnText, { color: theme.colors.error }]}>Reject</Text>
                 </TouchableOpacity>
-              </View>
+                {isAdmin && onDelete && (
+            <TouchableOpacity
+              onPress={() => onDelete(item.id, item.title)}
+              style={styles.deleteCornerBtn}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
+              <MaterialCommunityIcons name="delete-circle" size={28} color={theme.colors.error} />
+            </TouchableOpacity>
+          )}
+        </View>
             )}
-          </View>
+            {isAdmin && onDelete && (
+            <TouchableOpacity
+              onPress={() => onDelete(item.id, item.title)}
+              style={styles.deleteCornerBtn}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
+              <MaterialCommunityIcons name="delete-circle" size={28} color={theme.colors.error} />
+            </TouchableOpacity>
+          )}
+        </View>
         )}
 
         {!isAdmin && (
@@ -209,6 +335,13 @@ const styles = StyleSheet.create({
   statusBadgeText: { color: '#fff', fontSize: 9, fontWeight: 'bold' },
   bookmarkBtn: { padding: 4 },
   deleteBtn: { padding: 4 },
+  deleteCornerBtn: {
+    position: 'absolute',
+    top: -10,
+    right: -10,
+    padding: 10,
+    zIndex: 10,
+  },
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
   metaBadge: {
     flexDirection: 'row', alignItems: 'center',
