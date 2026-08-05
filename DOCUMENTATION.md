@@ -98,7 +98,7 @@ When you first open ScholarshipConnectBD, you are greeted by:
 ScholarshipConnectBD operates on a **Hybrid-Contribution Model** designed to foster community growth while providing premium academic value through a gamified ecosystem.
 
 ### 1. ScholarPoints System (Gamified Economy)
-- **Contribution (Submit & Earn)**: Users earn **50 points** for every unique scholarship they submit that is approved by the admin team. This crowdsourcing ensures the database is populated with niche opportunities.
+- **Contribution (Submit & Earn)**: Users earn **200 points** for every unique scholarship they submit that is approved by the admin team. This crowdsourcing ensures the database is populated with niche opportunities.
 - **Helpfulness (Solve & Earn)**: Users earn **20 points** when their answer is marked as "Solved" in community discussions, encouraging high-quality peer support.
 
 ### 2. ScholarConnect Pro (Freemium Tier)

@@ -88,8 +88,12 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
         previous_status = scholarship.status
         
         if action_type == 'approve':
+            action_verb = 'approved'
+            action_title = 'Approved'
             scholarship.status = 'active'
         elif action_type == 'reject':
+            action_verb = 'rejected'
+            action_title = 'Rejected'
             scholarship.status = 'rejected'
         else:
             return Response({"error": "Invalid action. Use 'approve' or 'reject'."}, status=status.HTTP_400_BAD_REQUEST)
@@ -105,11 +109,11 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
             msg = ""
             
             if scholarship.status == 'active':
-                points_change = 50 # Reward for valid submission
-                msg = f"Scholarship approved. 50 points awarded to {scholarship.submitted_by.username}."
+                points_change = 200 # Reward for valid submission
+                msg = f"Scholarship approved. 200 points awarded to {scholarship.submitted_by.username}."
             elif scholarship.status == 'rejected':
-                points_change = -20 # Deduction for invalid/spam submission
-                msg = f"Scholarship rejected. 20 points deducted from {scholarship.submitted_by.username}."
+                points_change = -50 # Deduction for invalid/spam submission
+                msg = f"Scholarship rejected. 50 points deducted from {scholarship.submitted_by.username}."
             
             if points_change != 0:
                 profile.scholar_points += points_change
@@ -117,10 +121,13 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
                 print(f"[POINTS] {msg} New Total: {profile.scholar_points}")
             
             # Send notification to the user who submitted the scholarship
+            display_points = points_change if points_change > 0 else -points_change
+            notification_message = f"Your submission '{scholarship.title}' has been {action_verb}. {display_points} ScholarPoints {'awarded 🌟' if points_change > 0 else 'deducted ⚠️'}."
+            
             send_notification(
                 user=scholarship.submitted_by,
-                title=f"Scholarship {action_type.capitalize()}ed",
-                message=f"Your submission '{scholarship.title}' has been {action_type}ed by admins. {points_change} ScholarPoints {'awarded' if points_change > 0 else 'deducted'}."
+                title=f"Scholarship {action_title}",
+                message=notification_message
             )
         
         return Response({

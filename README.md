@@ -115,7 +115,7 @@ Recently, the platform underwent a significant UI/UX overhaul to meet global aca
 ScholarshipConnectBD operates on a **Hybrid-Contribution Model** designed to foster community growth while providing premium academic value.
 
 ### 1. Gamified Ecosystem (ScholarPoints)
-- **Contribution Earning**: Users earn **50 points** for contributing verified scholarships and **20 points** for solving community problems.
+- **Contribution Earning**: Users earn **200 points** for contributing verified scholarships and **50 points** deducted for invalid submissions.
 - **Community Driven**: This crowdsourcing ensures the database is always updated with the latest niche opportunities.
 
 ### 2. ScholarConnect Pro (Freemium)
