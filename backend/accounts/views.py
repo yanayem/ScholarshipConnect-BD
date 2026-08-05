@@ -99,7 +99,22 @@ class LeaderboardView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        return Profile.objects.filter(scholar_points__gt=0).order_by('-scholar_points')[:10]
+        try:
+            # Standard approach
+            return Profile.objects.filter(scholar_points__gt=0).order_by('-scholar_points')[:10]
+        except Exception as e:
+            print(f"[LEADERBOARD ERROR] Standard query failed: {str(e)}")
+            # Fallback approach for Djongo compatibility
+            try:
+                # Fetch all profiles with points and sort in memory
+                all_profiles = Profile.objects.all()
+                valid_profiles = [p for p in all_profiles if p.scholar_points > 0]
+                valid_profiles.sort(key=lambda x: x.scholar_points, reverse=True)
+                top_10_ids = [p.id for p in valid_profiles[:10]]
+                return Profile.objects.filter(id__in=top_10_ids).order_by('-scholar_points')
+            except Exception as e2:
+                print(f"[LEADERBOARD ERROR] Fallback failed: {str(e2)}")
+                return Profile.objects.none()
 
 class UserListView(generics.ListAPIView):
     queryset = User.objects.all().order_by('-date_joined')
