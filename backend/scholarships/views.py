@@ -330,6 +330,18 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['post'], url_path='cleanup-rejected', permission_classes=[permissions.IsAdminUser])
+    def cleanup_rejected(self, request):
+        """
+        Manually trigger deletion of rejected scholarships older than 30 days.
+        """
+        from django.core.management import call_command
+        try:
+            call_command('delete_old_rejected_scholarships')
+            return Response({"message": "Cleanup successful"})
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     @action(detail=False, methods=['get'], url_path='admin-stats', permission_classes=[permissions.IsAdminUser])
     def admin_stats(self, request):
         """
