@@ -1,3 +1,5 @@
+import os
+import time
 from django.db import models
 from django.contrib.auth.models import User
 from core.fields import SafeDecimalField
@@ -34,10 +36,31 @@ class Scholarship(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
+        # Extremely robust image handling for production storage backends
         if self.image:
-            new_image = compress_image(self.image)
-            if new_image:
-                self.image = new_image
+            try:
+                # Ensure we are at the beginning of the file
+                try: self.image.seek(0)
+                except: pass
+                
+                # Standardize filename to something extremely safe
+                ext = os.path.splitext(self.image.name)[1].lower()
+                if not ext: ext = '.jpg'
+                self.image.name = f"scholarship_{int(time.time())}{ext}"
+                
+                # Try compression which standardizes the file
+                new_image = compress_image(self.image)
+                if new_image:
+                    self.image = new_image
+                
+                # Final check: ensure pointer is at 0 for storage backend
+                try: self.image.seek(0)
+                except: pass
+            except:
+                # If everything fails, just ensure we at least try to seek(0) original
+                try: self.image.seek(0)
+                except: pass
+
         super().save(*args, **kwargs)
 
     def __str__(self):

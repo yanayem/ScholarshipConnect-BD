@@ -303,3 +303,39 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
         
         # Return top 5 suggestions
         return Response(suggestions[:5])
+
+    @action(detail=False, methods=['get'], url_path='admin-stats', permission_classes=[permissions.IsAdminUser])
+    def admin_stats(self, request):
+        """
+        Admin-only endpoint to get system-wide statistics for the dashboard.
+        """
+        from django.contrib.auth.models import User
+        from community.models import MentorshipSession
+        from applications.models import ScholarshipApplication
+
+        total_scholarships = Scholarship.objects.count()
+        total_users = User.objects.count()
+        total_applications = ScholarshipApplication.objects.count()
+        total_mentorships = MentorshipSession.objects.count()
+
+        # Simple country breakdown for the progress bars
+        countries = list(Scholarship.objects.exclude(country__isnull=True).exclude(country='').values_list('country', flat=True))
+        from collections import Counter
+        counts = Counter(countries)
+        popular_countries = []
+        total_with_country = len(countries)
+        
+        for name, count in counts.most_common(5):
+            popular_countries.append({
+                "name": name,
+                "count": count,
+                "percentage": int((count / total_with_country) * 100) if total_with_country > 0 else 0
+            })
+
+        return Response({
+            "total_scholarships": total_scholarships,
+            "total_users": total_users,
+            "total_applications": total_applications,
+            "total_mentorships": total_mentorships,
+            "popular_countries": popular_countries
+        })

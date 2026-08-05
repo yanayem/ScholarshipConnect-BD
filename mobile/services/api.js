@@ -16,8 +16,13 @@ const handleResponse = async (response) => {
   const text = await response.text();
 
   if (!response.ok) {
-    console.error(`[API ERROR] ${response.status} from ${response.url}`);
-    console.error(`[API ERROR BODY]`, text.substring(0, 300));
+    // Don't spam console.error for 401s as they are often handled by auto-refresh
+    if (response.status === 401) {
+      console.warn(`[API 401] Unauthorized: ${response.url}`);
+    } else {
+      console.error(`[API ERROR] ${response.status} from ${response.url}`);
+      console.error(`[API ERROR BODY]`, text.substring(0, 300));
+    }
   } else {
     console.log(`[API SUCCESS] ${response.status} from ${response.url}`);
   }
@@ -35,12 +40,10 @@ const handleResponse = async (response) => {
   }
 
   if (response.status === 401) {
-    console.warn('[API] Unauthorized request detected. Token may be invalid or expired.');
-
     const lastRefreshAttempt = await AsyncStorage.getItem('last_refresh_attempt');
     const now = Date.now();
 
-    if (!lastRefreshAttempt || (now - parseInt(lastRefreshAttempt)) > 30000) {
+    if (!lastRefreshAttempt || (now - parseInt(lastRefreshAttempt)) > 10000) {
       try {
         await AsyncStorage.setItem('last_refresh_attempt', now.toString());
         console.log('[API] Attempting to auto-refresh token from Firebase...');
@@ -49,9 +52,10 @@ const handleResponse = async (response) => {
         if (newToken) {
             await AsyncStorage.setItem('token', newToken);
             console.log('[API] Token refreshed successfully.');
+            // Note: Ideally we would retry the request here, but we'll let
+            // the calling component (like UserContext) handle the retry for now.
         } else {
             console.warn('[API] Firebase session lost. Logging out...');
-            // Using a safer way to call logout or clear storage
             await AsyncStorage.multiRemove(['token', 'admin_verified', 'is_staff']);
             await firebaseAuth.signOut();
         }
@@ -90,13 +94,38 @@ const handleResponse = async (response) => {
 
 const getToken = async () => {
   try {
-    const token = await firebaseAuth.getIdToken();
+    // 1. Try to get token from current Firebase session
+    let token = await firebaseAuth.getIdToken();
     if (token) {
       await AsyncStorage.setItem('token', token);
       return token;
     }
+
+    // 2. If no user yet, check if we were previously logged in
+    const cachedToken = await AsyncStorage.getItem('token');
+    if (cachedToken) {
+      console.log('[API] Firebase session not ready but cached token found. Waiting briefly...');
+      // Wait for Firebase to restore session (max 2s wait for better UX)
+      const user = await Promise.race([
+        firebaseAuth.waitForUser(),
+        new Promise(resolve => setTimeout(() => resolve(null), 2000))
+      ]);
+
+      if (user) {
+        token = await firebaseAuth.getIdToken();
+        if (token) {
+          await AsyncStorage.setItem('token', token);
+          return token;
+        }
+      }
+
+      // 3. Fallback to cached token if Firebase is still not ready
+      // This allows the request to proceed; if the token is expired,
+      // the backend will return 401 and handleResponse will trigger refresh.
+      return cachedToken;
+    }
   } catch (e) {
-    console.warn('[API] Firebase getToken failed, using cached:', e.message);
+    console.warn('[API] Token retrieval error:', e.message);
   }
   return await AsyncStorage.getItem('token');
 };
@@ -149,7 +178,7 @@ export const apiService = {
     try {
       const response = await fetchWithTimeout(`${API_URL}/accounts/admin-login/`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await getHeaders(true),
         body: JSON.stringify({ username, password }),
       });
       return await handleResponse(response);
@@ -172,15 +201,16 @@ export const apiService = {
 
   async updateProfile(profileData) {
     try {
-      const token = await getToken();
       const isFormData = !!profileData && typeof profileData.append === 'function';
+      const headers = await getHeaders(true);
 
       if (isFormData) {
+        const token = headers['Authorization'];
         return new Promise((resolve, reject) => {
           const xhr = new XMLHttpRequest();
           xhr.open('PATCH', `${API_URL}/accounts/profile/`);
           if (token) {
-            xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+            xhr.setRequestHeader('Authorization', token);
           }
           xhr.onload = () => {
             try {
@@ -199,7 +229,7 @@ export const apiService = {
 
       const response = await fetch(`${API_URL}/accounts/profile/`, {
         method: 'PATCH',
-        headers: await getHeaders(true),
+        headers: headers,
         body: JSON.stringify(profileData),
       });
       return await handleResponse(response);
@@ -251,12 +281,40 @@ export const apiService = {
 
   async addScholarship(scholarshipData) {
     try {
-      const token = await getToken();
       const isFormData = scholarshipData instanceof FormData;
+      const headers = await getHeaders(true);
+
+      if (isFormData && Platform.OS === 'web') {
+        const token = headers['Authorization'];
+        return new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', `${API_URL}/scholarships/`);
+          if (token) {
+            xhr.setRequestHeader('Authorization', token);
+          }
+          xhr.onload = () => {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status, data });
+            } catch (e) {
+              resolve({ ok: false, data: { error: 'Invalid response from server' } });
+            }
+          };
+          xhr.onerror = () => {
+            resolve({ ok: false, data: { error: 'Network request failed' } });
+          };
+          xhr.send(scholarshipData);
+        });
+      }
+
+      // If it's FormData, let the browser/native fetch set the Content-Type boundary
+      if (isFormData) {
+        delete headers['Content-Type'];
+      }
 
       const response = await fetch(`${API_URL}/scholarships/`, {
         method: 'POST',
-        headers: isFormData ? { 'Authorization': `Bearer ${token}` } : await getHeaders(),
+        headers: headers,
         body: isFormData ? scholarshipData : JSON.stringify(scholarshipData),
       });
       return await handleResponse(response);
@@ -267,12 +325,39 @@ export const apiService = {
 
   async updateScholarship(id, scholarshipData) {
     try {
-      const token = await getToken();
       const isFormData = scholarshipData instanceof FormData;
+      const headers = await getHeaders(true);
+
+      if (isFormData && Platform.OS === 'web') {
+        const token = headers['Authorization'];
+        return new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('PATCH', `${API_URL}/scholarships/${id}/`);
+          if (token) {
+            xhr.setRequestHeader('Authorization', token);
+          }
+          xhr.onload = () => {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status, data });
+            } catch (e) {
+              resolve({ ok: false, data: { error: 'Invalid response from server' } });
+            }
+          };
+          xhr.onerror = () => {
+            resolve({ ok: false, data: { error: 'Network request failed' } });
+          };
+          xhr.send(scholarshipData);
+        });
+      }
+
+      if (isFormData) {
+        delete headers['Content-Type'];
+      }
 
       const response = await fetch(`${API_URL}/scholarships/${id}/`, {
         method: 'PATCH',
-        headers: isFormData ? { 'Authorization': `Bearer ${token}` } : await getHeaders(),
+        headers: headers,
         body: isFormData ? scholarshipData : JSON.stringify(scholarshipData),
       });
       return await handleResponse(response);
@@ -290,6 +375,31 @@ export const apiService = {
       return { ok: response.ok };
     } catch (error) {
       return networkError(error, 'Delete Scholarship');
+    }
+  },
+
+  async saveScholarship(scholarshipId) {
+    try {
+      const response = await fetch(`${API_URL}/applications/saved/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify({ scholarship: scholarshipId }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Save Scholarship');
+    }
+  },
+
+  async unsaveScholarship(saveId) {
+    try {
+      const response = await fetch(`${API_URL}/applications/saved/${saveId}/`, {
+        method: 'DELETE',
+        headers: await getHeaders(),
+      });
+      return { ok: response.ok };
+    } catch (error) {
+      return networkError(error, 'Unsave Scholarship');
     }
   },
 
@@ -470,17 +580,61 @@ export const apiService = {
       if (data.poll_options && data.poll_options.length > 0) {
         formData.append('poll_options', JSON.stringify(data.poll_options));
       }
+      const headers = await getHeaders(true);
+      delete headers['Content-Type'];
+      headers['Accept'] = 'application/json';
+
       const response = await fetch(`${API_URL}/community/`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-        },
+        headers: headers,
         body: formData,
       });
       return await handleResponse(response);
     } catch (error) {
       return networkError(error, 'Create Discussion');
+    }
+  },
+
+  async updateDiscussion(id, data) {
+    try {
+      const headers = await getHeaders(true);
+      let body;
+      const isMultipart = !!data.image;
+
+      if (isMultipart) {
+        const formData = new FormData();
+        if (data.title) formData.append('title', data.title);
+        if (data.content) formData.append('content', data.content);
+        if (data.category) formData.append('category', data.category);
+        if (data.is_solved !== undefined) formData.append('is_solved', data.is_solved);
+
+        if (data.image) {
+          if (Platform.OS === 'web') {
+            const response = await fetch(data.image.uri);
+            const blob = await response.blob();
+            formData.append('image', blob, data.image.fileName || 'discussion_update.jpg');
+          } else {
+            formData.append('image', {
+              uri: Platform.OS === 'ios' ? data.image.uri.replace('file://', '') : data.image.uri,
+              name: data.image.fileName || 'discussion_update.jpg',
+              type: data.image.mimeType || 'image/jpeg'
+            });
+          }
+        }
+        delete headers['Content-Type'];
+        body = formData;
+      } else {
+        body = JSON.stringify(data);
+      }
+
+      const response = await fetch(`${API_URL}/community/${id}/`, {
+        method: 'PATCH',
+        headers: headers,
+        body: body,
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Update Discussion');
     }
   },
 
@@ -553,9 +707,12 @@ export const apiService = {
           });
         }
       }
+      const headers = await getHeaders(true);
+      delete headers['Content-Type'];
+
       const response = await fetch(`${API_URL}/community/stories/`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: headers,
         body: formData,
       });
       return await handleResponse(response);
@@ -592,10 +749,12 @@ export const apiService = {
 
   async createBlogPost(formData) {
     try {
-      const token = await getToken();
+      const headers = await getHeaders(true);
+      delete headers['Content-Type'];
+
       const response = await fetch(`${API_URL}/blog/`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: headers,
         body: formData,
       });
       return await handleResponse(response);
@@ -1160,8 +1319,7 @@ export const apiService = {
 
   async sendMessage(receiverId, message, image = null, relatedAppId = null) {
     try {
-      const token = await getToken();
-      const headers = { 'Authorization': `Bearer ${token}` };
+      const headers = await getHeaders(true);
 
       let body;
       if (image) {
@@ -1181,9 +1339,10 @@ export const apiService = {
             type: image.type || 'image/jpeg'
           });
         }
+        delete headers['Content-Type'];
       } else {
         body = JSON.stringify({ receiver: receiverId, message, related_application_id: relatedAppId });
-        headers['Content-Type'] = 'application/json';
+        // Content-Type is already application/json from getHeaders()
       }
 
       const response = await fetchWithTimeout(`${API_URL}/community/chat/`, {
