@@ -176,4 +176,43 @@ The Use Case Diagram defines the interactions between the system's users (Actors
 *   **SSLCommerz:** Facilitates financial transactions for Pro upgrades.
 
 ---
+## 6. Sequence Diagram
+
+The Sequence Diagram illustrates the step-by-step chronological flow of messages and data between the actors, frontend application, backend APIs, and external services. 
+
+Below is the highly detailed end-to-end Core User Journey, covering Firebase Authentication, the AI Matchmaker engine, Document Vault uploads, and the final Application review process.
+
+### Sequence Diagram: Core Application Workflow
+
+![Sequence Diagram](./diagrams/06_sequence_diagram.png)
+*(Figure: UML Sequence Diagram of ScholarshipConnectBD)*
+
+### Flow Explanation:
+
+#### Flow 1: Secure Authentication
+1. The **Student** enters their email and password in the **MobileApp (React Native)**.
+2. The App requests authentication from **FirebaseAuth**, which returns a secure JWT Token.
+3. The App forwards this Token to the **Django REST API**.
+4. The API verifies the ID Token and extracts the UID. 
+5. Based on the UID, it checks **MongoDB Atlas**; if the user exists, it fetches the profile. If it's a first login, it creates a new user profile before returning a "Login Success" response to the App.
+
+#### Flow 2: AI Matchmaker & Eligibility Check
+1. The Student taps "Check Eligibility", sending their Profile Info (CGPA, Level) to the **Django API**.
+2. The API retrieves the specific Scholarship Criteria from **MongoDB**.
+3. It combines the student profile with the scholarship requirements and forwards an NLP Matching Request to the **AI Engine (Groq/Gemini)**.
+4. The AI Engine returns a Match % and tailored recommendations, which the API formats and sends back to the MobileApp.
+
+#### Flow 3: Secure Document Vault Upload
+1. The Student uploads an SOP or CV (PDF/Image) via the MobileApp.
+2. The App sends the file via `multipart/form-data` to the **Django API**.
+3. The API validates the file type, generates a secure storage URL, and stores the metadata (File URL, Owner, Timestamp) in **MongoDB**.
+4. Upon successful database storage, an "Upload Successful" response is returned to the App.
+
+#### Flow 4: Scholarship Application & Admin Review
+1. The Student submits their application, sending the payload (including Vault Document IDs) to the **Django API**, which saves the status as "Pending" in **MongoDB**.
+2. Asynchronously, an **Admin** logs into the portal and requests the list of pending applications.
+3. The Admin reviews the documents and triggers the "Approve Application" action.
+4. The Django API updates the application status to "Approved" in MongoDB.
+5. Optionally, a Push Notification is triggered to notify the Student of the successful approval.
+---
 *(Note: Additional diagrams like DFD, ERD, Use Case, Sequence, and Class diagrams will be added below in subsequent phases).*
