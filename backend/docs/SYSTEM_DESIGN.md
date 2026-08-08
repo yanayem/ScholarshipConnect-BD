@@ -215,4 +215,23 @@ Below is the highly detailed end-to-end Core User Journey, covering Firebase Aut
 4. The Django API updates the application status to "Approved" in MongoDB.
 5. Optionally, a Push Notification is triggered to notify the Student of the successful approval.
 ---
-*(Note: Additional diagrams like DFD, ERD, Use Case, Sequence, and Class diagrams will be added below in subsequent phases).*
+## 7. Class Diagram
+
+The Class Diagram illustrates the Object-Oriented design of the backend structure, mapping directly to our Django REST Framework `models.py` and service layers. It highlights the primary classes, their internal attributes, core operations (methods), and the structural relationships between them using standard UML notation.
+
+### UML Class Diagram
+
+![Class Diagram](./diagrams/07_class_diagram.png)
+*(Figure: UML Class Diagram of ScholarshipConnectBD)*
+
+### Key Components & Logic:
+
+#### Domain Models (Data Entities)
+*   **User & Profile (`Composition`):** The `User` class acts as the core identity handler (managing `firebase_uid` and roles), and it strictly *has* a 1-to-1 composition relationship with the `Profile` class, which holds domain-specific academic data (`cgpa`, `scholar_points`).
+*   **DocumentVault (`Aggregation`):** The `User` class *owns* multiple (0..*) `DocumentVault` instances. Even if a document is deleted, the user remains intact.
+*   **Scholarship & Application (`Association`):** A `Scholarship` *receives* multiple `Application` objects, and a `User` *submits* multiple applications. This bridges the student to the opportunity.
+*   **MentorshipSession (`Association`):** Links a `User` to a session (0..* multiplicity) where they can act as either a mentor or a mentee, handling state transitions like `bookSession()` and `accept()`.
+
+#### Service Classes (Business Logic / Stereotypes)
+*   **AIAssistantService (`<<Service>>`):** An independent utility class that *depends on* the `Profile` and `Scholarship` classes. It contains the business logic to generate SOPs (`generateSOP()`) and run the NLP matching algorithm (`calculateMatchScore()`).
+*   **PaymentManager (`<<Service>>`):** A service class that *depends on* the `User` class to process Pro tier upgrades via the SSLCommerz gateway (`initiateSSLCommerzPayment()`).
