@@ -106,6 +106,44 @@ export default function LoginScreen() {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    try {
+      console.log('[LOGIN] Attempting Google Sign-In...');
+      const userCredential = await firebaseAuth.signInWithGoogle();
+      const idToken = await firebaseAuth.getIdToken();
+
+      if (!idToken) throw new Error('Failed to retrieve ID token from Google account.');
+
+      console.log('[LOGIN] Google Auth Success. Syncing with backend...');
+      await apiService.setToken(idToken);
+
+      const profile = await apiService.getProfile();
+
+      if (profile.ok) {
+        if (profile.data.is_staff) {
+          await AsyncStorage.setItem('is_staff', 'true');
+        } else {
+          await AsyncStorage.removeItem('is_staff');
+        }
+
+        showToast('Logged in with Google!', 'success');
+        setTimeout(() => router.replace('/(tabs)'), 500);
+      } else {
+        throw new Error(profile.data?.error || 'Backend verification failed.');
+      }
+    } catch (error) {
+      console.log('[GOOGLE LOGIN ERROR]:', error);
+      let msg = 'Google Sign-In failed.';
+      if (error.code === 'auth/popup-closed-by-user') msg = 'Login cancelled.';
+      else if (error.message.includes('not installed')) msg = 'Native Google Sign-In not configured. Use email/password.';
+
+      showToast(msg, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <View style={styles.root}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
@@ -189,9 +227,14 @@ export default function LoginScreen() {
             </View>
 
             <View style={styles.socialGrid}>
-              <TouchableOpacity style={[styles.socialIconBtn, { borderColor: '#EA4335' }]}><Ionicons name="logo-google" size={22} color="#EA4335" /></TouchableOpacity>
-              <TouchableOpacity style={[styles.socialIconBtn, { borderColor: '#1877F2' }]}><Ionicons name="logo-facebook" size={22} color="#1877F2" /></TouchableOpacity>
-              <TouchableOpacity style={[styles.socialIconBtn, { borderColor: '#000000' }]}><Ionicons name="logo-apple" size={22} color="#000000" /></TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.socialIconBtn, { borderColor: '#EA4335', width: '100%', flexDirection: 'row', gap: 12 }]}
+                onPress={handleGoogleLogin}
+                disabled={loading}
+              >
+                <Ionicons name="logo-google" size={22} color="#EA4335" />
+                <Text style={{ fontFamily: theme.typography.fontFamily.bold, color: theme.colors.heading }}>Continue with Google</Text>
+              </TouchableOpacity>
             </View>
           </View>
           <View style={styles.footerSection}>

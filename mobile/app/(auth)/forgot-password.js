@@ -5,28 +5,13 @@ import {
   StatusBar, Dimensions, ActivityIndicator, Alert
 } from 'react-native';
 import { router } from 'expo-router';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { theme } from '../../theme';
 import CustomInput from '../../components/CustomInput';
 import { useToast } from '../../components/Toast';
-import Constants from 'expo-constants';
+import { firebaseAuth } from '../../services/firebase';
 
 const { width, height } = Dimensions.get('window');
-
-// Safe Firebase Auth Import
-let authModule;
-let sendResetEmail;
-const isExpoGo = Constants.executionEnvironment === 'storeClient';
-
-if (Platform.OS !== 'web') {
-  try {
-    const fbAuth = require('@react-native-firebase/auth');
-    authModule = fbAuth.default;
-    sendResetEmail = (email) => authModule().sendPasswordResetEmail(email);
-  } catch (e) {
-    console.warn('[FIREBASE] Native Auth Module Error:', e.message);
-  }
-}
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
@@ -47,31 +32,28 @@ export default function ForgotPasswordScreen() {
 
     setLoading(true);
     try {
-      if (isExpoGo) {
-        Alert.alert(
-          "Expo Go Detected",
-          "Password reset requires a Development Build with native Firebase.",
-          [{ text: "OK" }]
-        );
-        setLoading(false);
-        return;
-      }
-
-      await sendResetEmail(email.trim().toLowerCase());
+      console.log('[FORGOT PASSWORD] Sending reset email to:', email.trim());
+      await firebaseAuth.sendPasswordReset(email.trim().toLowerCase());
 
       Alert.alert(
         "Email Sent",
-        "A password reset link has been sent to your email address. Please check your inbox.",
+        "A password reset link has been sent to your email address. Please check your inbox or spam folder.",
         [{ text: "Back to Login", onPress: () => router.back() }]
       );
     } catch (error) {
-      console.error('[FORGOT PASSWORD ERROR]:', error);
+      console.log('[FORGOT PASSWORD ERROR]:', error);
       let errorMsg = 'Failed to send reset email.';
+
       if (error.code === 'auth/user-not-found') {
         errorMsg = 'No account found with this email.';
       } else if (error.code === 'auth/invalid-email') {
         errorMsg = 'The email address is badly formatted.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMsg = 'Too many attempts. Please try again later.';
+      } else {
+        errorMsg = error.message || 'An unexpected error occurred.';
       }
+
       showToast(errorMsg, 'error');
     } finally {
       setLoading(false);

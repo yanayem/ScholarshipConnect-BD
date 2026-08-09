@@ -1,6 +1,7 @@
 from rest_framework import generics, permissions, parsers, exceptions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils.decorators import method_decorator
@@ -19,6 +20,12 @@ from .serializers import (
 )
 from notifications.utils import send_notification
 from applications.models import ScholarshipApplication, SavedScholarship, UserDocument
+
+class SensitiveActionThrottle(UserRateThrottle):
+    scope = 'sensitive'
+
+class AnonSensitiveActionThrottle(AnonRateThrottle):
+    scope = 'sensitive'
 
 class AdminTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -46,6 +53,7 @@ class AdminTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class AdminLoginView(TokenObtainPairView):
     serializer_class = AdminTokenObtainPairSerializer
+    throttle_classes = [SensitiveActionThrottle, AnonSensitiveActionThrottle]
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ProfileView(generics.RetrieveUpdateAPIView):
@@ -81,6 +89,7 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 class ChangePasswordView(generics.UpdateAPIView):
     serializer_class = ChangePasswordSerializer
     permission_classes = [permissions.IsAuthenticated]
+    throttle_classes = [SensitiveActionThrottle]
 
     def get_object(self):
         return self.request.user
@@ -288,6 +297,7 @@ class ForgotPasswordView(APIView):
     """
     permission_classes = [permissions.AllowAny]
     serializer_class = ForgotPasswordSerializer
+    throttle_classes = [SensitiveActionThrottle, AnonSensitiveActionThrottle]
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)

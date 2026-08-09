@@ -1,34 +1,46 @@
 from rest_framework import viewsets, permissions, status, filters
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.throttling import UserRateThrottle
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.core.cache import cache
+from django.apps import apps
 from .models import Scholarship
 from .serializers import ScholarshipSerializer
 from accounts.models import Profile
 from notifications.utils import send_notification
-from django.core.cache import cache
+from collections import Counter
 
+# Throttling class for sensitive actions
+class SensitiveActionThrottle(UserRateThrottle):
+    scope = 'sensitive'
+
+# NLP dependencies with robust fallback
 try:
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.metrics.pairwise import cosine_similarity
     SKLEARN_AVAILABLE = True
-except ImportError:
+except (ImportError, ModuleNotFoundError):
+    TfidfVectorizer = None
+    cosine_similarity = None
     SKLEARN_AVAILABLE = False
 
 class IsAdminOrOwner(permissions.BasePermission):
     """
     Custom permission to only allow owners of an object or staff to edit it.
     """
+    def __init__(self):
+        super(IsAdminOrOwner, self).__init__()
+
     def has_object_permission(self, request, view, obj):
         # Read permissions are allowed to any request
         if request.method in permissions.SAFE_METHODS:
             return True
 
         # Write permissions are only allowed to the submitter or staff
-        # Submitter is checked by ID if submitted_by is null (guest case - not possible to match though)
         return (request.user and request.user.is_authenticated) and (
             request.user.is_staff or obj.submitted_by == request.user
         )
@@ -44,16 +56,16 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
     ordering = ['-created_at']
 
     def list(self, request, *args, **kwargs):
-        # Optimization: Prefetch saved status for authenticated users to avoid N+1 in serializer
-        response = super().list(request, *args, **kwargs)
+        # Optimization: Prefetch saved status for authenticated users
+        response = super(ScholarshipViewSet, self).list(request, *args, **kwargs)
         return response
 
     def get_serializer_context(self):
-        context = super().get_serializer_context()
+        context = super(ScholarshipViewSet, self).get_serializer_context()
         user = self.request.user
         if user and user.is_authenticated:
             # Fetch all saved scholarship IDs for this user at once
-            from applications.models import SavedScholarship
+            SavedScholarship = apps.get_model('applications', 'SavedScholarship')
             saved_scholarships = SavedScholarship.objects.filter(user=user).values_list('scholarship_id', 'id')
             context['saved_dict'] = {s_id: save_id for s_id, save_id in saved_scholarships}
         return context
@@ -62,13 +74,8 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
         user = self.request.user
         status_param = self.request.query_params.get('status')
         
-        # Base queryset
         queryset = Scholarship.objects.all()
         
-        # Filtering logic for lists:
-        # Staff see everything (except rejected by default).
-        # Users see active + their own.
-        # We only apply these filters for the 'list' action to allow retrieve/update/delete on all items.
         if self.action == 'list':
             if user and user.is_authenticated:
                 if user.is_staff:
@@ -85,7 +92,6 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
-        # Staff posts are active by default, others (users/guests) are pending
         is_staff = user.is_authenticated and user.is_staff
         status_val = 'active' if is_staff else 'pending'
         
@@ -95,24 +101,17 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
         )
 
     def destroy(self, request, *args, **kwargs):
-        print(f"[DEBUG] Destroy request received for ID: {kwargs.get('pk')}")
         instance = self.get_object()
-        print(f"[DEBUG] Deleting scholarship: {instance.title}")
         self.perform_destroy(instance)
-        print(f"[DEBUG] Deletion complete")
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated], throttle_classes=[SensitiveActionThrottle])
     def approve(self, request, pk=None):
-        print(f"[DEBUG] Approve action triggered for ID: {pk}")
         if not request.user.is_staff:
-            print(f"[DEBUG] User {request.user.username} is NOT staff")
             return Response({"error": "Admin access required"}, status=status.HTTP_403_FORBIDDEN)
 
         try:
             scholarship = self.get_object()
-            print(f"[DEBUG] Found scholarship: {scholarship.title}")
-            
             action_type = str(request.data.get('action', '')).lower()
             note = request.data.get('note', '').strip()
             previous_status = scholarship.status
@@ -134,35 +133,28 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
             # Points System Logic
             if previous_status == 'pending' and scholarship.submitted_by:
                 try:
-                    profile = scholarship.submitted_by.get_profile()
-                    points_change = 0
+                    profile = Profile.objects.get(user=scholarship.submitted_by)
+                    points_change = 200 if scholarship.status == 'active' else -50
                     
-                    if scholarship.status == 'active':
-                        points_change = 200
-                    elif scholarship.status == 'rejected':
-                        points_change = -50
+                    profile.scholar_points += points_change
+                    profile.save(update_fields=['scholar_points'])
                     
-                    if points_change != 0:
-                        profile.scholar_points += points_change
-                        # Use update_fields to avoid triggering full model validation/save logic
-                        # which might fail if other fields (like profile_picture) are corrupted
-                        profile.save(update_fields=['scholar_points'])
-                    
-                    # Send notification
-                    display_points = points_change if points_change > 0 else -points_change
-                    notification_message = f"Your submission '{scholarship.title}' has been {action_verb}. {display_points} ScholarPoints {'awarded' if points_change > 0 else 'deducted'}."
+                    # Notification
+                    display_points = abs(points_change)
+                    points_text = "awarded" if points_change > 0 else "deducted"
+                    msg = f"Your submission '{scholarship.title}' has been {action_verb}. {display_points} ScholarPoints {points_text}."
                     
                     if note:
-                        notification_message += f" Note from admin: {note}"
+                        msg += f" Note: {note}"
                     
                     send_notification(
                         user=scholarship.submitted_by,
                         title=f"Scholarship {action_title}",
-                        message=notification_message,
+                        message=msg,
                         scholarship_id=scholarship.id
                     )
                 except Exception as e:
-                    print(f"[DEBUG ERROR] Points/Notification failed: {str(e)}")
+                    print(f"Points update error: {e}")
             
             return Response({
                 "message": f"Scholarship {action_type}d successfully", 
@@ -170,10 +162,9 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
                 "points_updated": True if previous_status == 'pending' and scholarship.submitted_by else False
             })
         except Exception as e:
-            print(f"[DEBUG ERROR] Approve action failed: {str(e)}")
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @action(detail=False, methods=['post'], url_path='bulk-upload', permission_classes=[permissions.IsAdminUser])
+    @action(detail=False, methods=['post'], url_path='bulk-upload', permission_classes=[permissions.IsAdminUser], throttle_classes=[SensitiveActionThrottle])
     def bulk_upload(self, request):
         if not isinstance(request.data, list):
             return Response({"error": "Expected a list of scholarships"}, status=status.HTTP_400_BAD_REQUEST)
@@ -219,33 +210,27 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='matchmaker', permission_classes=[permissions.IsAuthenticated])
     def matchmaker(self, request):
-        """
-        AI-Powered Matchmaker: Suggests scholarships based on student profile.
-        """
         user = request.user
         profile, _ = Profile.objects.get_or_create(user=user)
         
         scholarships = Scholarship.objects.filter(status='active', deadline__gte=timezone.now().date())
         results = []
         
-        # Build Profile Text for NLP
         profile_text = f"{profile.target_countries} {profile.major_course} {profile.research_interests} {profile.bio} {profile.skills} {profile.academic_level}".lower()
         
         scholarship_texts = []
         valid_scholarships = []
         
-        # Pre-filter for CGPA
         for s in scholarships:
             base_score = 0
             if s.min_cgpa:
                 if profile.cgpa and profile.cgpa >= s.min_cgpa:
                     base_score += 40
                 else:
-                    continue # Skip if CGPA doesn't meet minimum
+                    continue
             else:
                 base_score += 20
                 
-            # Add some base points for exact matches too to retain structured data weight
             if profile.target_countries and s.country:
                 targets = [c.strip().lower() for c in str(profile.target_countries).split(',') if c.strip()]
                 if s.country.lower() in targets:
@@ -261,40 +246,28 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
                     base_score += 10
                     
             valid_scholarships.append((s, base_score))
-            
-            # Build Scholarship Text for NLP
             s_text = f"{s.title} {s.country} {s.field} {s.level} {s.description} {s.eligibility}".lower()
             scholarship_texts.append(s_text)
             
-        # NLP TF-IDF Cosine Similarity
         if SKLEARN_AVAILABLE and valid_scholarships and profile_text.strip():
             vectorizer = TfidfVectorizer(stop_words='english')
-            # Fit on profile + scholarships
             tfidf_matrix = vectorizer.fit_transform([profile_text] + scholarship_texts)
-            
-            # Similarity between profile (index 0) and scholarships (index 1 to end)
-            cosine_similarities = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:]).flatten()
+            cosine_sims = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:]).flatten()
             
             for idx, (s, base_score) in enumerate(valid_scholarships):
-                # Scale similarity (0 to 1) to a score out of 50
-                nlp_score = int(cosine_similarities[idx] * 50)
-                final_score = base_score + nlp_score
-                
+                nlp_score = int(cosine_sims[idx] * 50)
                 results.append({
                     "scholarship": ScholarshipSerializer(s).data,
-                    "match_score": final_score
+                    "match_score": base_score + nlp_score
                 })
         else:
-            # Fallback if sklearn is not available or profile is totally empty
             for s, base_score in valid_scholarships:
                 results.append({
                     "scholarship": ScholarshipSerializer(s).data,
                     "match_score": base_score
                 })
         
-        # Sort by match score
         results = sorted(results, key=lambda x: x['match_score'], reverse=True)
-        
         return Response({
             "profile_summary": {
                 "cgpa": profile.cgpa,
@@ -302,14 +275,11 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
                 "major": profile.major_course,
                 "interests": profile.research_interests
             },
-            "recommendations": results[:10] # Top 10 matches
+            "recommendations": results[:10]
         })
 
     @action(detail=False, methods=['get'], url_path='autocomplete', permission_classes=[permissions.AllowAny])
     def autocomplete(self, request):
-        """
-        Ultra-fast autocomplete endpoint using in-memory caching.
-        """
         query_type = request.query_params.get('type', '')
         q = request.query_params.get('q', '').strip().lower()
         
@@ -320,32 +290,23 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
         cached_list = cache.get(cache_key)
 
         if cached_list is None:
-            # Need to populate cache
             if query_type == 'country':
                 cached_list = list(Scholarship.objects.exclude(country__isnull=True).exclude(country='').values_list('country', flat=True).distinct())
             elif query_type == 'field':
                 cached_list = list(Scholarship.objects.exclude(field__isnull=True).exclude(field='').values_list('field', flat=True).distinct())
             elif query_type == 'skills':
-                # Skills are comma separated in profiles
                 profiles = Profile.objects.exclude(skills__isnull=True).exclude(skills='').values_list('skills', flat=True)
                 skills_set = set()
                 for skills_str in profiles:
-                    for skill in skills_str.split(','):
+                    for skill in str(skills_str).split(','):
                         skill = skill.strip()
-                        if skill:
-                            skills_set.add(skill)
+                        if skill: skills_set.add(skill)
                 cached_list = list(skills_set)
             else:
                 return Response([])
-            
-            # Cache for 1 hour
             cache.set(cache_key, cached_list, 3600)
 
-        # In-memory filtering (Lightning fast)
-        # We find items that contain the query substring, case insensitive
-        suggestions = [item for item in cached_list if q in item.lower()]
-        
-        # Return top 5 suggestions
+        suggestions = [item for item in cached_list if q in str(item).lower()]
         return Response(suggestions[:5])
 
     @action(detail=False, methods=['get'], url_path='check-admin', permission_classes=[permissions.IsAuthenticated])
@@ -359,9 +320,6 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='submission-feedback', permission_classes=[permissions.IsAuthenticated])
     def submission_feedback(self, request):
-        """
-        Returns only the rejected scholarships submitted by the current user.
-        """
         queryset = Scholarship.objects.filter(
             submitted_by=request.user, 
             status='rejected'
@@ -370,10 +328,7 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=False, methods=['post'], url_path='cleanup-rejected', permission_classes=[permissions.IsAdminUser])
-    def cleanup_rejected(self, request):
-        """
-        Manually trigger deletion of rejected scholarships older than 30 days.
-        """
+    def cleanup_rejected(self, _request):
         from django.core.management import call_command
         try:
             call_command('delete_old_rejected_scholarships')
@@ -382,22 +337,18 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=['get'], url_path='admin-stats', permission_classes=[permissions.IsAdminUser])
-    def admin_stats(self, request):
-        """
-        Admin-only endpoint to get system-wide statistics for the dashboard.
-        """
+    def admin_stats(self, _request):
         from django.contrib.auth.models import User
-        from community.models import MentorshipSession
-        from applications.models import ScholarshipApplication
+        
+        ScholarshipApplication = apps.get_model('applications', 'ScholarshipApplication')
+        MentorshipSession = apps.get_model('community', 'MentorshipSession')
 
         total_scholarships = Scholarship.objects.count()
         total_users = User.objects.count()
         total_applications = ScholarshipApplication.objects.count()
         total_mentorships = MentorshipSession.objects.count()
 
-        # Simple country breakdown for the progress bars
         countries = list(Scholarship.objects.exclude(country__isnull=True).exclude(country='').values_list('country', flat=True))
-        from collections import Counter
         counts = Counter(countries)
         popular_countries = []
         total_with_country = len(countries)

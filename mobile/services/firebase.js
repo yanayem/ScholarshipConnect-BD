@@ -31,6 +31,15 @@ if (Platform.OS === 'web' || isExpoGo) {
     try {
         const fbAuth = require('@react-native-firebase/auth');
         auth = fbAuth.default();
+
+        // Initialize Google Sign-in for Native
+        const { GoogleSignin } = require('@react-native-google-signin/google-signin');
+        GoogleSignin.configure({
+            // The Web Client ID is required for Firebase auth to work with Google Sign-in on Android
+            // You can find this in Firebase Console -> Project Settings -> Authentication -> Google -> Web Client ID
+            webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || '1092212923801-v6l82n7u9p5n5n5n5n5n5n5n5n5n5n5n.apps.googleusercontent.com',
+            offlineAccess: true,
+        });
     } catch (e) {
         console.warn('[FIREBASE] Native auth initialization failed:', e.message);
     }
@@ -47,6 +56,30 @@ export const firebaseAuth = {
         }
     },
 
+    async signInWithGoogle() {
+        if (Platform.OS === 'web' || isExpoGo) {
+            const { GoogleAuthProvider, signInWithPopup } = require('firebase/auth');
+            const provider = new GoogleAuthProvider();
+            return await signInWithPopup(auth, provider);
+        } else {
+            try {
+                const { GoogleSignin } = require('@react-native-google-signin/google-signin');
+                await GoogleSignin.hasPlayServices();
+                const userInfo = await GoogleSignin.signIn();
+
+                // Get the idToken correctly based on the response structure
+                const idToken = userInfo.data ? userInfo.data.idToken : userInfo.idToken;
+
+                const fbAuth = require('@react-native-firebase/auth');
+                const googleCredential = fbAuth.default.GoogleAuthProvider.credential(idToken);
+                return await auth.signInWithCredential(googleCredential);
+            } catch (e) {
+                console.error('[FIREBASE] Google Sign-In failed:', e.message);
+                throw e;
+            }
+        }
+    },
+
     async signUp(email, password) {
         if (Platform.OS === 'web') {
             const { createUserWithEmailAndPassword } = require('firebase/auth');
@@ -54,6 +87,16 @@ export const firebaseAuth = {
         } else {
             if (!auth) throw new Error('Firebase Auth not available');
             return await auth.createUserWithEmailAndPassword(email, password);
+        }
+    },
+
+    async sendPasswordReset(email) {
+        if (Platform.OS === 'web' || isExpoGo) {
+            const { sendPasswordResetEmail } = require('firebase/auth');
+            return await sendPasswordResetEmail(auth, email);
+        } else {
+            if (!auth) throw new Error('Firebase Auth not available');
+            return await auth.sendPasswordResetEmail(email);
         }
     },
 
