@@ -58,6 +58,9 @@ class Profile(models.Model):
     mentorship_bio = models.TextField(max_length=500, blank=True)
     expertise_areas = models.CharField(max_length=255, blank=True, help_text="e.g. Europe, PhD, STEM")
     
+    # Push Notifications
+    fcm_token = models.CharField(max_length=255, blank=True, null=True)
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

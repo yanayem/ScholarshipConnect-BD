@@ -1450,5 +1450,18 @@ export const apiService = {
     } catch (error) {
       return networkError(error, 'Delete Message');
     }
+  },
+
+  async updateFCMToken(fcmToken) {
+    try {
+      const response = await fetch(`${API_URL}/accounts/update-fcm-token/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify({ fcm_token: fcmToken }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Update FCM Token');
+    }
   }
 };

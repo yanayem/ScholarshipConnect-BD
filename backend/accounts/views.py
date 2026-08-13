@@ -331,3 +331,17 @@ class ForgotPasswordView(APIView):
             }, status=status.HTTP_200_OK)
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UpdateFCMTokenView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        fcm_token = request.data.get('fcm_token')
+        if not fcm_token:
+            return Response({"error": "FCM token is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        profile = request.user.profile
+        profile.fcm_token = fcm_token
+        profile.save()
+        
+        return Response({"message": "FCM token updated successfully"}, status=status.HTTP_200_OK)

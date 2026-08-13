@@ -2,6 +2,7 @@ from rest_framework import generics, permissions
 from django.contrib.auth.models import User
 from .models import Notification, Broadcast
 from .serializers import NotificationSerializer, BroadcastSerializer
+from .fcm_service import send_bulk_push_notification
 
 class NotificationListView(generics.ListAPIView):
     serializer_class = NotificationSerializer
@@ -41,3 +42,11 @@ class BroadcastListView(generics.ListCreateAPIView):
         ]
         
         Notification.objects.bulk_create(notifications)
+
+        # Send push notification to all users
+        send_bulk_push_notification(
+            users,
+            title=broadcast.title,
+            body=broadcast.message,
+            data={"type": "broadcast", "id": f"{broadcast.id}"}
+        )

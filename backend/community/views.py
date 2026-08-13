@@ -14,6 +14,7 @@ from accounts.models import Profile
 from accounts.serializers import ProfileSerializer
 from notifications.models import Notification
 from notifications.utils import send_notification
+from notifications.fcm_service import send_push_notification
 from collections import Counter
 
 class DiscussionListCreateView(generics.ListCreateAPIView):
@@ -393,7 +394,21 @@ class ChatMessageView(generics.ListCreateAPIView):
             if not message_text and not image:
                 raise serializers.ValidationError({"error": "Either message or image is required."})
                 
-            serializer.save(sender=self.request.user, receiver=receiver)
+            msg = serializer.save(sender=self.request.user, receiver=receiver)
+
+            # Send push notification to receiver
+            sender_name = self.request.user.profile.full_name or self.request.user.username
+            notification_body = message_text if message_text else "Sent an image"
+            send_push_notification(
+                receiver,
+                title=f"New message from {sender_name}",
+                body=notification_body,
+                data={
+                    "type": "message",
+                    "sender_id": f"{self.request.user.id}",
+                    "message_id": f"{msg.id}"
+                }
+            )
         except Exception as e:
             # Log the full error to help debug
             print(f"[CHAT ERROR] Failed to create message: {str(e)}")

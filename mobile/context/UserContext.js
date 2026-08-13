@@ -1,6 +1,8 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { apiService } from '../services/api';
 import { firebaseAuth } from '../services/firebase';
+import { notificationService } from '../services/notifications';
+import { useGlobalToast } from './ToastContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const UserContext = createContext();
@@ -8,6 +10,7 @@ const UserContext = createContext();
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { showToast } = useGlobalToast();
 
   const fetchProfile = async (force = false) => {
     if (!force && user) return user;
@@ -25,6 +28,10 @@ export const UserProvider = ({ children }) => {
       if (res.ok) {
         setUser(res.data);
         await AsyncStorage.setItem('is_staff', res.data.is_staff.toString());
+
+        // Register for push notifications after successful login
+        notificationService.registerForPushNotifications();
+
         return res.data;
       } else if (res.status === 401) {
         setUser(null);
@@ -45,7 +52,20 @@ export const UserProvider = ({ children }) => {
         // If we expect to be logged in, wait for Firebase to restore session
         await firebaseAuth.waitForUser();
       }
-      await fetchProfile();
+      const profile = await fetchProfile();
+
+      // Setup listeners if profile was fetched
+      if (profile) {
+        notificationService.setupNotificationListeners((remoteMessage) => {
+          // Show a beautiful global toast for foreground notifications
+          if (remoteMessage.notification) {
+            showToast(
+              remoteMessage.notification.body || "New notification received",
+              'success'
+            );
+          }
+        });
+      }
     };
 
     initializeAuth();

@@ -67,8 +67,13 @@ export const firebaseAuth = {
                 await GoogleSignin.hasPlayServices();
                 const userInfo = await GoogleSignin.signIn();
 
-                // Get the idToken correctly based on the response structure
+                // Get the idToken correctly based on the response structure (v13+ uses .data)
                 const idToken = userInfo.data ? userInfo.data.idToken : userInfo.idToken;
+
+                if (!idToken) {
+                    console.error('[FIREBASE] Google Sign-In succeeded but idToken is null. Check EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID in .env');
+                    throw new Error('Google ID Token is missing. Please verify your configuration.');
+                }
 
                 const fbAuth = require('@react-native-firebase/auth');
                 const googleCredential = fbAuth.default.GoogleAuthProvider.credential(idToken);
