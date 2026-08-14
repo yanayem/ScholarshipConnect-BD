@@ -60,6 +60,9 @@ patch.diff
 .DS_Store
 
 # Local tracking
+REQUIRED_CAPITAL.md
+REPORT.md
+DOCUMENTATION.md
 CHANGES.md
 AI_MATCHMAKER.md
 BUSINESS_PLAN.md

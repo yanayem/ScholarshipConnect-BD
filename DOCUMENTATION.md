@@ -121,8 +121,9 @@ The platform offers a premium tier that users can unlock via two methods:
 
 ### Accessing the Admin Portal
 1.  **Security Lock**: Only users with `is_staff` permission can access the portal.
-2.  **Login**: Navigate to your profile and tap the "Admin Portal" button. You will be prompted for a secondary **Security Login**. Use your Django admin credentials here.
-3.  **Dashboard**: Once inside, the "Stats Summary" gives you a live view of the system's vitals (Total Users, Live Scholarships, etc.).
+2.  **Granting Access**: To grant admin access to a user, add their email to `ADMIN_EMAILS` in the backend `.env` file. Alternatively, set `is_staff` and `is_superuser` to True in the Django Admin panel.
+3.  **Login**: Navigate to your profile and tap the "Admin Portal" button. You will be prompted for a secondary **Security Login**. Use your Django admin credentials here (standard Django staff account).
+4.  **Dashboard**: Once inside, the "Stats Summary" gives you a live view of the system's vitals (Total Users, Live Scholarships, etc.).
 
 ### Content Moderation & Safety
 1.  **Moderation Center**: From the Admin Home, tap **Moderation**.
@@ -185,7 +186,8 @@ A deep dive into how a student moves from a discovered scholarship to a complete
 - **Authentication**: Firebase Admin SDK.
 
 ### Frontend (Mobile)
-- **Engine**: React Native with Expo (SDK 56).
+- **Engine**: React Native with Expo (SDK 56). 
+    - *Documentation*: Refer to the exact versioned docs at [expo.dev/versions/v56.0.0](https://docs.expo.dev/versions/v56.0.0/) before writing code.
 - **Styling**: A dual-layer system. **Global Theme** (`theme.js`) handles brand colors, while **Independent Styling** ensures professional educational aesthetics.
 - **Routing**: Expo Router for stable file-based navigation.
 - **State Management**: React Hooks and Context API for global user state.
@@ -199,6 +201,10 @@ A deep dive into how a student moves from a discovered scholarship to a complete
 ---
 
 ## Security & Authentication
+- **Firebase Migration**: The system has migrated from SimpleJWT to **Firebase Authentication**.
+- **Implementation**: 
+    - **Backend**: Uses `FirebaseAuthentication` to verify ID tokens on every request.
+    - **Frontend**: Utilizes the Firebase SDK for user login and registration.
 - **ID Token Verification**: Every request is verified via Firebase JWT tokens.
 - **Admin Hierarchy**: Standard staff (`is_staff`) and superuser (`is_superuser`) roles define access levels.
 - **Data Privacy**: All student documents are stored using unique hash identifiers.
