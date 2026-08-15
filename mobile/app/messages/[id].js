@@ -558,7 +558,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10, backgroundColor: theme.colors.surface, borderTopWidth: 0.5, borderTopColor: theme.colors.divider,
     paddingBottom: Platform.OS === 'ios' ? 30 : 12
   },
-  attachBtn: { padding: 5, marginRight: 5 },
+  attachBtn: { marginRight: 5 },
   input: {
     flex: 1, backgroundColor: theme.colors.secondaryBackground, borderRadius: 20,
     paddingHorizontal: 15, paddingVertical: 8, fontSize: 15, color: theme.colors.textPrimary
