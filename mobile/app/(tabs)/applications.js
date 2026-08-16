@@ -34,6 +34,7 @@ export default function ApplicationsScreen() {
           apiService.getApplications()
         ]);
         let data = [];
+
         if (savedRes.ok) {
           data = data.concat(savedRes.data.map(item => ({
             id: 's' + item.id,
@@ -41,9 +42,11 @@ export default function ApplicationsScreen() {
             country: item.scholarship_details?.country || 'N/A',
             level: item.scholarship_details?.level || 'N/A',
             deadline: item.scholarship_details?.deadline || 'N/A',
-            status: 'Saved'
+            status: 'Saved',
+            type: 'Self' // Mark as Self/Saved
           })));
         }
+
         if (appRes.ok) {
           data = data.concat(appRes.data.map(item => ({
             id: 'a' + item.id,
@@ -51,12 +54,13 @@ export default function ApplicationsScreen() {
             country: item.scholarship_country || 'N/A',
             level: item.scholarship_level || 'N/A',
             deadline: item.scholarship_deadline || 'N/A',
-            status: item.status
+            status: item.status,
+            type: item.application_type
           })));
         }
 
         if (!savedRes.ok || !appRes.ok) {
-          showToast('Failed to load some data. Please check your connection.', 'warning');
+          showToast('Failed to load some data. Please check connection.', 'warning');
         }
 
         setApplications(data);
@@ -110,7 +114,7 @@ export default function ApplicationsScreen() {
             <Text style={styles.emptyTitle}>No applications here</Text>
             <Text style={styles.emptyText}>
               {activeTab === 'Saved'
-                ? 'Save scholarships to apply later.'
+                ? 'Your bookmarked scholarships for self-application will appear here.'
                 : `No applications found for status "${activeTab}".`}
             </Text>
           </View>
@@ -170,8 +174,8 @@ export default function ApplicationsScreen() {
                   </View>
                 </View>
 
-                {/* Progress Indicator */}
-                {item.status !== 'Rejected' && (
+                {/* Progress Indicator - Only show for Agency/Expert applications */}
+                {item.status !== 'Rejected' && item.type !== 'Self' && (
                   <View style={styles.progressRow}>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 10 }}>
                       {STEPS.map((s, i) => {
