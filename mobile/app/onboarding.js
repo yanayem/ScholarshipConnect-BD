@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Dimensions, Animated, StatusBar, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Dimensions, Animated, StatusBar, Platform, useWindowDimensions, Image } from 'react-native';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
@@ -35,6 +35,10 @@ const slides = [
 ];
 
 export default function OnboardingScreen() {
+  const { width: windowWidth } = useWindowDimensions();
+  // On web, we cap the slide width to match the RootLayout container (max 600px)
+  const width = Platform.OS === 'web' ? Math.min(windowWidth, 600) : windowWidth;
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollX = useRef(new Animated.Value(0)).current;
   const slidesRef = useRef(null);
@@ -76,9 +80,17 @@ export default function OnboardingScreen() {
   });
 
   const renderItem = ({ item }) => (
-    <View style={[styles.slide, { backgroundColor: item.bgColor }]}>
+    <View style={[styles.slide, { width, backgroundColor: item.bgColor }]}>
       <View style={[styles.iconCircle, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-        <MaterialIcons name={item.icon} size={100} color="#FFFFFF" />
+        {item.id === '1' ? (
+          <Image
+            source={require('../assets/images/logo-glow.png')}
+            style={{ width: 140, height: 140 }}
+            resizeMode="contain"
+          />
+        ) : (
+          <MaterialIcons name={item.icon} size={100} color="#FFFFFF" />
+        )}
       </View>
       <View style={styles.textContainer}>
         <Text style={styles.title}>{item.title}</Text>
@@ -164,7 +176,7 @@ export default function OnboardingScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  slide: { width, alignItems: 'center', justifyContent: 'center', padding: 40 },
+  slide: { alignItems: 'center', justifyContent: 'center', padding: 40 },
   iconCircle: {
     width: 220,
     height: 220,

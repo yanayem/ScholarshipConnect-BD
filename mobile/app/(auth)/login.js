@@ -7,7 +7,7 @@ import React, { useState, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView,
-  StatusBar, Dimensions, ActivityIndicator, Alert
+  StatusBar, Dimensions, ActivityIndicator, Alert, Image
 } from 'react-native';
 import { router, Link } from 'expo-router';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
@@ -153,9 +153,6 @@ export default function LoginScreen() {
         <View style={styles.circle1} />
         <View style={styles.circle2} />
         <View style={styles.headerContent}>
-          <View style={styles.logoBadge}>
-            <MaterialIcons name="school" size={40} color={theme.colors.primary} />
-          </View>
           <Text style={styles.welcomeText}>Welcome Back</Text>
           <Text style={styles.subWelcomeText}>Sign in to continue your journey</Text>
         </View>
@@ -255,7 +252,6 @@ const styles = StyleSheet.create({
   circle1: { position: 'absolute', top: -50, right: -50, width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.1)' },
   circle2: { position: 'absolute', bottom: -30, left: -30, width: 150, height: 150, borderRadius: 75, backgroundColor: 'rgba(255,255,255,0.05)' },
   headerContent: { alignItems: 'center', zIndex: 1, marginTop: 20 },
-  logoBadge: { width: 80, height: 80, backgroundColor: '#fff', borderRadius: 24, justifyContent: 'center', alignItems: 'center', marginBottom: 16, ...theme.shadows.premium },
   welcomeText: { fontSize: 28, fontFamily: theme.typography.fontFamily.bold, color: '#fff' },
   subWelcomeText: { fontSize: 14, fontFamily: theme.typography.fontFamily.medium, color: 'rgba(255,255,255,0.8)', marginTop: 4 },
   keyboardView: { flex: 1, marginTop: -40 },

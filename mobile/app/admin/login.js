@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
   KeyboardAvoidingView, Platform, ScrollView,
-  StatusBar, Dimensions, TextInput
+  StatusBar, Dimensions, TextInput, Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
@@ -65,9 +65,11 @@ export default function AdminSecurityLogin() {
         <View style={styles.circle2} />
 
         <View style={styles.headerContent}>
-          <View style={styles.logoBadge}>
-            <MaterialIcons name="admin-panel-settings" size={40} color={theme.colors.primary} />
-          </View>
+          <Image
+            source={require('../../assets/images/logo-glow.png')}
+            style={{ width: 100, height: 100, marginBottom: 10 }}
+            resizeMode="contain"
+          />
           <Text style={styles.welcomeText}>Admin Portal</Text>
           <Text style={styles.subWelcomeText}>Secure authentication required</Text>
         </View>
@@ -188,16 +190,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 1,
     marginTop: 20,
-  },
-  logoBadge: {
-    width: 80,
-    height: 80,
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    ...theme.shadows.premium,
   },
   welcomeText: {
     fontSize: 28,

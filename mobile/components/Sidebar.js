@@ -56,6 +56,11 @@ export default function Sidebar() {
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>
+        <Image
+          source={require('../assets/images/logo-glow.png')}
+          style={{ width: 30, height: 30, marginBottom: 10 }}
+          resizeMode="contain"
+        />
         <Text style={styles.logoText}>ScholarshipConnect</Text>
       </View>
       

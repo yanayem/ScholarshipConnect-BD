@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
   StyleSheet, StatusBar, KeyboardAvoidingView, Platform, Alert, ActivityIndicator, Linking
 } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import { useLocalSearchParams, router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { theme } from '../../theme';
@@ -86,11 +87,9 @@ export default function ApplyScreen() {
       const res = await apiService.applyForScholarship(payload);
       if (res.ok) {
         showToast('Application tracking saved!', 'success');
-        setTimeout(() => {
+        setTimeout(async () => {
           if (officialLink) {
-            Linking.openURL(officialLink).catch(err => {
-               showToast('Could not open official portal.', 'error');
-            });
+            await handleOpenPortal();
           }
           router.replace('/(tabs)/applications');
         }, 1500);
@@ -102,6 +101,26 @@ export default function ApplyScreen() {
       showToast('Network error occurred', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleOpenPortal = async () => {
+    if (!officialLink) {
+      showToast('No official link available.', 'info');
+      return;
+    }
+
+    let targetUrl = officialLink.trim();
+    if (!targetUrl.startsWith('http')) {
+      targetUrl = 'https://' + targetUrl;
+    }
+
+    try {
+      await WebBrowser.openBrowserAsync(targetUrl);
+    } catch (error) {
+      Linking.openURL(targetUrl).catch(() => {
+        Alert.alert("Error", "Could not open portal link.");
+      });
     }
   };
 
@@ -211,6 +230,13 @@ export default function ApplyScreen() {
             {!loading && <MaterialIcons name="open-in-new" size={18} color={theme.colors.heading} />}
           </TouchableOpacity>
 
+          <TouchableOpacity
+            style={styles.skipBtn}
+            onPress={handleOpenPortal}
+          >
+            <Text style={styles.skipBtnText}>Skip and Open Official Link Directly</Text>
+          </TouchableOpacity>
+
           <View style={{ height: 40 }} />
         </ScrollView>
         {ToastComponent}
@@ -282,5 +308,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 10, marginTop: 32, ...theme.shadows.soft,
   },
-  submitBtnText: { color: theme.colors.heading, fontSize: 16, fontWeight: 'bold' }
+  submitBtnText: { color: theme.colors.heading, fontSize: 16, fontWeight: 'bold' },
+  skipBtn: {
+    marginTop: 16,
+    padding: 12,
+    alignItems: 'center',
+  },
+  skipBtnText: {
+    color: theme.colors.textSecondary,
+    fontSize: 14,
+    textDecorationLine: 'underline',
+  }
 });

@@ -9,6 +9,7 @@ import {
   StyleSheet, StatusBar, Share, ActivityIndicator,
   Dimensions, ImageBackground, Linking, Alert, Modal, Pressable
 } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import { useLocalSearchParams, router } from 'expo-router';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { apiService } from '../../services/api';
@@ -91,6 +92,27 @@ export default function ScholarshipDetails() {
       setError('Network error. Check your connection.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleOpenLink = async (url) => {
+    if (!url) {
+      showToast('Official link not available for this scholarship', 'info');
+      return;
+    }
+
+    let targetUrl = url.trim();
+    if (!targetUrl.startsWith('http')) {
+      targetUrl = 'https://' + targetUrl;
+    }
+
+    try {
+      await WebBrowser.openBrowserAsync(targetUrl);
+    } catch (error) {
+      console.log('WebBrowser failed, falling back to Linking:', error);
+      Linking.openURL(targetUrl).catch(() => {
+        Alert.alert("Error", "Could not open this link. Please ensure a browser is installed.");
+      });
     }
   };
 
@@ -254,7 +276,7 @@ export default function ScholarshipDetails() {
                     label="Application"
                     value="Official Site"
                     isLink
-                    onPress={() => details.official_link && Linking.openURL(details.official_link)}
+                    onPress={() => handleOpenLink(details.official_link)}
                 />
             </View>
         </View>
@@ -391,10 +413,27 @@ export default function ScholarshipDetails() {
                 <MaterialIcons name="person" size={28} color={UI.colors.primary} />
               </View>
               <View style={styles.hybridOptionText}>
-                <Text style={styles.hybridOptionTitle}>Do It Yourself (Free)</Text>
-                <Text style={styles.hybridOptionDesc}>Use our AI tools to prepare your SOP and CV, then apply on the official university portal.</Text>
+                <Text style={styles.hybridOptionTitle}>Track Self Application</Text>
+                <Text style={styles.hybridOptionDesc}>Fill our tracking form to save your SOP and CV details, then we'll redirect you to the official site.</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={UI.colors.textMuted} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.hybridOptionCard, { backgroundColor: '#F8F9FA' }]}
+              onPress={() => {
+                setShowApplyModal(false);
+                handleOpenLink(details.official_link);
+              }}
+            >
+              <View style={[styles.hybridIconBox, { backgroundColor: '#EDF2F7' }]}>
+                <MaterialIcons name="language" size={28} color="#4A5568" />
+              </View>
+              <View style={styles.hybridOptionText}>
+                <Text style={styles.hybridOptionTitle}>Open Official Link Directly</Text>
+                <Text style={styles.hybridOptionDesc}>Skip tracking and go directly to the scholarship provider's website.</Text>
+              </View>
+              <Ionicons name="open-outline" size={20} color={UI.colors.textMuted} />
             </TouchableOpacity>
 
             <TouchableOpacity 
