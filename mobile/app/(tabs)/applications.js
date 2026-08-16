@@ -142,36 +142,38 @@ export default function ApplicationsScreen() {
                   <Text style={styles.deadline}>
                     <MaterialIcons name="event" size={13} color={theme.colors.error} /> {item.deadline}
                   </Text>
-                  <View style={{ flexDirection: 'row', gap: 8 }}>
-                    <TouchableOpacity
-                      style={styles.helpBtn}
-                      onPress={async () => {
-                        try {
-                          const res = await apiService.getUsers();
-                          if (res.ok) {
-                            const staff = res.data.find(u => u.is_staff || u.is_superuser);
-                            if (staff) {
-                              router.push({
-                                pathname: `/messages/${staff.id || staff.user_id}`,
-                                params: {
-                                  name: staff.full_name || staff.username,
-                                  avatar: staff.avatar_url,
-                                  prefill: `Hi, I have a question regarding my application for "${item.title}". Status: ${item.status}`
-                                }
-                              });
+                  {item.type !== 'Self' && (
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                      <TouchableOpacity
+                        style={styles.helpBtn}
+                        onPress={async () => {
+                          try {
+                            const res = await apiService.getUsers();
+                            if (res.ok) {
+                              const staff = res.data.find(u => u.is_staff || u.is_superuser);
+                              if (staff) {
+                                router.push({
+                                  pathname: `/messages/${staff.id || staff.user_id}`,
+                                  params: {
+                                    name: staff.full_name || staff.username,
+                                    avatar: staff.avatar_url,
+                                    prefill: `Hi, I have a question regarding my application for "${item.title}". Status: ${item.status}`
+                                  }
+                                });
+                              }
                             }
+                          } catch (e) {
+                            showToast('Connection failed', 'error');
                           }
-                        } catch (e) {
-                          showToast('Connection failed', 'error');
-                        }
-                      }}
-                    >
-                      <MaterialIcons name="help-outline" size={18} color={theme.colors.info} />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.detailBtn}>
-                      <Text style={styles.detailBtnText}>Update Status</Text>
-                    </TouchableOpacity>
-                  </View>
+                        }}
+                      >
+                        <MaterialIcons name="help-outline" size={18} color={theme.colors.info} />
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.detailBtn}>
+                        <Text style={styles.detailBtnText}>Update Status</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
 
                 {/* Progress Indicator - Only show for Agency/Expert applications */}
