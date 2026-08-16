@@ -39,6 +39,8 @@ ScholarshipConnectBD is a specialized mobile application built with **React Nati
 - [x] **Admin Analytics**: Visualize system performance with data-driven insights and KPIs.
 - [x] **Activity History**: Audit trail for tracking all administrative actions.
 - [x] **Document Vault**: Secure storage for certificates, SOPs, and LORs with image fallback.
+- [x] **Direct Portal Access**: One-click redirection to official scholarship websites via secure in-app browsers.
+- [x] **Hybrid Application Flow**: Seamless choice between self-tracking and professional agency assistance.
 - [x] **Deadline Tracker**: Real-time progress tracking for application deadlines.
 - [x] **Smart Reminders**: Push notification integration for upcoming deadlines.
 - [x] **Scholarship Blog**: Curated articles, success stories, and application guides.
@@ -65,6 +67,7 @@ Recently, the platform underwent a significant UI/UX overhaul to meet global aca
 
 ### Premium UX & Branding
 - **Branded Splash Screen**: A professional logo entrance page with a 1.5s visibility delay, mimicking high-end apps like Facebook.
+- **Branding Refinement**: Minimized UI clutter on authentication gates to emphasize brand identity and professional aesthetics.
 - **Cross-Platform Support (Expo Web)**: Seamless accessibility via desktop and mobile browsers, optimized for **Vercel** hosting.
 - **Vibrant Onboarding**: A redesigned 3-step intro flow (v4) using brand-specific colors (Teal, Lavender, Warning Orange) to educate new users.
 - **Educational Layout**: Scholarship details redesigned with a focus on high-readability and professional hierarchy.
@@ -151,6 +154,7 @@ The platform offers a premium tier that users can unlock via two methods:
 - **Styling**: Native StyleSheet with a **Dual-Layer Theme Engine** (Global + Page-Specific professional CSS).
 - **Animations**: **React Native Reanimated** for premium fluid transitions.
 - **UI Components**:
+  - `expo-web-browser`: Secure and integrated web browsing within the app.
   - `react-native-calendars`: For scholarship deadline tracking.
   - `@expo/vector-icons`: Material, Ionicons, and FontAwesome5 integration.
   - `expo-image-picker`: Reliable document capture and profile photo uploads.
@@ -257,11 +261,18 @@ ScholarshipConnectBD/
 
 ## Getting Started
 
-### 1. Frontend (Mobile) Setup
+### 1. Unified Development Command
+For the best experience, run both the backend and frontend together:
+```bash
+cd mobile
+npm run dev
+```
+*Note: Ensure your Android Emulator is running or a physical device is connected via USB/WiFi.*
+
+### 2. Frontend (Mobile) Setup
 ```bash
 cd mobile
 npm install
-# Ensure you have expo-linear-gradient and expo-image-picker installed
 npx expo start
 ```
 

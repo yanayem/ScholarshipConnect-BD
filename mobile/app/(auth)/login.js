@@ -16,12 +16,14 @@ import CustomInput from '../../components/CustomInput';
 import { apiService } from '../../services/api';
 import { firebaseAuth } from '../../services/firebase';
 import { useToast } from '../../components/Toast';
+import { useUser } from '../../context/UserContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 
 const { width, height } = Dimensions.get('window');
 
 export default function LoginScreen() {
+  const { setUser } = useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -69,6 +71,9 @@ export default function LoginScreen() {
 
       if (profile.ok) {
         console.log('[LOGIN] Step 3 Success. User verified:', profile.data.username);
+
+        // Update global user context immediately
+        setUser(profile.data);
 
         if (profile.data.is_staff) {
           await AsyncStorage.setItem('is_staff', 'true');
@@ -121,6 +126,9 @@ export default function LoginScreen() {
       const profile = await apiService.getProfile();
 
       if (profile.ok) {
+        // Update global user context immediately
+        setUser(profile.data);
+
         if (profile.data.is_staff) {
           await AsyncStorage.setItem('is_staff', 'true');
         } else {

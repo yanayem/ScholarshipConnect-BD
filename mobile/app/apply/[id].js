@@ -88,14 +88,22 @@ export default function ApplyScreen() {
       if (res.ok) {
         showToast('Application tracking saved!', 'success');
         setTimeout(async () => {
-          if (officialLink) {
-            await handleOpenPortal();
-          }
+          await handleOpenPortal();
           router.replace('/(tabs)/applications');
         }, 1500);
       } else {
         const errorMsg = res.data?.error || 'Failed to submit application';
-        showToast(errorMsg, 'error');
+
+        // IF ALREADY APPLIED: Don't block the user, just open the portal
+        if (errorMsg.includes('already applied')) {
+            showToast('Redirecting to portal...', 'info');
+            setTimeout(async () => {
+                await handleOpenPortal();
+                router.replace('/(tabs)/applications');
+            }, 1000);
+        } else {
+            showToast(errorMsg, 'error');
+        }
       }
     } catch (error) {
       showToast('Network error occurred', 'error');
@@ -105,12 +113,25 @@ export default function ApplyScreen() {
   };
 
   const handleOpenPortal = async () => {
-    if (!officialLink) {
-      showToast('No official link available.', 'info');
+    let targetLink = officialLink;
+
+    // Double check: if officialLink is missing, try to fetch it one last time
+    if (!targetLink) {
+        try {
+            const res = await apiService.getScholarshipDetail(id);
+            if (res.ok && res.data.official_link) {
+                targetLink = res.data.official_link;
+                setOfficialLink(targetLink);
+            }
+        } catch (e) {}
+    }
+
+    if (!targetLink) {
+      showToast('No official link available for this scholarship.', 'info');
       return;
     }
 
-    let targetUrl = officialLink.trim();
+    let targetUrl = targetLink.trim();
     if (!targetUrl.startsWith('http')) {
       targetUrl = 'https://' + targetUrl;
     }

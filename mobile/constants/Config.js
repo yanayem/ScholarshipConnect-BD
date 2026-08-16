@@ -1,42 +1,18 @@
 /**
  * API CONFIGURATION:
- * - Detects the host IP automatically for both Emulator and Physical Devices.
- * - For Android Emulator: Uses 10.0.2.2.
- * - For Physical Devices: Uses the local network IP of your computer.
- * - Connected to: apiService.js, expo-constants.
+ * - Production Ready: Connected to Render Live Server.
+ * - For local development, change the URL to your local IP.
  */
-import Constants from 'expo-constants';
-import { Platform, NativeModules } from 'react-native';
-import * as Device from 'expo-device';
+import { Platform } from 'react-native';
 
-const getApiUrl = () => {
-  // 0. Priority: Use environment variable if set (especially for Web/Vercel)
-  if (process.env.EXPO_PUBLIC_API_URL) {
-    return process.env.EXPO_PUBLIC_API_URL;
-  }
+// Live Production API URL (Render)
+const LIVE_URL = "https://scholarshipconnectbd.onrender.com/api";
 
-  let localhost = '192.168.0.163'; // Your PC's Local IP for Physical Devices
+// Development URL (Change this to your local IP if testing locally)
+const LOCAL_URL = "http://10.0.2.2:8000/api";
 
-  // 1. For Web: Use the current hostname to avoid CORS/IP mismatch
-  if (Platform.OS === 'web') {
-    if (typeof window !== 'undefined') {
-      localhost = window.location.hostname;
-    } else {
-      localhost = 'localhost';
-    }
-  }
-  // 2. For Android Emulator, 10.0.2.2 is the dedicated loopback to the host machine.
-  else if (Platform.OS === 'android' && !Device.isDevice) {
-    localhost = '10.0.2.2';
-    console.log('[API CONFIG] Android Emulator detected, using 10.0.2.2');
-  }
+// Export the URL that the app should use
+// Set this to LIVE_URL for APK build
+export const API_URL = LIVE_URL;
 
-  const url = `http://${localhost}:8000/api`;
-
-  console.log('[API CONFIG] Detected Host:', localhost, Device.isDevice ? '(Device)' : '(Emulator)');
-  console.log('[API CONFIG] Target URL:', url);
-
-  return url;
-};
-
-export const API_URL = getApiUrl();
+console.log('[API CONFIG] Active URL:', API_URL);

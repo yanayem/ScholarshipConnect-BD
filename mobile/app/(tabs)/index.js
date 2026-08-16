@@ -4,7 +4,7 @@ import {
   TouchableOpacity, StyleSheet, StatusBar, ActivityIndicator, Image, Platform,
   FlatList, RefreshControl, Alert
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import Animated, { FadeInDown, FadeIn, FadeOut } from 'react-native-reanimated';
 import { theme } from '../../theme';
@@ -596,8 +596,14 @@ function MentorHome({ user }) {
 
 export default function HomeScreen() {
   const { isMentorMode } = useMentorMode();
-  const { user } = useUser();
+  const { user, fetchProfile } = useUser();
   const [search, setSearch] = useState('');
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) fetchProfile();
+    }, [user])
+  );
   const [isSearching, setIsSearching] = useState(false);
   const [featured, setFeatured] = useState([]);
   const [loading, setLoading] = useState(true);

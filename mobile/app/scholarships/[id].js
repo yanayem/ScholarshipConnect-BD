@@ -396,44 +396,27 @@ export default function ScholarshipDetails() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Choose Application Method</Text>
+              <Text style={styles.modalTitle}>Application Portal</Text>
               <TouchableOpacity onPress={() => setShowApplyModal(false)}>
                 <Ionicons name="close" size={24} color={UI.colors.textMuted} />
               </TouchableOpacity>
             </View>
 
             <TouchableOpacity 
-              style={styles.hybridOptionCard}
-              onPress={() => {
-                setShowApplyModal(false);
-                router.push(`/apply/${id}`);
-              }}
-            >
-              <View style={[styles.hybridIconBox, { backgroundColor: UI.colors.primarySub }]}>
-                <MaterialIcons name="person" size={28} color={UI.colors.primary} />
-              </View>
-              <View style={styles.hybridOptionText}>
-                <Text style={styles.hybridOptionTitle}>Track Self Application</Text>
-                <Text style={styles.hybridOptionDesc}>Fill our tracking form to save your SOP and CV details, then we'll redirect you to the official site.</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={UI.colors.textMuted} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.hybridOptionCard, { backgroundColor: '#F8F9FA' }]}
+              style={[styles.hybridOptionCard, { borderColor: UI.colors.primary, borderWidth: 1.5, backgroundColor: 'rgba(42, 157, 143, 0.05)' }]}
               onPress={() => {
                 setShowApplyModal(false);
                 handleOpenLink(details.official_link);
               }}
             >
-              <View style={[styles.hybridIconBox, { backgroundColor: '#EDF2F7' }]}>
-                <MaterialIcons name="language" size={28} color="#4A5568" />
+              <View style={[styles.hybridIconBox, { backgroundColor: UI.colors.primarySub }]}>
+                <MaterialIcons name="language" size={28} color={UI.colors.primary} />
               </View>
               <View style={styles.hybridOptionText}>
-                <Text style={styles.hybridOptionTitle}>Open Official Link Directly</Text>
-                <Text style={styles.hybridOptionDesc}>Skip tracking and go directly to the scholarship provider's website.</Text>
+                <Text style={styles.hybridOptionTitle}>Apply on Official Site</Text>
+                <Text style={styles.hybridOptionDesc}>Go directly to the scholarship provider's website to submit your application.</Text>
               </View>
-              <Ionicons name="open-outline" size={20} color={UI.colors.textMuted} />
+              <Ionicons name="open-outline" size={20} color={UI.colors.primary} />
             </TouchableOpacity>
 
             <TouchableOpacity 

@@ -15,6 +15,13 @@ export const UserProvider = ({ children }) => {
   const fetchProfile = async (force = false) => {
     if (!force && user) return user;
 
+    // Check if we have a token before trying to fetch
+    const hasToken = await AsyncStorage.getItem('token');
+    if (!hasToken && !force) {
+        setLoading(false);
+        return null;
+    }
+
     try {
       let res = await apiService.getProfile();
 

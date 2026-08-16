@@ -20,11 +20,14 @@ const handleResponse = async (response) => {
     if (response.status === 401) {
       console.warn(`[API 401] Unauthorized: ${response.url}`);
     } else {
-      console.error(`[API ERROR] ${response.status} from ${response.url}`);
+      // Use warn instead of error for 400 bad requests to avoid triggering red LogBox
+      const logMethod = response.status >= 400 && response.status < 500 ? console.warn : console.error;
+      logMethod(`[API ERROR] ${response.status} from ${response.url}`);
+
       if (contentType && contentType.includes("text/html")) {
         console.error("[API ERROR] Server crashed and returned HTML instead of JSON.");
       } else {
-        console.error(`[API ERROR BODY]`, text.substring(0, 300));
+        logMethod(`[API ERROR BODY]`, text.substring(0, 300));
       }
     }
   } else {
@@ -80,20 +83,31 @@ const handleResponse = async (response) => {
   // Post-process data to ensure URLs are absolute if they are relative media paths
   if (data && typeof data === 'object') {
     const processUrls = (obj) => {
-      const baseUrl = API_URL.replace('/api', '');
-      for (const key in obj) {
-        if (typeof obj[key] === 'string') {
-          // Fix relative media paths
-          if (obj[key].startsWith('/media/')) {
-            obj[key] = `${baseUrl}${obj[key]}`;
+      if (!obj || typeof obj !== 'object') return;
+
+      try {
+        const baseUrl = (API_URL || '').replace('/api', '');
+        const domainParts = (API_URL || '').split('/')[2] || '';
+        const domain = domainParts.split(':')[0] || 'localhost';
+
+        for (const key in obj) {
+          const val = obj[key];
+          if (typeof val === 'string') {
+            // Fix relative media paths
+            if (val.startsWith('/media/')) {
+              obj[key] = `${baseUrl}${val}`;
+            }
+            // Fix Django returning 127.0.0.1 or localhost
+            else if (val.includes('127.0.0.1:8000') || val.includes('localhost:8000')) {
+              const replacement = (API_URL || '').includes('onrender.com') ? domain : `${domain}:8000`;
+              obj[key] = val.replace(/127\.0\.0\.1:8000|localhost:8000/g, replacement);
+            }
+          } else if (val && typeof val === 'object') {
+            processUrls(val);
           }
-          // Fix Django returning 127.0.0.1 or localhost when running on device/emulator
-          else if (obj[key].includes('127.0.0.1:8000') || obj[key].includes('localhost:8000')) {
-            obj[key] = obj[key].replace(/127\.0\.0\.1:8000|localhost:8000/, API_URL.split('/')[2].split(':')[0] + ':8000');
-          }
-        } else if (obj[key] && typeof obj[key] === 'object') {
-          processUrls(obj[key]);
         }
+      } catch (err) {
+        console.warn('[API] URL processing skipped:', err.message);
       }
     };
     processUrls(data);
