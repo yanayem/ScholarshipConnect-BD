@@ -608,6 +608,17 @@ export default function ProfileScreen() {
 
               <TouchableOpacity
                 style={styles.menuItem}
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push('/previous-scholarships');
+                }}
+              >
+                <MaterialIcons name="history" size={24} color={theme.colors.primary} />
+                <Text style={styles.menuText}>Archive</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.menuItem}
                 onPress={async () => {
                   setMenuVisible(false);
                   try {

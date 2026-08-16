@@ -16,6 +16,7 @@ import { apiService } from '../services/api';
 const NAV_ITEMS = [
   { label: 'Home', path: '/(tabs)', icon: 'home' },
   { label: 'Scholarships', path: '/(tabs)/scholarships', icon: 'school' },
+  { label: 'Archive', path: '/previous-scholarships', icon: 'history' },
   { label: 'Check Eligibility', path: '/(tabs)/eligibility', icon: 'check-circle' },
   { label: 'Applications', path: '/(tabs)/applications', icon: 'bookmark' },
   { label: 'Community', path: '/(tabs)/community', icon: 'forum' },

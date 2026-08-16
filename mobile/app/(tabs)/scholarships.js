@@ -126,6 +126,12 @@ export default function ScholarshipsScreen() {
   };
 
   const filtered = scholarships.filter(s => {
+    // 1. Expiry Check: ONLY show active ones (deadline today or in future)
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const deadlineDate = new Date(s.deadline);
+    if (deadlineDate < today) return false;
+
     const matchSearch = (s.title || '').toLowerCase().includes(search.toLowerCase()) ||
                         (s.provider || '').toLowerCase().includes(search.toLowerCase()) ||
                         (s.description || '').toLowerCase().includes(search.toLowerCase());

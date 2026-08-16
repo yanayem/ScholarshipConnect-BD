@@ -201,7 +201,7 @@ export default function ScholarshipDetails() {
             <View style={styles.header}>
                 <TouchableOpacity
                     style={styles.actionBtn}
-                    onPress={() => router.back()}
+                    onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')}
                 >
                     <Ionicons name="arrow-back" size={24} color={UI.colors.textMain} />
                 </TouchableOpacity>

@@ -46,13 +46,25 @@ export default function ManageScholarships() {
   const loadScholarships = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      let params = filterStatus === 'all' ? '' : `status=${filterStatus}`;
+      let params = filterStatus === 'all' || filterStatus === 'archive' ? '' : `status=${filterStatus}`;
       if (search) {
         params += (params ? '&' : '') + `search=${search}`;
       }
       const res = await apiService.getScholarships(params);
       if (res.ok) {
-        setScholarships(res.data);
+        let data = res.data;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (filterStatus === 'archive') {
+          // Show ONLY expired scholarships
+          data = data.filter(s => new Date(s.deadline) < today);
+        } else {
+          // Hide expired scholarships from other views
+          data = data.filter(s => new Date(s.deadline) >= today);
+        }
+
+        setScholarships(data);
       }
     } catch (error) {
       console.log('Error loading admin scholarships', error);
@@ -191,7 +203,7 @@ export default function ManageScholarships() {
         </View>
 
         <View style={styles.filterBox}>
-            {['all', 'pending', 'active'].map(st => (
+            {['all', 'pending', 'active', 'archive'].map(st => (
                 <TouchableOpacity
                     key={st}
                     style={[styles.chip, filterStatus === st && styles.chipActive]}
