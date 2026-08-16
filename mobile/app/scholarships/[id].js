@@ -404,8 +404,28 @@ export default function ScholarshipDetails() {
 
             <TouchableOpacity 
               style={[styles.hybridOptionCard, { borderColor: UI.colors.primary, borderWidth: 1.5, backgroundColor: 'rgba(42, 157, 143, 0.05)' }]}
-              onPress={() => {
+              onPress={async () => {
                 setShowApplyModal(false);
+
+                // Track this as a "Self" application automatically under "Saved" status
+                try {
+                  const payload = {
+                    scholarship: id,
+                    full_name: user?.full_name || user?.username || 'Student',
+                    email: user?.email || '',
+                    phone: user?.phone_number || '',
+                    university: user?.university || '',
+                    cgpa: user?.cgpa || null,
+                    academic_level: user?.academic_level || '',
+                    sop: 'Applied via official portal shortcut.',
+                    application_type: 'Self',
+                    status: 'Saved' // Ensure it goes to the "Saved" tab
+                  };
+                  await apiService.applyForScholarship(payload);
+                } catch (e) {
+                  console.log('[TRACKING] Failed to auto-save application record');
+                }
+
                 handleOpenLink(details.official_link);
               }}
             >

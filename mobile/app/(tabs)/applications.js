@@ -54,7 +54,7 @@ export default function ApplicationsScreen() {
             country: item.scholarship_country || 'N/A',
             level: item.scholarship_level || 'N/A',
             deadline: item.scholarship_deadline || 'N/A',
-            status: item.status,
+            status: item.application_type === 'Self' ? 'Saved' : item.status, // Map all Self apps to Saved
             type: item.application_type
           })));
         }

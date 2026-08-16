@@ -148,23 +148,32 @@ export default function SOPHelperScreen() {
                         </View>
 
                         <TouchableOpacity 
-                            style={styles.hybridOptionCard}
-                            onPress={() => {
+                            style={[styles.hybridOptionCard, { borderColor: theme.colors.primary, borderWidth: 1.5, backgroundColor: 'rgba(42, 157, 143, 0.05)' }]}
+                            onPress={async () => {
                                 setShowApplyModal(false);
-                                router.push({
-                                    pathname: `/apply/${scholarshipId}`,
-                                    params: { prefilledSop: sopText }
-                                });
+                                try {
+                                    const res = await apiService.getScholarshipDetail(scholarshipId);
+                                    if (res.ok && res.data.official_link) {
+                                        const { openBrowserAsync } = require('expo-web-browser');
+                                        let url = res.data.official_link.trim();
+                                        if (!url.startsWith('http')) url = 'https://' + url;
+                                        await openBrowserAsync(url);
+                                    } else {
+                                        Alert.alert("Notice", "Official portal link not found for this scholarship.");
+                                    }
+                                } catch (e) {
+                                    Alert.alert("Error", "Could not open official portal.");
+                                }
                             }}
                         >
                             <View style={[styles.hybridIconBox, { backgroundColor: theme.colors.primaryLight }]}>
-                                <MaterialIcons name="person" size={28} color={theme.colors.primary} />
+                                <MaterialIcons name="language" size={28} color={theme.colors.primary} />
                             </View>
                             <View style={styles.hybridOptionText}>
-                                <Text style={styles.hybridOptionTitle}>Do It Yourself (Free)</Text>
-                                <Text style={styles.hybridOptionDesc}>Use your generated SOP and apply directly on the official university portal.</Text>
+                                <Text style={styles.hybridOptionTitle}>Apply on Official Site</Text>
+                                <Text style={styles.hybridOptionDesc}>Go directly to the university portal. Your AI draft is saved in your history.</Text>
                             </View>
-                            <Ionicons name="chevron-forward" size={20} color={theme.colors.textMuted} />
+                            <Ionicons name="open-outline" size={20} color={theme.colors.primary} />
                         </TouchableOpacity>
 
                         <TouchableOpacity 

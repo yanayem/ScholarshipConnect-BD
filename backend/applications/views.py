@@ -1,6 +1,7 @@
 from rest_framework import generics, permissions, parsers, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.exceptions import ValidationError
 from .models import SavedScholarship, ScholarshipApplication, UserDocument
 from .serializers import (
     SavedScholarshipSerializer, 
@@ -53,40 +54,44 @@ class ScholarshipApplicationListCreateView(generics.ListCreateAPIView):
         user = self.request.user
         scholarship_id = self.request.data.get('scholarship')
         
+        # 1. Check for duplicates safely
         if ScholarshipApplication.objects.filter(user=user, scholarship_id=scholarship_id).exists():
-            from rest_framework.exceptions import ValidationError
             raise ValidationError({"error": "You have already applied or requested processing for this scholarship."})
-            
+
+        # 2. Save the application
         instance = serializer.save(user=user)
         
-        send_notification(
-            user=user,
-            title="Application Submitted",
-            message=f"You have successfully applied for '{instance.scholarship.title}'. Our team will review it soon."
-        )
+        # 3. Handle notifications safely
+        try:
+            send_notification(
+                user=user,
+                title="Application Submitted",
+                message=f"You have successfully applied for '{instance.scholarship.title}'. Our team will review it soon."
+            )
+        except:
+            pass
 
-        # Automated Agency Chat Initialization
-        if instance.application_type == 'Agency':
-            from django.contrib.auth.models import User
-            from community.models import ChatMessage
-            # Find the primary admin (superuser) to act as the agency representative
-            agency_admin = User.objects.filter(is_superuser=True).first()
-            if agency_admin and agency_admin != user:
-                welcome_msg = f"Hello {instance.full_name}! We have received your agency processing request for '{instance.scholarship.title}'. A consultant will review your profile and get back to you shortly. Do you have any immediate questions?"
-                ChatMessage.objects.create(
-                    sender=agency_admin,
-                    receiver=user,
-                    message=welcome_msg,
-                    is_read=False
-                )
-
+        # 4. Automated Agency Chat Initialization safely
         admin_id = None
         if instance.application_type == 'Agency':
-            from django.contrib.auth.models import User
-            admin_user = User.objects.filter(is_superuser=True).first()
-            if admin_user:
-                admin_id = admin_user.id
-        
+            try:
+                from django.contrib.auth.models import User
+                from community.models import ChatMessage
+                agency_admin = User.objects.filter(is_superuser=True).first()
+                if agency_admin:
+                    admin_id = agency_admin.id
+                    if agency_admin != user:
+                        welcome_msg = f"Hello {instance.full_name}! We have received your agency processing request for '{instance.scholarship.title}'. A consultant will review your profile shortly."
+                        ChatMessage.objects.get_or_create(
+                            sender=agency_admin,
+                            receiver=user,
+                            message=welcome_msg,
+                            defaults={'is_read': False}
+                        )
+            except:
+                pass
+
+        # 5. Build response data
         headers = self.get_success_headers(serializer.data)
         response_data = serializer.data
         if admin_id:
