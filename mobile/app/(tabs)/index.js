@@ -7,6 +7,7 @@ import {
 import { router, useFocusEffect } from 'expo-router';
 import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import Animated, { FadeInDown, FadeIn, FadeOut } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../theme';
 import { apiService } from '../../services/api';
 import { cacheService } from '../../services/cache';
@@ -19,12 +20,14 @@ import { useUser } from '../../context/UserContext';
 const tagColor = { Hot: theme.colors.error, Popular: theme.colors.primary, New: theme.colors.success };
 
 function StudentHome({ user, featured, loading, leaderboard, activeCountries, allScholarships, isSearching, setIsSearching, search, setSearch, handleSearchSubmit, initials }) {
+    const insets = useSafeAreaInsets();
+
     return (
     <View style={styles.root}>
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
 
       {/* Facebook-style Transforming Header */}
-      <View style={styles.headerContainer}>
+      <View style={[styles.headerContainer, { paddingTop: Math.max(insets.top, 15), height: 70 + insets.top }]}>
         {isSearching ? (
           <View style={{ flex: 1 }}>
             <Animated.View entering={FadeIn} style={styles.searchBarRow}>
@@ -271,6 +274,7 @@ function StudentHome({ user, featured, loading, leaderboard, activeCountries, al
 }
 
 function MentorHome({ user }) {
+    const insets = useSafeAreaInsets();
     const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -548,7 +552,7 @@ function MentorHome({ user }) {
     return (
         <View style={styles.root}>
             <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-            <View style={styles.mentorHeader}>
+            <View style={[styles.mentorHeader, { paddingTop: Math.max(insets.top, 15) }]}>
                 <View>
                     <Text style={styles.headerSubtitle}>ScholarshipConnectBD</Text>
                     <Text style={styles.headerTitle}>Mentor Panel</Text>
@@ -688,7 +692,7 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: 20, paddingBottom: 20 },
   mentorHeader: {
       flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-      paddingTop: Platform.OS === 'ios' ? 55 : 45, paddingBottom: 15, paddingHorizontal: 20,
+      paddingBottom: 15, paddingHorizontal: 20,
       backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: theme.colors.divider
   },
   headerSubtitle: { fontSize: 12, color: theme.colors.textSecondary, fontWeight: '600' },
@@ -789,12 +793,10 @@ const styles = StyleSheet.create({
   // Facebook Style Header
   headerContainer: {
     backgroundColor: '#fff',
-    paddingTop: Platform.OS === 'ios' ? 55 : 45,
     paddingBottom: 10,
     paddingHorizontal: 15,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.divider,
-    height: Platform.OS === 'ios' ? 100 : 85,
     justifyContent: 'center',
   },
   defaultHeaderRow: {
