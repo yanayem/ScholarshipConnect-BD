@@ -82,15 +82,7 @@ export default function OnboardingScreen() {
   const renderItem = ({ item }) => (
     <View style={[styles.slide, { width, backgroundColor: item.bgColor }]}>
       <View style={[styles.iconCircle, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-        {item.id === '1' ? (
-          <Image
-            source={require('../assets/images/logo-glow.png')}
-            style={{ width: 140, height: 140 }}
-            resizeMode="contain"
-          />
-        ) : (
-          <MaterialIcons name={item.icon} size={100} color="#FFFFFF" />
-        )}
+        <MaterialIcons name={item.icon} size={100} color="#FFFFFF" />
       </View>
       <View style={styles.textContainer}>
         <Text style={styles.title}>{item.title}</Text>
