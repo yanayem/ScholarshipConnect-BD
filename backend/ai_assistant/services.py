@@ -124,11 +124,14 @@ class AIService:
         # 1. Try Groq (primary, free)
         result = _call_groq(prompt)
         if result:
+            # Strip <think> blocks if present (common in reasoning models)
+            result = re.sub(r'<think>.*?</think>', '', result, flags=re.DOTALL).strip()
             return result
 
         # 2. Try Gemini (fallback)
         result = _call_gemini(prompt)
         if result:
+            result = re.sub(r'<think>.*?</think>', '', result, flags=re.DOTALL).strip()
             return result
 
         # 3. Offline mock response
