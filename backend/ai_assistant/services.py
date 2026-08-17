@@ -235,6 +235,11 @@ class AIService:
                 [f"{'User' if i % 2 == 0 else 'Assistant'}: {msg}" for i, msg in enumerate(chat_history)]
             )
 
+        # Handle simple greetings extremely concisely
+        msg_clean = message.lower().strip().replace('!', '').replace('.', '')
+        if msg_clean in ['hi', 'hello', 'hey', 'hello there', 'hi there']:
+            return "Hello! I am your ScholarshipConnectBD Assistant. How can I help you with your scholarship journey today?"
+
         prompt = (
             "You are the ScholarshipConnectBD Live Support Assistant. Help the student with their queries about "
             "scholarships, the application process, or how to use this app. Keep your answers helpful, concise, "
