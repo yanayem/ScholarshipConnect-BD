@@ -1,7 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, permissions
+from rest_framework import status, permissions, generics
 from .services import AIService
+from .models import AIChatMessage
+from .serializers import AIChatMessageSerializer
 from accounts.models import Profile
 from scholarships.models import Scholarship
 from django.utils import timezone
@@ -122,6 +124,13 @@ class AIImprovePostView(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+class AIChatHistoryView(generics.ListAPIView):
+    serializer_class = AIChatMessageSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return AIChatMessage.objects.filter(user=self.request.user).order_by('created_at')
+
 class AILiveSupportView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -131,8 +140,15 @@ class AILiveSupportView(APIView):
         if not message:
             return Response({'error': 'Message is required'}, status=status.HTTP_400_BAD_REQUEST)
         
+        # Save user message
+        AIChatMessage.objects.create(user=request.user, message=message, is_user=True)
+        
         try:
             result = AIService.live_support(message, history)
+            
+            # Save AI response
+            AIChatMessage.objects.create(user=request.user, message=result, is_user=False)
+
             return Response({'response': result})
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -7,7 +7,8 @@ from .views import (
     AIImprovePostView,
     AILiveSupportView,
     AIGenerateBioView,
-    AIMatchmakerView
+    AIMatchmakerView,
+    AIChatHistoryView
 )
 
 urlpatterns = [
@@ -17,6 +18,7 @@ urlpatterns = [
     path('check-eligibility/', AICheckEligibilityView.as_view(), name='ai-check-eligibility'),
     path('improve-post/', AIImprovePostView.as_view(), name='ai-improve-post'),
     path('live-support/', AILiveSupportView.as_view(), name='ai-live-support'),
+    path('chat-history/', AIChatHistoryView.as_view(), name='ai-chat-history'),
     path('generate-bio/', AIGenerateBioView.as_view(), name='ai-generate-bio'),
     path('matchmaker/', AIMatchmakerView.as_view(), name='ai-matchmaker'),
 ]

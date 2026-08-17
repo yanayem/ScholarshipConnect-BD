@@ -15,7 +15,34 @@ export default function SupportBotScreen() {
     ]);
     const [inputText, setInputText] = useState('');
     const [loading, setLoading] = useState(false);
+    const [historyLoading, setHistoryLoading] = useState(true);
     const flatListRef = useRef(null);
+
+    useEffect(() => {
+        loadHistory();
+    }, []);
+
+    const loadHistory = async () => {
+        try {
+            const res = await apiService.getAIChatHistory();
+            if (res.ok && res.data && res.data.length > 0) {
+                const formattedMessages = res.data.map(m => ({
+                    id: m.id.toString(),
+                    text: m.message,
+                    isUser: m.is_user
+                }));
+                setMessages([
+                    { id: '1', text: 'Hello! I am your ScholarshipConnect AI Assistant. How can I help you today?', isUser: false },
+                    ...formattedMessages
+                ]);
+            }
+        } catch (error) {
+            console.error('[SupportBot] Load History Error:', error);
+        } finally {
+            setHistoryLoading(false);
+            setTimeout(() => flatListRef.current?.scrollToEnd({ animated: false }), 300);
+        }
+    };
 
     useEffect(() => {
         if (messages.length > 1) {
@@ -82,13 +109,20 @@ export default function SupportBotScreen() {
                 </View>
             </View>
 
-            <FlatList
-                ref={flatListRef}
-                data={messages}
-                keyExtractor={item => item.id}
-                renderItem={renderMessage}
-                contentContainerStyle={styles.chatContent}
-            />
+            {historyLoading ? (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <ActivityIndicator size="large" color={theme.colors.primary} />
+                    <Text style={{ marginTop: 10, color: theme.colors.textSecondary }}>Loading chat history...</Text>
+                </View>
+            ) : (
+                <FlatList
+                    ref={flatListRef}
+                    data={messages}
+                    keyExtractor={item => item.id}
+                    renderItem={renderMessage}
+                    contentContainerStyle={styles.chatContent}
+                />
+            )}
 
             {loading && (
                 <View style={styles.loadingContainer}>

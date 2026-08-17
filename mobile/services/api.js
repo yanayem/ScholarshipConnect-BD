@@ -1033,6 +1033,18 @@ export const apiService = {
     }
   },
 
+  async getAIChatHistory() {
+    try {
+      const response = await fetch(`${API_URL}/ai/chat-history/`, {
+        method: 'GET',
+        headers: await getHeaders(),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get AI Chat History');
+    }
+  },
+
   async aiGenerateBio() {
     try {
       const response = await fetch(`${API_URL}/ai/generate-bio/`, {
