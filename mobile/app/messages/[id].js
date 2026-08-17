@@ -419,14 +419,7 @@ export default function ChatScreen() {
             style={styles.input}
             placeholder={editingMessage ? "Edit your message..." : "Type a message..."}
             value={inputText}
-            onChangeText={(text) => {
-              // Detect if enter was pressed in multiline (especially for physical keyboards/emulators)
-              if (text.endsWith('\n') && text.trim()) {
-                handleSend();
-              } else {
-                setInputText(text);
-              }
-            }}
+            onChangeText={setInputText}
             multiline
             maxHeight={100}
             returnKeyType="send"
