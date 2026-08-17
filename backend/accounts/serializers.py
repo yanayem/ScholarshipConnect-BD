@@ -11,6 +11,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(source='user.id', read_only=True)
     is_staff = serializers.BooleanField(source='user.is_staff', read_only=True)
     is_superuser = serializers.BooleanField(source='user.is_superuser', read_only=True)
+    is_pro = serializers.BooleanField(source='is_currently_pro', read_only=True)
     rating = serializers.SerializerMethodField()
     reviews_count = serializers.SerializerMethodField()
 
@@ -28,10 +29,10 @@ class ProfileSerializer(serializers.ModelSerializer):
             'major_course', 'research_interests', 
             'bio', 'linkedin_url', 'github_url', 'facebook_url', 'google_scholar_url',
             'profile_picture', 'profile_picture_url', 'avatar_url', 'updated_at',
-            'scholar_points', 'is_pro', 'is_mentor', 'mentorship_bio', 'expertise_areas',
+            'scholar_points', 'is_pro', 'pro_expiry', 'is_mentor', 'mentorship_bio', 'expertise_areas',
             'skills', 'achievements', 'rating', 'reviews_count'
         ]
-        read_only_fields = ['id', 'is_staff', 'is_superuser', 'avatar_url', 'updated_at', 'scholar_points', 'rating', 'reviews_count']
+        read_only_fields = ['id', 'is_staff', 'is_superuser', 'avatar_url', 'updated_at', 'scholar_points', 'pro_expiry', 'rating', 'reviews_count']
         extra_kwargs = {
             'date_of_birth': {'allow_null': True, 'required': False},
         }

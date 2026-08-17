@@ -30,11 +30,26 @@ def send_notification(user, title, message, send_email=False, scholarship_id=Non
         # 3. Optionally send Email
         if send_email and user.email:
             try:
+                html_content = f"""
+                <html>
+                    <body style="font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto;">
+                        <h2 style="color: #4CAF50;">{title}</h2>
+                        <p style="font-size: 16px; line-height: 1.6;">
+                            {message}
+                        </p>
+                        <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0 20px 0;" />
+                        <p style="font-size: 12px; color: #999;">
+                            This is an automated message from <strong>ScholarshipConnect BD</strong>. Please do not reply directly to this email.
+                        </p>
+                    </body>
+                </html>
+                """
                 send_mail(
                     subject=title,
                     message=message,
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[user.email],
+                    html_message=html_content,
                     fail_silently=True,
                 )
             except Exception as email_err:

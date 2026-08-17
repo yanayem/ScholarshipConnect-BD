@@ -135,8 +135,14 @@ export default function SettingsScreen() {
                     <MaterialIcons name="workspace-premium" size={24} color="#FFD700" />
                 </View>
                 <View>
-                    <Text style={styles.premiumTitle}>Upgrade to ScholarConnect Pro</Text>
-                    <Text style={styles.premiumSub}>Use {user?.scholar_points || 0}/200 points to unlock</Text>
+                    <Text style={styles.premiumTitle}>
+                        {user?.is_pro ? 'You are a Pro Member' : 'Upgrade to ScholarConnect Pro'}
+                    </Text>
+                    <Text style={styles.premiumSub}>
+                        {user?.is_pro 
+                            ? (user?.pro_expiry ? `Valid until ${new Date(user.pro_expiry).toLocaleDateString()}` : 'Pro membership is active')
+                            : `Use ${user?.scholar_points || 0}/200 points to unlock`}
+                    </Text>
                 </View>
             </View>
             <MaterialIcons name="chevron-right" size={24} color="rgba(255,255,255,0.7)" />

@@ -78,12 +78,12 @@ class BKashExecutePaymentView(views.APIView):
             payment.save()
 
             profile = Profile.objects.get(user=payment.user)
-            profile.upgrade_to_pro(30)
+            profile.upgrade_to_pro(None)
             
             send_notification(
                 user=payment.user,
                 title="bKash Payment Successful! ✅",
-                message=f"Your payment of 500 BDT via bKash was successful. 30 days of ScholarConnect Pro have been added to your account.",
+                message=f"Your payment of 500 BDT via bKash was successful. Lifetime ScholarConnect Pro access has been added to your account.",
                 send_email=True
             )
 
@@ -116,12 +116,12 @@ class CheckoutView(views.APIView):
 
         if payment_method == 'DirectCard':
             profile = Profile.objects.get(user=request.user)
-            profile.upgrade_to_pro(30)
+            profile.upgrade_to_pro(None)
             
             send_notification(
                 user=request.user,
                 title="Payment Successful! 💳",
-                message=f"Your card payment of 500 BDT was successful. Enjoy 30 days of ScholarConnect Pro!",
+                message=f"Your card payment of 500 BDT was successful. Enjoy Lifetime access to ScholarConnect Pro!",
                 send_email=True
             )
             
@@ -161,12 +161,12 @@ class PaymentSuccessView(views.APIView):
                 
                 # Upgrade user to Pro
                 profile = Profile.objects.get(user=payment.user)
-                profile.upgrade_to_pro(30)
+                profile.upgrade_to_pro(None)
                 
                 send_notification(
                     user=payment.user,
                     title="Payment Successful! 🌟",
-                    message=f"Your payment of 500 BDT via SSLCommerz was successful. Your Pro membership is now active.",
+                    message=f"Your payment of 500 BDT via SSLCommerz was successful. Your Lifetime Pro membership is now active.",
                     send_email=True
                 )
                 

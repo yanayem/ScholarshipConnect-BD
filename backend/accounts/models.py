@@ -82,16 +82,20 @@ class Profile(models.Model):
             return False
         return True
 
-    def upgrade_to_pro(self, days):
+    def upgrade_to_pro(self, days=None):
         """
-        Upgrade user to Pro or extend membership.
+        Upgrade user to Pro or extend membership. If days is None, it's a lifetime upgrade.
         """
         now = timezone.now()
-        if self.is_currently_pro:
-            self.pro_expiry += datetime.timedelta(days=days)
-        else:
+        if days is None:
             self.is_pro = True
-            self.pro_expiry = now + datetime.timedelta(days=days)
+            self.pro_expiry = None
+        else:
+            if self.is_currently_pro and self.pro_expiry:
+                self.pro_expiry += datetime.timedelta(days=days)
+            else:
+                self.is_pro = True
+                self.pro_expiry = now + datetime.timedelta(days=days)
         self.save()
 
     def __str__(self):

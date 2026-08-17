@@ -9,11 +9,15 @@ from django.http import JsonResponse
 from django.conf import settings
 from django.conf.urls.static import static
 
+from django.views.generic.base import RedirectView
+import os
+
 def home(request):
     return JsonResponse({"message": "ScholarshipConnectBD API is running", "status": "success"})
 
 urlpatterns = [
     path('', home), # Root URL
+    path('favicon.ico', RedirectView.as_view(url='/static/admin/img/favicon.ico')),
     path('admin/', admin.site.urls),
     path('api/accounts/', include('accounts.urls')),
     path('api/scholarships/', include('scholarships.urls')),

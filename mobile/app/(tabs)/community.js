@@ -164,8 +164,11 @@ export default function CommunityScreen() {
           <View style={styles.userInfo}>
             <View style={styles.nameRow}>
               <Text style={styles.userName}>{item.user}</Text>
+              {item.is_pro && (
+                <MaterialIcons name="stars" size={14} color="#FFD700" style={{ marginLeft: 4 }} />
+              )}
               {item.role === 'Staff' && (
-                <MaterialIcons name="verified" size={14} color={theme.colors.primary} />
+                <MaterialIcons name="verified" size={14} color={theme.colors.primary} style={{ marginLeft: 4 }} />
               )}
               {item.isSolved && (
                 <View style={styles.solvedBadgeSmall}>
