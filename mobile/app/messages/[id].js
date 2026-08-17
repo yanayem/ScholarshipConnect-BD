@@ -8,6 +8,7 @@ import { theme } from '../../theme';
 import { apiService } from '../../services/api';
 import { useUser } from '../../context/UserContext';
 import Animated, { FadeInUp, ZoomIn } from 'react-native-reanimated';
+import Markdown from 'react-native-markdown-display';
 
 const REACTIONS = [
   { emoji: '👍', label: 'Like' },
@@ -104,9 +105,24 @@ const MessageItem = memo(({ item, index, messages, currentUser, avatar, name, on
             )}
 
             {item.message ? (
-              <Text style={[styles.messageText, isMine ? styles.myText : styles.theirText]}>
+              <Markdown
+                style={{
+                  body: {
+                    ...styles.messageText,
+                    color: isMine ? '#fff' : theme.colors.textPrimary,
+                  },
+                  strong: {
+                    fontWeight: 'bold',
+                    color: isMine ? '#fff' : theme.colors.textPrimary,
+                  },
+                  paragraph: {
+                    marginBottom: 0,
+                    marginTop: 0,
+                  }
+                }}
+              >
                 {item.message}
-              </Text>
+              </Markdown>
             ) : null}
           </TouchableOpacity>
 
