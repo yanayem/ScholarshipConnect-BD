@@ -119,7 +119,7 @@ export default function CheckoutScreen() {
                 >
                     <View style={styles.methodIconBox}>
                          <Image
-                            source={{ uri: 'https://securepay.sslcommerz.com/gwprocess/v4/image/sslcommerz.png' }}
+                            source={{ uri: 'https://avatars.githubusercontent.com/u/12984950?s=200&v=4' }}
                             style={{ width: 34, height: 34 }}
                             resizeMode="contain"
                         />
@@ -141,7 +141,7 @@ export default function CheckoutScreen() {
                 >
                     <View style={styles.methodIconBox}>
                         <Image
-                            source={{ uri: 'https://seeklogo.com/images/B/bkash-logo-0C1572FBB4-seeklogo.com.png' }}
+                            source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/BKash_logo.svg/512px-BKash_logo.svg.png' }}
                             style={{ width: 30, height: 30 }}
                             resizeMode="contain"
                         />

@@ -58,7 +58,7 @@ export default function BKashPaymentScreen() {
                     <MaterialIcons name="close" size={24} color="#fff" />
                 </TouchableOpacity>
                 <Image
-                    source={{ uri: 'https://logos-world.net/wp-content/uploads/2022/07/BKash-Logo.png' }}
+                    source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/BKash_logo.svg/512px-BKash_logo.svg.png' }}
                     style={styles.bkashLogo}
                     resizeMode="contain"
                 />
