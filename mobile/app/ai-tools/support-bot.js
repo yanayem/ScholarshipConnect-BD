@@ -26,8 +26,8 @@ export default function SupportBotScreen() {
         try {
             const res = await apiService.getAIChatHistory();
             if (res.ok && res.data && res.data.length > 0) {
-                const formattedMessages = res.data.map(m => ({
-                    id: m.id.toString(),
+                const formattedMessages = res.data.map((m, index) => ({
+                    id: m.id ? m.id.toString() : `history-${index}`,
                     text: m.message,
                     isUser: m.is_user
                 }));
