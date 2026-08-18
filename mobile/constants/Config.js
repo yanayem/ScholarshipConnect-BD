@@ -10,7 +10,7 @@ import Constants from 'expo-constants';
 const LIVE_URL = "https://scholarshipconnectbd.onrender.com/api";
 
 // 2. Manual PC IP (Change this to your actual PC IP for physical device testing)
-const PC_IP = "192.168.68.158";
+const PC_IP = "192.168.182.221";
 
 const getLocalUrl = () => {
   // If running on Web, always use localhost for the backend on the same machine
