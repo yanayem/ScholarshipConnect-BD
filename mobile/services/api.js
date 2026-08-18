@@ -183,13 +183,15 @@ const getHeaders = async (includeToken = true) => {
 
 const networkError = (error, context) => {
   console.warn(`[API] ${context} Connection Issue:`, error.message);
-  let msg = 'Network request failed. Ensure your Django server is running and your Android device can reach the server IP.';
-  if (error.message.includes('timeout')) msg = 'Request timed out. Server might be slow.';
+  let msg = 'Network request failed. Ensure your Django server is running (try running it with 0.0.0.0:8000) and your device can reach the server IP.';
+  if (error.message.includes('aborted') || error.message.includes('timeout')) {
+    msg = 'Request timed out or was aborted. The local server might be slow or unreachable.';
+  }
   return { ok: false, data: { error: msg, details: error.message } };
 };
 
 // Generic fetch with timeout
-const fetchWithTimeout = async (url, options = {}, timeout = 10000) => {
+const fetchWithTimeout = async (url, options = {}, timeout = 25000) => {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
   try {

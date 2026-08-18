@@ -114,6 +114,12 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
+# CSRF Configuration for Production (Render/Vercel)
+CSRF_TRUSTED_ORIGINS = [
+    'https://scholarshipconnectbd.onrender.com',
+    'https://*.vercel.app',
+]
+
 
 # Authentication
 REST_FRAMEWORK = {

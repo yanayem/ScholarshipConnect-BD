@@ -8,8 +8,8 @@
     "scheme": "scholarshipconnectbd",
     "userInterfaceStyle": "automatic",
     "android": {
-      "package": "com.scholarshipconnectbd.app",
-      "googleServicesFile": "./google-services.json",
+      "package": "scholarships.bd",
+      "googleServicesFile": "./app/google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#E6F7F5",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

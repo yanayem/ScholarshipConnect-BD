@@ -225,13 +225,7 @@ export default function AdminConsole() {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* Android FAB */}
-      <TouchableOpacity
-        style={[styles.fab, theme.shadows.premium]}
-        onPress={() => router.push('/add-scholarship')}
-      >
-        <MaterialIcons name="add" size={28} color="#FFF" />
-      </TouchableOpacity>
+
       
       {/* Sidebar Modal */}
       <Modal visible={menuVisible} transparent animationType="none">

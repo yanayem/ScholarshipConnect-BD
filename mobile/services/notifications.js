@@ -11,8 +11,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const notificationService = {
   async registerForPushNotifications() {
-    // Only works on native devices (Android/iOS)
-    if (Platform.OS === 'web') return null;
+    const isExpoGo = Constants.executionEnvironment === 'storeClient';
+    
+    // Only works on native devices (Android/iOS) and requires custom dev build
+    if (Platform.OS === 'web' || isExpoGo) {
+      console.log('Push notifications require a custom Dev Build. Skipping in Expo Go/Web.');
+      return null;
+    }
 
     if (!Device.isDevice) {
       console.log('Must use physical device for Push Notifications');
@@ -20,13 +25,27 @@ export const notificationService = {
     }
 
     try {
-      const messaging = require('@react-native-firebase/messaging').default;
+      let messagingModule = require('@react-native-firebase/messaging');
+      let getMessaging = messagingModule.default || messagingModule;
+
+      // Ensure it's callable
+      if (typeof getMessaging !== 'function') {
+         console.warn('Messaging module is not a function. Skipping Push Notifications.');
+         return null;
+      }
+
+      const messaging = getMessaging();
+
+      if (!messaging || typeof messaging.requestPermission !== 'function') {
+         console.warn('Native messaging module not found or incomplete. Skipping.');
+         return null;
+      }
 
       // 1. Request Permission
-      const authStatus = await messaging().requestPermission();
+      const authStatus = await messaging.requestPermission();
       const enabled =
-        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+        authStatus === getMessaging.AuthorizationStatus.AUTHORIZED ||
+        authStatus === getMessaging.AuthorizationStatus.PROVISIONAL;
 
       if (!enabled) {
         console.log('Notification permission denied');
@@ -35,7 +54,7 @@ export const notificationService = {
 
       // 2. Get FCM Token
       // For Android, this usually works directly. For iOS, ensure APNs is configured.
-      const token = await messaging().getToken();
+      const token = await messaging.getToken();
 
       if (token) {
         console.log('FCM Token generated:', token);
@@ -52,7 +71,7 @@ export const notificationService = {
         return token;
       }
     } catch (e) {
-      console.error('Failed to register for push notifications:', e);
+      console.warn('Failed to register for push notifications:', e.message);
     }
     return null;
   },
@@ -61,13 +80,19 @@ export const notificationService = {
    * Listen for incoming notifications when the app is in foreground or background
    */
   setupNotificationListeners(onNotificationReceived) {
-    if (Platform.OS === 'web') return () => {};
+    const isExpoGo = Constants.executionEnvironment === 'storeClient';
+    if (Platform.OS === 'web' || isExpoGo) return () => {};
 
     try {
-      const messaging = require('@react-native-firebase/messaging').default;
+      let messagingModule = require('@react-native-firebase/messaging');
+      let getMessaging = messagingModule.default || messagingModule;
+      if (typeof getMessaging !== 'function') return () => {};
+      
+      const messaging = getMessaging();
+      if (!messaging || typeof messaging.onMessage !== 'function') return () => {};
 
       // Foreground handler
-      const unsubscribeForeground = messaging().onMessage(async remoteMessage => {
+      const unsubscribeForeground = messaging.onMessage(async remoteMessage => {
         console.log('A new FCM message arrived in foreground!', remoteMessage);
         if (onNotificationReceived) {
             onNotificationReceived(remoteMessage);
@@ -75,18 +100,16 @@ export const notificationService = {
       });
 
       // Background/Quit state opener handler
-      const unsubscribeOpener = messaging().onNotificationOpenedApp(remoteMessage => {
+      const unsubscribeOpener = messaging.onNotificationOpenedApp(remoteMessage => {
         console.log('Notification caused app to open from background state:', remoteMessage.notification);
       });
 
       // Check if app was opened from a quit state
-      messaging()
-        .getInitialNotification()
-        .then(remoteMessage => {
+      messaging.getInitialNotification().then(remoteMessage => {
           if (remoteMessage) {
             console.log('Notification caused app to open from quit state:', remoteMessage.notification);
           }
-        });
+      });
 
       return () => {
         unsubscribeForeground();
