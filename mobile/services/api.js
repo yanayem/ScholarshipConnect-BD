@@ -181,17 +181,19 @@ const getHeaders = async (includeToken = true) => {
   return headers;
 };
 
-const networkError = (error, context) => {
-  console.warn(`[API] ${context} Connection Issue:`, error.message);
-  let msg = 'Network request failed. Ensure your Django server is running (try running it with 0.0.0.0:8000) and your device can reach the server IP.';
-  if (error.message.includes('aborted') || error.message.includes('timeout')) {
-    msg = 'Request timed out or was aborted. The local server might be slow or unreachable.';
+const networkError = (error, url) => {
+  console.warn(`[API] Connection Issue at ${url}:`, error.message);
+  let msg = `Network request failed to ${url}.`;
+  if (error.message.includes('aborted') || error.message.includes('timeout') || error.message.includes('canceled')) {
+    msg = 'The server took too long to respond. Render might be starting up (Cold Start). Please wait 30s and try again.';
+  } else {
+    msg = 'Cannot reach the server. Ensure the Django backend is running and accessible.';
   }
   return { ok: false, data: { error: msg, details: error.message } };
 };
 
 // Generic fetch with timeout
-const fetchWithTimeout = async (url, options = {}, timeout = 40000) => {
+const fetchWithTimeout = async (url, options = {}, timeout = 60000) => {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
   try {
@@ -213,27 +215,29 @@ export const apiService = {
   },
 
   async adminLogin(username, password) {
+    const url = `${API_URL}/accounts/admin-login/`;
     try {
-      const response = await fetchWithTimeout(`${API_URL}/accounts/admin-login/`, {
+      const response = await fetchWithTimeout(url, {
         method: 'POST',
         headers: await getHeaders(true),
         body: JSON.stringify({ username, password }),
       });
       return await handleResponse(response);
     } catch (error) {
-      return networkError(error, 'Admin Login');
+      return networkError(error, url);
     }
   },
 
   async getProfile() {
+    const url = `${API_URL}/accounts/profile/`;
     try {
-      const response = await fetchWithTimeout(`${API_URL}/accounts/profile/`, {
+      const response = await fetchWithTimeout(url, {
         method: 'GET',
         headers: await getHeaders(true),
       });
       return await handleResponse(response);
     } catch (error) {
-      return networkError(error, 'Get Profile');
+      return networkError(error, url);
     }
   },
 
