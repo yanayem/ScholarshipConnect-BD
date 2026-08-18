@@ -191,7 +191,7 @@ const networkError = (error, context) => {
 };
 
 // Generic fetch with timeout
-const fetchWithTimeout = async (url, options = {}, timeout = 25000) => {
+const fetchWithTimeout = async (url, options = {}, timeout = 40000) => {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
   try {
