@@ -12,11 +12,27 @@ from django.conf.urls.static import static
 from django.views.generic.base import RedirectView
 import os
 
+from django.db import connections
+from django.db.utils import OperationalError
+
 def home(request):
-    return JsonResponse({"message": "ScholarshipConnectBD API is running", "status": "success"})
+    return JsonResponse({
+        "message": "ScholarshipConnectBD API is running",
+        "status": "success",
+        "version": "1.0.0"
+    })
+
+def health_check(request):
+    db_conn = connections['default']
+    try:
+        db_conn.cursor()
+    except OperationalError:
+        return JsonResponse({"status": "unhealthy", "database": "disconnected"}, status=503)
+    return JsonResponse({"status": "healthy", "database": "connected"})
 
 urlpatterns = [
     path('', home), # Root URL
+    path('api/health/', health_check), # Health Check URL
     path('favicon.ico', RedirectView.as_view(url='/static/admin/img/favicon.ico')),
     path('admin/', admin.site.urls),
     path('api/accounts/', include('accounts.urls')),
