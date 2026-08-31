@@ -16,15 +16,19 @@ class FirebaseAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         auth_header = request.META.get('HTTP_AUTHORIZATION')
         if not auth_header:
+            print("[FIREBASE AUTH] No Authorization header found.")
             return None
 
         parts = auth_header.split()
         if not parts or parts[0].lower() != 'bearer':
+            print(f"[FIREBASE AUTH] Invalid header format: {parts[0] if parts else 'None'}")
             return None
             
         if len(parts) == 1:
+            print("[FIREBASE AUTH] Token missing in Bearer header.")
             return None
         elif len(parts) > 2:
+            print("[FIREBASE AUTH] Bearer header has too many parts.")
             return None
 
         id_token = parts[1]
@@ -37,6 +41,9 @@ class FirebaseAuthentication(authentication.BaseAuthentication):
         except Exception as e:
             # If it failed verification, we report it immediately as 401.
             print(f"[FIREBASE AUTH ERROR] Verification failed: {str(e)}")
+            
+            # Log a snippet of the token for debugging (ONLY FIRST 10 CHARS)
+            print(f"[FIREBASE AUTH DEBUG] Token snippet: {id_token[:10]}...")
             
             # More user-friendly messages
             error_str = str(e)
