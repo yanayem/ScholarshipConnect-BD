@@ -39,6 +39,8 @@ backend/firebase-service-account.json
 .env.development.local
 .env.test.local
 .env.production.local
+mobile/.env
+mobile/.env.local
 
 # Debug
 npm-debug.*
@@ -49,17 +51,42 @@ lint_errors.json
 *.patch
 patch.diff
 
+# Native Build Artifacts
+mobile/android/app/build/
+mobile/android/.gradle/
+mobile/android/local.properties
+mobile/android/GeneratedPluginRegistrant.java
+mobile/android/app/src/main/assets/
+mobile/android/app/debug/
+mobile/android/app/release/
+*.apk
+*.aab
+
+# Google Services
+google-services.json
+mobile/google-services.json
+mobile/app/google-services.json
+mobile/android/app/google-services.json
+
 # IDEs
 .vscode/
 .idea/
 .claude/
-*.swp
-*.swo
+.project
+.classpath
+.settings/
+*.iml
+*.ipr
+*.iws
 
-# macOS
-.DS_Store
+# Backups and zips
+*.zip
+*.tar.gz
+*.rar
+backend.zip
 
 # Local tracking
+FRONTEND.md
 REQUIRED_CAPITAL.md
 REPORT.md
 DOCUMENTATION.md
