@@ -406,7 +406,7 @@ class ChatMessageView(generics.ListCreateAPIView):
                 data={
                     "type": "message",
                     "sender_id": f"{self.request.user.id}",
-                    "message_id": f"{msg.id}"
+                    "message_id": f"{msg.pk}"
                 }
             )
         except Exception as e:
