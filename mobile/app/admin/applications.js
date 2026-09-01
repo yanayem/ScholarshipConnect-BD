@@ -6,7 +6,7 @@
 import {
   View, Text, StyleSheet, FlatList,
   TouchableOpacity, StatusBar, RefreshControl,
-  ActivityIndicator, TextInput, Alert, Linking
+  ActivityIndicator, TextInput, Alert, Linking, Platform
 } from 'react-native';
 import { theme } from '../../theme';
 import { MaterialIcons, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
