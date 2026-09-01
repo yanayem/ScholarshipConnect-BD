@@ -455,10 +455,15 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.base,
     fontFamily: theme.typography.fontFamily.regular,
     color: theme.colors.textPrimary,
+    ...Platform.select({
+      web: {
+        outlineStyle: 'none',
+      },
+    }),
   },
   inputFocused: {
     borderColor: '#000000',
-    borderWidth: 1.5,
+    borderWidth: 1.8, // Slightly bolder for better visibility
   },
   textArea: {
     height: 120,
@@ -476,7 +481,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
     borderRadius: 20, // High rounded corners
     height: 52,
-    overflow: 'hidden',
+    // Removed overflow: 'hidden' to ensure border isn't clipped
   },
   dateInput: {
     flex: 1,
