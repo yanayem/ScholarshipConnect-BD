@@ -80,11 +80,8 @@ export default function AddScholarship() {
       Object.keys(formData).forEach(key => {
         const value = formData[key];
         if (value !== '' && value !== null && value !== undefined) {
-          if (key === 'min_cgpa') {
-            data.append(key, parseFloat(value) || 0);
-          } else {
-            data.append(key, value);
-          }
+          // Send all numeric-looking data as strings to handle precision/empty values gracefully in backend
+          data.append(key, value.toString());
         }
       });
 
