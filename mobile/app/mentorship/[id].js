@@ -31,31 +31,40 @@ export default function MentorProfileScreen() {
     } catch (e) {}
 
     try {
-      const [mentorRes, profileRes] = await Promise.all([
-        apiService.getMentors(),
-        apiService.getProfile()
-      ]);
-
+      const profileRes = await apiService.getProfile();
       if (profileRes.ok) {
           setCurrentUser(profileRes.data);
           await cacheService.set('user_profile', profileRes.data, 30);
       }
 
-      if (mentorRes.ok) {
-        const found = mentorRes.data.find(m => (m.user_id || m.user || m.id).toString() === id.toString());
-        if (found) {
-            setMentor(found);
-            await cacheService.set(`mentor_detail_${id}`, found, 20);
-        }
+      // 2. Fetch via new Public Profile API (Flexible for both student/mentor)
+      const res = await apiService.getPublicProfile(id);
 
-        const reviewsRes = await apiService.getMentorReviews(id);
-        if (reviewsRes.ok) {
-          setReviews(reviewsRes.data);
-          await cacheService.set(`mentor_reviews_${id}`, reviewsRes.data, 15);
-        }
+      if (res.ok && res.data) {
+          const userData = res.data;
+          // Flatten user and profile data for consistency
+          const combinedData = {
+              ...userData.profile,
+              user_id: userData.id,
+              username: userData.username,
+              email: userData.email,
+              is_staff: userData.is_staff
+          };
+
+          setMentor(combinedData);
+          await cacheService.set(`mentor_detail_${id}`, combinedData, 20);
+
+          // Fetch reviews if they are a mentor
+          if (combinedData.is_mentor) {
+            const reviewsRes = await apiService.getMentorReviews(id);
+            if (reviewsRes.ok) {
+              setReviews(reviewsRes.data);
+              await cacheService.set(`mentor_reviews_${id}`, reviewsRes.data, 15);
+            }
+          }
       }
     } catch (error) {
-      console.error('Failed to load mentor profile', error);
+      console.error('Failed to load profile', error);
     } finally {
       setLoading(false);
     }
@@ -115,10 +124,13 @@ export default function MentorProfileScreen() {
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity
+          onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')}
+          style={styles.backBtn}
+        >
           <MaterialIcons name="arrow-back" size={24} color={theme.colors.heading} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Mentor Profile</Text>
+        <Text style={styles.headerTitle}>{mentor?.is_mentor ? 'Mentor Profile' : 'Student Profile'}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -129,34 +141,45 @@ export default function MentorProfileScreen() {
               source={{ uri: mentor.avatar_url || theme.images.avatar + mentor.full_name }}
               style={styles.avatar}
             />
-            <View style={styles.verifiedBadge}>
-              <MaterialIcons name="verified" size={20} color="#fff" />
-            </View>
+            {mentor.is_mentor && (
+              <View style={styles.verifiedBadge}>
+                <MaterialIcons name="verified" size={20} color="#fff" />
+              </View>
+            )}
           </View>
 
           <Text style={styles.name}>{mentor.full_name || mentor.username}</Text>
-          <Text style={styles.major}>{mentor.major_course || mentor.university || 'Expert Mentor'}</Text>
+          <Text style={styles.major}>{mentor.is_mentor ? (mentor.major_course || mentor.university || 'Expert Mentor') : (mentor.university || 'Student')}</Text>
 
-          <View style={styles.statsRow}>
-            <View style={styles.statBox}>
-              <Text style={styles.statVal}>{mentor.rating || '0.0'}</Text>
-              <Text style={styles.statLab}>Rating</Text>
+          {mentor.is_mentor ? (
+            <View style={styles.statsRow}>
+              <View style={styles.statBox}>
+                <Text style={styles.statVal}>{mentor.rating || '0.0'}</Text>
+                <Text style={styles.statLab}>Rating</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statBox}>
+                <Text style={styles.statVal}>50+</Text>
+                <Text style={styles.statLab}>Sessions</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statBox}>
+                <Text style={styles.statVal}>{mentor.reviews_count || 0}</Text>
+                <Text style={styles.statLab}>Reviews</Text>
+              </View>
             </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statBox}>
-              <Text style={styles.statVal}>50+</Text>
-              <Text style={styles.statLab}>Sessions</Text>
+          ) : (
+            <View style={styles.statsRow}>
+                <View style={styles.statBox}>
+                  <Text style={styles.statVal}>{mentor.scholar_points || 0}</Text>
+                  <Text style={styles.statLab}>ScholarPoints</Text>
+                </View>
             </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statBox}>
-              <Text style={styles.statVal}>{mentor.reviews_count || 0}</Text>
-              <Text style={styles.statLab}>Reviews</Text>
-            </View>
-          </View>
+          )}
         </View>
 
         <View style={styles.content}>
-          {mentor.user_id !== currentUser?.user_id && (
+          {mentor.is_mentor && mentor.user_id !== currentUser?.user_id && (
             <TouchableOpacity
               style={styles.rateMentorBtn}
               onPress={() => setShowRatingModal(true)}

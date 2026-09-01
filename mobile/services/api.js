@@ -1529,5 +1529,17 @@ export const apiService = {
     } catch (error) {
       return networkError(error, 'Verify OTP');
     }
+  },
+
+  async getPublicProfile(userId) {
+    try {
+      const response = await fetch(`${API_URL}/accounts/public-profile/${userId}/`, {
+        method: 'GET',
+        headers: await getHeaders(true),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Get Public Profile');
+    }
   }
 };

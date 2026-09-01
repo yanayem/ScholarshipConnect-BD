@@ -347,6 +347,12 @@ class UpdateFCMTokenView(APIView):
         
         return Response({"message": "FCM token updated successfully"}, status=status.HTTP_200_OK)
 
+class PublicProfileView(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'pk'
+
 class SendOTPView(APIView):
     permission_classes = [permissions.AllowAny]
     throttle_classes = [SensitiveActionThrottle]
