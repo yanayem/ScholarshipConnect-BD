@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: theme.colors.background,
-    borderWidth: 1.2,
+    borderWidth: 1.5,
     borderColor: 'transparent', // Default no visible border
     borderRadius: 20, // High rounded corners
     paddingHorizontal: theme.spacing.md,
@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
   },
   inputFocused: {
     borderColor: '#000000',
-    borderWidth: 1.2,
+    borderWidth: 1.5,
   },
   textArea: {
     height: 120,
@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: theme.colors.background,
-    borderWidth: 1.2,
+    borderWidth: 1.5,
     borderColor: 'transparent',
     borderRadius: 20, // High rounded corners
     height: 52,
