@@ -360,7 +360,10 @@ export default function ChatScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity
+          onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/inbox')}
+          style={styles.backBtn}
+        >
           <MaterialIcons name="arrow-back" size={24} color={theme.colors.heading} />
         </TouchableOpacity>
         <Image source={{ uri: avatar || theme.images.avatar + name }} style={styles.headerAvatar} />
@@ -368,7 +371,22 @@ export default function ChatScreen() {
           <Text style={styles.headerName}>{name}</Text>
           <Text style={styles.onlineStatus}>Online</Text>
         </View>
-        <TouchableOpacity style={styles.headerAction}>
+        <TouchableOpacity
+          style={styles.headerAction}
+          onPress={() => {
+            Alert.alert(
+              "Chat Information",
+              `You are chatting with ${name}.\n\nMember of ScholarshipConnect BD.`,
+              [
+                { text: "Close", style: "cancel" },
+                {
+                  text: "View Profile",
+                  onPress: () => router.push(`/mentorship/${id}`)
+                }
+              ]
+            );
+          }}
+        >
           <Feather name="info" size={22} color={theme.colors.primary} />
         </TouchableOpacity>
       </View>
@@ -440,6 +458,12 @@ export default function ChatScreen() {
             maxHeight={100}
             returnKeyType="send"
             onSubmitEditing={handleSend}
+            onKeyPress={(e) => {
+              if (Platform.OS === 'web' && e.nativeEvent.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
             blurOnSubmit={false}
             enablesReturnKeyAutomatically
           />

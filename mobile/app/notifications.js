@@ -119,7 +119,7 @@ export default function NotificationsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')}
           style={styles.backBtn}
         >
           <MaterialIcons name="arrow-back" size={24} color={theme.colors.heading} />

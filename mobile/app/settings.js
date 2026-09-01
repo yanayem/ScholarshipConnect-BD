@@ -113,7 +113,10 @@ export default function SettingsScreen() {
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity
+          onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/profile')}
+          style={styles.backBtn}
+        >
           <MaterialIcons name="arrow-back" size={24} color={theme.colors.heading} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Settings and activity</Text>

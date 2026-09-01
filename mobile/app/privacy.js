@@ -59,7 +59,10 @@ export default function PrivacyPolicyScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => router.canGoBack() ? router.back() : router.replace('/settings')}
+          style={styles.backButton}
+        >
           <MaterialIcons name="arrow-back" size={24} color={theme.colors.heading} />
         </TouchableOpacity>
         <View>
