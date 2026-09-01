@@ -931,6 +931,19 @@ export const apiService = {
     }
   },
 
+  async updateApplicationStatus(id, status) {
+    try {
+      const response = await fetch(`${API_URL}/applications/apply/${id}/`, {
+        method: 'PATCH',
+        headers: await getHeaders(),
+        body: JSON.stringify({ status }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Update Application Status');
+    }
+  },
+
   // — Documents —
   async getDocuments() {
     try {

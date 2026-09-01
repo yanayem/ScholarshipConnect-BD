@@ -60,11 +60,30 @@ export default function ApplicationManager() {
     }
   };
 
+  const openExternalLink = async (url) => {
+    if (!url) return;
+    try {
+      if (Platform.OS === 'web') {
+        window.open(url, '_blank');
+      } else {
+        const supported = await Linking.canOpenURL(url);
+        if (supported) {
+          await Linking.openURL(url);
+        } else {
+          Alert.alert("Error", "Don't know how to open this URL: " + url);
+        }
+      }
+    } catch (error) {
+      console.error('Error opening link:', error);
+      Alert.alert("Error", "Could not open the document link.");
+    }
+  };
+
   const handleViewDocs = (item) => {
     if (item.user_documents && item.user_documents.length > 0) {
-      // If multiple docs, let user pick or just open the first one with a warning
+      // If multiple docs, let user pick
       if (item.user_documents.length === 1) {
-        Linking.openURL(item.user_documents[0].file);
+        openExternalLink(item.user_documents[0].file);
       } else {
         const docList = item.user_documents.map(d => d.name).join('\n');
         Alert.alert(
@@ -74,13 +93,13 @@ export default function ApplicationManager() {
             { text: 'Close' },
             ...item.user_documents.map(d => ({
               text: `Open ${d.name.substring(0, 15)}`,
-              onPress: () => Linking.openURL(d.file)
+              onPress: () => openExternalLink(d.file)
             }))
           ]
         );
       }
     } else if (item.document_url) {
-      Linking.openURL(item.document_url);
+      openExternalLink(item.document_url);
     } else {
       Alert.alert('No Documents', 'This student did not upload any supporting documents to their vault.');
     }
