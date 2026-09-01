@@ -197,17 +197,17 @@ export default function MentorProfileScreen() {
           </View>
 
           <View style={styles.socialGrid}>
-            {mentor.linkedin_url && (
+            {!!mentor.linkedin_url && (
               <TouchableOpacity style={styles.socialBtn} onPress={() => Linking.openURL(mentor.linkedin_url)}>
                 <FontAwesome5 name="linkedin" size={20} color="#0077b5" />
               </TouchableOpacity>
             )}
-            {mentor.github_url && (
+            {!!mentor.github_url && (
               <TouchableOpacity style={styles.socialBtn} onPress={() => Linking.openURL(mentor.github_url)}>
                 <FontAwesome5 name="github" size={20} color="#333" />
               </TouchableOpacity>
             )}
-            {mentor.google_scholar_url && (
+            {!!mentor.google_scholar_url && (
               <TouchableOpacity style={styles.socialBtn} onPress={() => Linking.openURL(mentor.google_scholar_url)}>
                 <FontAwesome5 name="google" size={18} color="#4285F4" />
               </TouchableOpacity>

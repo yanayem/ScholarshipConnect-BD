@@ -160,12 +160,22 @@ export default function ChatScreen() {
   const [actionModalVisible, setActionModalVisible] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
+  const isFetching = useRef(false);
   const flatListRef = useRef();
 
   const loadChat = useCallback(async (isFirstLoad = false) => {
-    if (!id || id === 'undefined') return;
+    if (!id || id === 'undefined' || isFetching.current) return;
+
+    isFetching.current = true;
     try {
-      const historyRes = await apiService.getChatHistory(id);
+      let historyRes = await apiService.getChatHistory(id);
+
+      // If 401, the token might have been refreshed automatically in handleResponse.
+      // We try one more time before giving up.
+      if (historyRes.status === 401) {
+        console.log('[CHAT] 401 encountered, retrying fetch...');
+        historyRes = await apiService.getChatHistory(id);
+      }
 
       if (historyRes.ok) {
         let serverData = [];
@@ -212,13 +222,14 @@ export default function ChatScreen() {
     } catch (error) {
       if (isFirstLoad) console.error('[CHAT] Load Error:', error);
     } finally {
+      isFetching.current = false;
       if (isFirstLoad) setLoading(false);
     }
   }, [id]);
 
   useEffect(() => {
     loadChat(true);
-    const interval = setInterval(() => loadChat(false), 3000);
+    const interval = setInterval(() => loadChat(false), 5000); // Increased to 5s to prevent aborts
     return () => clearInterval(interval);
   }, [id, loadChat]);
 

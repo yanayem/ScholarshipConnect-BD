@@ -1448,7 +1448,7 @@ export const apiService = {
       const response = await fetchWithTimeout(`${API_URL}/community/chat/${otherUserId}/`, {
         method: 'GET',
         headers: await getHeaders(),
-      }, 15000); // 15s timeout for chat history
+      }, 30000); // 30s timeout for better reliability
       return await handleResponse(response);
     } catch (error) {
       return networkError(error, 'Get Chat History');
