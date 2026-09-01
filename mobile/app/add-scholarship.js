@@ -201,21 +201,22 @@ export default function AddScholarship() {
             <View style={{ flex: 1 }}>
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Deadline *</Text>
-                <View style={styles.dateInputWrapper}>
+                <Pressable
+                  onPress={() => setShowCalendar(true)}
+                  style={styles.dateInputWrapper}
+                >
                   <TextInput
-                    style={[styles.input, { flex: 1, borderRightWidth: 0, borderTopRightRadius: 0, borderBottomRightRadius: 0 }]}
+                    style={styles.dateInput}
                     placeholder="YYYY-MM-DD"
                     placeholderTextColor={theme.colors.placeholder}
                     value={formData.deadline}
-                    onChangeText={(text) => handleInputChange('deadline', text)}
+                    editable={false} // Force using calendar for better UX
+                    pointerEvents="none"
                   />
-                  <Pressable
-                    onPress={() => setShowCalendar(true)}
-                    style={styles.calendarIconBtn}
-                  >
+                  <View style={styles.calendarIconBox}>
                     <MaterialIcons name="event" size={22} color={theme.colors.primary} />
-                  </Pressable>
-                </View>
+                  </View>
+                </Pressable>
               </View>
             </View>
           </View>
@@ -451,18 +452,26 @@ const styles = StyleSheet.create({
   dateInputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  calendarIconBtn: {
-    backgroundColor: theme.colors.primaryLight,
-    height: 48,
-    width: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: theme.colors.background,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    borderLeftWidth: 0,
-    borderTopRightRadius: theme.borderRadius.md,
-    borderBottomRightRadius: theme.borderRadius.md,
+    borderRadius: theme.borderRadius.md,
+    height: 48,
+    overflow: 'hidden',
+  },
+  dateInput: {
+    flex: 1,
+    paddingHorizontal: theme.spacing.md,
+    fontSize: theme.typography.sizes.base,
+    fontFamily: theme.typography.fontFamily.regular,
+    color: theme.colors.textPrimary,
+  },
+  calendarIconBox: {
+    width: 48,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(42, 157, 143, 0.05)', // Subtle teal tint
   },
   submitButton: {
     backgroundColor: theme.colors.primary,
