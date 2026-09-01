@@ -465,6 +465,13 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.base,
     fontFamily: theme.typography.fontFamily.regular,
     color: theme.colors.textPrimary,
+    backgroundColor: 'transparent', // Ensure no background overlap
+    borderWidth: 0, // Remove default borders
+    ...Platform.select({
+      web: {
+        outlineStyle: 'none',
+      },
+    }),
   },
   calendarIconBox: {
     width: 48,
