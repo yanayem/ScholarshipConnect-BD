@@ -201,22 +201,22 @@ export default function AddScholarship() {
             <View style={{ flex: 1 }}>
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Deadline *</Text>
-                <Pressable
-                  onPress={() => setShowCalendar(true)}
-                  style={styles.dateInputWrapper}
-                >
+                <View style={styles.dateInputWrapper}>
                   <TextInput
                     style={styles.dateInput}
                     placeholder="YYYY-MM-DD"
                     placeholderTextColor={theme.colors.placeholder}
                     value={formData.deadline}
-                    editable={false} // Force using calendar for better UX
-                    pointerEvents="none"
+                    onChangeText={(text) => handleInputChange('deadline', text)}
+                    editable={true}
                   />
-                  <View style={styles.calendarIconBox}>
+                  <TouchableOpacity
+                    onPress={() => setShowCalendar(true)}
+                    style={styles.calendarIconBox}
+                  >
                     <MaterialIcons name="event" size={22} color={theme.colors.primary} />
-                  </View>
-                </Pressable>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </View>
