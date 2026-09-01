@@ -366,28 +366,15 @@ export default function ChatScreen() {
         >
           <MaterialIcons name="arrow-back" size={24} color={theme.colors.heading} />
         </TouchableOpacity>
-        <Image source={{ uri: avatar || theme.images.avatar + name }} style={styles.headerAvatar} />
-        <View style={styles.headerInfo}>
-          <Text style={styles.headerName}>{name}</Text>
-          <Text style={styles.onlineStatus}>Online</Text>
-        </View>
         <TouchableOpacity
-          style={styles.headerAction}
-          onPress={() => {
-            Alert.alert(
-              "Chat Information",
-              `You are chatting with ${name}.\n\nMember of ScholarshipConnect BD.`,
-              [
-                { text: "Close", style: "cancel" },
-                {
-                  text: "View Profile",
-                  onPress: () => router.push(`/mentorship/${id}`)
-                }
-              ]
-            );
-          }}
+          style={styles.headerProfileContainer}
+          onPress={() => router.push(`/mentorship/${id}`)}
         >
-          <Feather name="info" size={22} color={theme.colors.primary} />
+          <Image source={{ uri: avatar || theme.images.avatar + name }} style={styles.headerAvatar} />
+          <View style={styles.headerInfo}>
+            <Text style={styles.headerName}>{name}</Text>
+            <Text style={styles.onlineStatus}>Online</Text>
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -536,6 +523,12 @@ const styles = StyleSheet.create({
   },
   backBtn: { padding: 5, marginRight: 5 },
   headerAvatar: { width: 36, height: 36, borderRadius: 18 },
+  headerProfileContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 12,
+  },
   headerInfo: { flex: 1, marginLeft: 12 },
   headerName: { fontSize: 16, fontWeight: 'bold', color: theme.colors.heading },
   onlineStatus: { fontSize: 12, color: theme.colors.success, fontWeight: '500' },
