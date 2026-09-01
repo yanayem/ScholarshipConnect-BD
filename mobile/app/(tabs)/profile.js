@@ -7,6 +7,7 @@ import Animated, { FadeInRight, SlideInRight, SlideOutRight, FadeIn, Layout } fr
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { theme } from '../../theme';
 import { apiService } from '../../services/api';
+import { cacheService } from '../../services/cache';
 import { useToast } from '../../components/Toast';
 import { Loader } from '../../components/Loader';
 import { useMentorMode } from '../../context/MentorModeContext';
