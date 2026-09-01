@@ -88,10 +88,25 @@ export default function MentorProfileScreen() {
   };
 
   if (loading && !mentor) return <Loader message="Loading mentor profile..." />;
+
   if (!mentor) return (
-    <View style={styles.errorContainer}>
-      <Text>Mentor not found</Text>
-      <TouchableOpacity onPress={() => router.back()}><Text style={{color: theme.colors.primary, marginTop: 10}}>Go Back</Text></TouchableOpacity>
+    <View style={styles.root}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <MaterialIcons name="arrow-back" size={24} color={theme.colors.heading} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Profile</Text>
+        <View style={{ width: 40 }} />
+      </View>
+      <View style={styles.errorContainer}>
+        <Ionicons name="person-outline" size={80} color={theme.colors.divider} />
+        <Text style={styles.errorTitle}>Profile Not Found</Text>
+        <Text style={styles.errorSub}>The user you are looking for is not registered as a mentor or the profile is private.</Text>
+        <TouchableOpacity style={styles.goBackBtn} onPress={() => router.back()}>
+          <Text style={styles.goBackText}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -353,7 +368,11 @@ const styles = StyleSheet.create({
   messageBtnText: { color: theme.colors.primary, fontWeight: 'bold', fontSize: 16 },
   bookBtn: { flex: 2, height: 55, borderRadius: 15, backgroundColor: theme.colors.primary, alignItems: 'center', justifyContent: 'center', ...theme.shadows.teal },
   bookBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  errorContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  errorContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, backgroundColor: '#fff' },
+  errorTitle: { fontSize: 22, fontWeight: 'bold', color: theme.colors.heading, marginTop: 20 },
+  errorSub: { fontSize: 14, color: theme.colors.textSecondary, textAlign: 'center', marginTop: 10, lineHeight: 20 },
+  goBackBtn: { marginTop: 30, backgroundColor: theme.colors.primary, paddingHorizontal: 30, paddingVertical: 12, borderRadius: 12 },
+  goBackText: { color: '#fff', fontWeight: 'bold' },
   rateMentorBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     backgroundColor: theme.colors.primaryLight, paddingVertical: 12, borderRadius: 15,
