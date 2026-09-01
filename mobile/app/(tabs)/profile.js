@@ -14,8 +14,17 @@ import { useMentorMode } from '../../context/MentorModeContext';
 import { useUser } from '../../context/UserContext';
 
 export default function ProfileScreen() {
-  const { user, setUser, fetchProfile } = useUser();
+  const { user, setUser, fetchProfile, loading: authLoading } = useUser();
   const [loading, setLoading] = useState(true);
+
+  // ... (rest of the state)
+
+  // Auth Guard
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace('/(auth)/login');
+    }
+  }, [user, authLoading]);
   const [uploading, setUploading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);

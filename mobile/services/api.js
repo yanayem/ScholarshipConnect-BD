@@ -934,9 +934,13 @@ export const apiService = {
   // — Documents —
   async getDocuments() {
     try {
+      const headers = await getHeaders();
+      // GET requests should not send Content-Type
+      delete headers['Content-Type'];
+
       const response = await fetch(`${API_URL}/applications/documents/`, {
         method: 'GET',
-        headers: await getHeaders(),
+        headers: headers,
       });
       return await handleResponse(response);
     } catch (error) {
@@ -963,9 +967,13 @@ export const apiService = {
         });
       }
 
+      const headers = await getHeaders(true);
+      // IMPORTANT: Remove Content-Type for FormData to let the browser set boundary
+      delete headers['Content-Type'];
+
       const response = await fetch(`${API_URL}/applications/documents/`, {
         method: 'POST',
-        headers: await getHeaders(true),
+        headers: headers,
         body: formData,
       });
       return await handleResponse(response);

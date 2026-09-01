@@ -3,17 +3,39 @@
  * - Manages Home, Scholarships, Calendar, Eligibility Check, Applications, Community, and Profile tabs.
  * - Optimized order: Profile (Left) | Scholarships | Calendar | Home (Center) | Applications | Community (Right).
  */
-import { Tabs, useRouter } from 'expo-router';
+import { Tabs, useRouter, router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { View, StyleSheet, Platform, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { theme } from '../../theme';
 import { useMentorMode } from '../../context/MentorModeContext';
+import { useUser } from '../../context/UserContext';
+import { useEffect } from 'react';
 
 export default function TabLayout() {
   const PRIMARY = theme.colors.primary;
   const INACTIVE = theme.colors.textSecondary;
   const TAB_BG = theme.colors.surface;
   const { isMentorMode } = useMentorMode();
+  const { user, loading } = useUser();
+
+  useEffect(() => {
+    // Auth Guard: Redirect to login if not authenticated
+    if (!loading && !user) {
+      router.replace('/(auth)/login');
+    }
+  }, [user, loading]);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.background }}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
+
+  // If no user and not loading, the useEffect will handle redirection.
+  // We return null to prevent rendering tabs momentarily.
+  if (!user) return null;
 
   return (
     <Tabs

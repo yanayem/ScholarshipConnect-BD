@@ -111,27 +111,54 @@ export const firebaseAuth = {
     async signInWithGoogle() {
         if (!auth) initializeFirebase();
         if (!auth) throw new Error('Firebase Auth not initialized');
+
         if (!isNative) {
-            const { GoogleAuthProvider, signInWithPopup } = require('firebase/auth');
-            return await signInWithPopup(auth, new GoogleAuthProvider());
+            // Web/Expo Go fallback - Note: signInWithPopup is NOT supported in standard React Native
+            // It will throw "undefined is not a function" if called in some RN environments.
+            try {
+                const authWeb = require('firebase/auth');
+                // Support both direct exports and .default for better compatibility
+                const GoogleAuthProvider = authWeb.GoogleAuthProvider || (authWeb.default && authWeb.default.GoogleAuthProvider);
+                const signInWithPopup = authWeb.signInWithPopup || (authWeb.default && authWeb.default.signInWithPopup);
+
+                if (typeof signInWithPopup === 'function' && GoogleAuthProvider) {
+                    const result = await signInWithPopup(auth, new GoogleAuthProvider());
+                    return result.user;
+                } else {
+                    throw new Error('Google Sign-In (Popup) is not supported in Expo Go. Please use a Native Development Build (npx expo run:android) or Email/Password login.');
+                }
+            } catch (error) {
+                console.warn('[FIREBASE] Google Web Fallback Info:', error.message);
+                throw error;
+            }
         } else {
             try {
                 const { GoogleSignin } = require('@react-native-google-signin/google-signin');
                 await GoogleSignin.hasPlayServices();
                 const response = await GoogleSignin.signIn();
 
+                // Handle both old and new GoogleSignin response formats
                 const idToken = response?.data?.idToken || response?.idToken;
                 const accessToken = response?.data?.accessToken || response?.accessToken;
 
+                if (!idToken) throw new Error('Failed to obtain ID Token from Google.');
+
                 const authModule = require('@react-native-firebase/auth');
-                const firebaseAuthNative = authModule.default ? authModule.default : authModule;
-                const { GoogleAuthProvider } = firebaseAuthNative;
+
+                // Robust extraction of GoogleAuthProvider for different versions/builds
+                const GoogleAuthProvider = authModule.GoogleAuthProvider ||
+                                           (authModule.default && authModule.default.GoogleAuthProvider) ||
+                                           (typeof authModule === 'function' && authModule.GoogleAuthProvider);
+
+                if (!GoogleAuthProvider) {
+                    throw new Error('GoogleAuthProvider not found in @react-native-firebase/auth module.');
+                }
 
                 const credential = GoogleAuthProvider.credential(idToken, accessToken);
                 const result = await auth.signInWithCredential(credential);
                 return result.user;
             } catch (error) {
-                console.error('[FIREBASE] Google Error:', error.message);
+                console.error('[FIREBASE] Google Native Error:', error.message);
                 throw error;
             }
         }
@@ -167,10 +194,28 @@ export const firebaseAuth = {
     },
 
     async getIdToken(forceRefresh = false) {
-        if (!auth) initializeFirebase();
-        const user = auth?.currentUser;
-        if (!user) return null;
-        return await user.getIdToken(forceRefresh);
+        try {
+            if (!auth) initializeFirebase();
+            const user = auth?.currentUser;
+            if (!user) return null;
+
+            // Support both Native SDK style and Web SDK Modular style
+            if (typeof user.getIdToken === 'function') {
+                return await user.getIdToken(forceRefresh);
+            } else {
+                // Standalone getIdToken from Web SDK
+                const authWeb = require('firebase/auth');
+                const getToken = authWeb.getIdToken || (authWeb.default && authWeb.default.getIdToken);
+                if (typeof getToken === 'function') {
+                    return await getToken(user, forceRefresh);
+                }
+            }
+            // Fallback to searching for properties that might contain the token
+            return user.accessToken || user._lat || null;
+        } catch (e) {
+            console.warn('[FIREBASE] getIdToken Error:', e.message);
+            return null;
+        }
     },
 
     async sendPasswordReset(email) {

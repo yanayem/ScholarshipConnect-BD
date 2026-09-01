@@ -31,6 +31,8 @@ export default function LoginScreen() {
   const { showToast, ToastComponent } = useToast();
   const passwordRef = useRef(null);
 
+  const isExpoGo = Constants.executionEnvironment === 'storeClient';
+
   const handleLogin = async () => {
     if (!email || !password) {
       showToast('Please enter email and password', 'error');
@@ -49,7 +51,6 @@ export default function LoginScreen() {
         return;
       }
 
-      const isExpoGo = Constants.executionEnvironment === 'storeClient';
       if (isExpoGo) {
          console.log('[LOGIN] Expo Go detected, using Firebase Web SDK fallback.');
       }
@@ -112,6 +113,11 @@ export default function LoginScreen() {
   };
 
   const handleGoogleLogin = async () => {
+    if (isExpoGo) {
+      showToast('Google Sign-In requires a Native Development Build. Please use Email/Password in Expo Go.', 'info');
+      return;
+    }
+
     setLoading(true);
     try {
       console.log('[LOGIN] Attempting Google Sign-In...');
@@ -142,9 +148,13 @@ export default function LoginScreen() {
       }
     } catch (error) {
       console.log('[GOOGLE LOGIN ERROR]:', error);
-      let msg = 'Google Sign-In failed.';
-      if (error.code === 'auth/popup-closed-by-user') msg = 'Login cancelled.';
-      else if (error.message.includes('not installed')) msg = 'Native Google Sign-In not configured. Use email/password.';
+      let msg = error.message || 'Google Sign-In failed.';
+
+      if (error.code === 'auth/popup-closed-by-user') {
+        msg = 'Login cancelled.';
+      } else if (error.message && error.message.includes('not installed')) {
+        msg = 'Native Google Sign-In not configured. Use email/password.';
+      }
 
       showToast(msg, 'error');
     } finally {

@@ -176,8 +176,6 @@ export default function RegisterScreen() {
 
             <View style={styles.socialRow}>
               <TouchableOpacity style={styles.socialBtn}><Ionicons name="logo-google" size={22} color="#EA4335" /></TouchableOpacity>
-              <TouchableOpacity style={styles.socialBtn}><Ionicons name="logo-facebook" size={22} color="#1877F2" /></TouchableOpacity>
-              <TouchableOpacity style={styles.socialBtn}><Ionicons name="logo-apple" size={22} color="black" /></TouchableOpacity>
             </View>
           </View>
           <View style={styles.footer}>
