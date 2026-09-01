@@ -46,20 +46,21 @@ export default function TabLayout() {
           backgroundColor: TAB_BG,
           borderTopWidth: 1,
           borderTopColor: theme.colors.divider,
-          height: 65,
-          paddingBottom: 8,
-          paddingTop: 8,
-          borderTopLeftRadius: 20,
-          borderTopRightRadius: 20,
-          elevation: 10,
+          height: 70,
+          paddingBottom: 12,
+          paddingTop: 10,
+          borderTopLeftRadius: 25,
+          borderTopRightRadius: 25,
+          elevation: 20,
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.05,
-          shadowRadius: 5,
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.1,
+          shadowRadius: 10,
         },
         tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: '700',
+          fontSize: 11,
+          fontFamily: theme.typography.fontFamily.bold,
+          marginTop: 2,
         },
         headerStyle: {
           backgroundColor: theme.colors.surface,
@@ -75,124 +76,71 @@ export default function TabLayout() {
         },
       }}
     >
+      {/* 1. Dashboard (Home) */}
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Dashboard',
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="grid-view" size={26} color={color} />
+          ),
+          headerShown: false,
+        }}
+      />
 
-      {/* 1. Scholarships (Student Only) */}
+      {/* 2. Scholarships */}
       <Tabs.Screen
         name="scholarships"
         options={{
           title: 'Scholarships',
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="school" size={24} color={color} />
+            <MaterialIcons name="school" size={26} color={color} />
           ),
-          headerTitle: 'Scholarships',
-          href: isMentorMode ? null : undefined,
+          headerTitle: 'Explore Scholarships',
         }}
       />
 
-
-
-      {/* 3. Calendar (Student Only) */}
-      <Tabs.Screen
-        name="calendar"
-        options={{
-          title: 'Calendar',
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons name="event" size={24} color={color} />
-          ),
-          headerTitle: 'Deadline Calendar',
-          href: isMentorMode ? null : undefined,
-        }}
-      />
-
-      {/* 4. Sessions (Mentor Only) */}
-      <Tabs.Screen
-        name="sessions"
-        options={{
-          title: 'Sessions',
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons name="event-available" size={24} color={color} />
-          ),
-          headerShown: false,
-          href: isMentorMode ? undefined : null,
-        }}
-      />
-
-      {/* 5. Home / Dashboard (Center for BOTH modes) */}
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: isMentorMode ? 'Dashboard' : 'Home',
-          tabBarIcon: ({ color }) => (
-            <View style={styles.homeIconContainer}>
-               <MaterialIcons
-                name={isMentorMode ? "dashboard" : "home"}
-                size={28}
-                color={color}
-               />
-            </View>
-          ),
-          headerShown: false,
-        }}
-      />
-
-      {/* 6. Applications (Student Only) */}
+      {/* 3. Applications */}
       <Tabs.Screen
         name="applications"
         options={{
-          title: 'Application',
+          title: 'Applications',
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="bookmark" size={24} color={color} />
+            <MaterialIcons name="assignment" size={26} color={color} />
           ),
           headerTitle: 'My Applications',
-          href: isMentorMode ? null : undefined,
         }}
       />
 
-      {/* 7. Community (Shared) */}
-      <Tabs.Screen
-        name="community"
-        options={{
-          title: 'Community',
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons name="groups" size={24} color={color} />
-          ),
-          headerTitle: 'Community Feed',
-        }}
-      />
-
-      {/* 8. Inbox (Mentor Only in Bottom Nav) */}
+      {/* 4. Inbox */}
       <Tabs.Screen
         name="inbox"
         options={{
-          title: 'Messages',
+          title: 'Inbox',
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="chat" size={24} color={color} />
+            <MaterialIcons name="mail-outline" size={26} color={color} />
           ),
-          headerTitle: 'Inbox',
-          href: isMentorMode ? undefined : null,
+          headerTitle: 'Messages',
         }}
       />
 
-      {/* 9. Profile (Mentor Only - Position 5 for Mentor) */}
+      {/* 5. Profile */}
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="person" size={24} color={color} />
+            <MaterialIcons name="person-outline" size={26} color={color} />
           ),
           headerShown: false,
-          href: isMentorMode ? undefined : null,
         }}
       />
 
-      {/* Hidden Technical Tabs */}
-      <Tabs.Screen
-        name="eligibility"
-        options={{
-          href: null,
-        }}
-      />
+      {/* Hidden Technical Tabs (Keep functional but hide from Bottom Bar) */}
+      <Tabs.Screen name="calendar" options={{ href: null }} />
+      <Tabs.Screen name="community" options={{ href: null }} />
+      <Tabs.Screen name="sessions" options={{ href: null }} />
+      <Tabs.Screen name="eligibility" options={{ href: null }} />
     </Tabs>
   );
 }
