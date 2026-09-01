@@ -432,11 +432,10 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: theme.colors.background,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: theme.borderRadius.md,
+    borderWidth: 0,
+    borderRadius: 20, // High rounded corners
     paddingHorizontal: theme.spacing.md,
-    height: 48,
+    height: 52,
     fontSize: theme.typography.sizes.base,
     fontFamily: theme.typography.fontFamily.regular,
     color: theme.colors.textPrimary,
@@ -453,8 +452,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: theme.colors.background,
-    borderWidth: 1.2,
-    borderColor: '#000000', // Dark border like the Category image
+    borderWidth: 0,
     borderRadius: 20, // High rounded corners
     height: 52,
     overflow: 'hidden',
