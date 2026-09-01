@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
   },
   inputFocused: {
     borderColor: '#000000',
-    borderWidth: 1.8, // Slightly bolder for better visibility
+    borderWidth: 1.4, // Slightly bolder for better visibility
   },
   textArea: {
     height: 120,
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
     borderRadius: 20, // High rounded corners
     height: 52,
-    // Removed overflow: 'hidden' to ensure border isn't clipped
+    overflow: 'hidden', // Ensure children (like icon box) stay inside
   },
   dateInput: {
     flex: 1,
@@ -498,11 +498,13 @@ const styles = StyleSheet.create({
     }),
   },
   calendarIconBox: {
-    width: 48,
-    height: 48,
+    width: 50,
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(42, 157, 143, 0.05)', // Subtle teal tint
+    backgroundColor: 'rgba(42, 157, 143, 0.08)', // Slightly darker tint for contrast
+    borderLeftWidth: 1,
+    borderLeftColor: 'rgba(0,0,0,0.05)',
   },
   submitButton: {
     backgroundColor: theme.colors.primary,
