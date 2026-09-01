@@ -124,6 +124,19 @@ def get_safe_profile(self):
 
 User.add_to_class('get_profile', get_safe_profile)
 
+class EmailOTP(models.Model):
+    email = models.EmailField()
+    otp = models.CharField(max_length=4)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_verified = models.BooleanField(default=False)
+
+    def is_valid(self):
+        # OTP is valid for 10 minutes
+        return timezone.now() < self.created_at + datetime.timedelta(minutes=10)
+
+    def __str__(self):
+        return f"{self.email} - {self.otp}"
+
 class AdminActivityLog(models.Model):
     admin = models.ForeignKey(User, on_delete=models.CASCADE)
     action = models.CharField(max_length=255)

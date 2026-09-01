@@ -1503,5 +1503,31 @@ export const apiService = {
     } catch (error) {
       return networkError(error, 'Update FCM Token');
     }
+  },
+
+  async sendOTP(email) {
+    try {
+      const response = await fetch(`${API_URL}/accounts/send-otp/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Send OTP');
+    }
+  },
+
+  async verifyOTP(email, otp) {
+    try {
+      const response = await fetch(`${API_URL}/accounts/verify-otp/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Verify OTP');
+    }
   }
 };

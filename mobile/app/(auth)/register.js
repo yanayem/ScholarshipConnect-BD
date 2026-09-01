@@ -7,7 +7,7 @@ import React, { useState, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView,
-  StatusBar, Dimensions, Alert
+  StatusBar, Dimensions, Alert, Modal, TextInput, ActivityIndicator
 } from 'react-native';
 import { router, Link } from 'expo-router';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
@@ -27,6 +27,12 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // OTP States
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+
   const { showToast, ToastComponent } = useToast();
 
   const emailRef = useRef(null);
@@ -53,21 +59,17 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
-      // 1. Create User with our Unified Service (Works on both Native & Expo Go)
-      const userCredential = await firebaseAuth.signUp(email.trim(), password);
+      // Step 1: Create Firebase Account (starts as unverified)
+      await firebaseAuth.signUp(email.trim(), password);
 
-      // 2. Sync with Backend
-      const idToken = await firebaseAuth.getIdToken();
-      await apiService.setToken(idToken);
-      await apiService.updateProfile({ full_name: fullName });
-
-      // 3. Inform user to verify email
-      setLoading(false);
-      Alert.alert(
-        "Verification Email Sent",
-        `A verification link has been sent to ${email}. Please verify your email before logging in.`,
-        [{ text: "Go to Login", onPress: () => router.replace('/(auth)/login') }]
-      );
+      // Step 2: Send 4-digit OTP from Backend
+      const res = await apiService.sendOTP(email.trim().toLowerCase());
+      if (res.ok) {
+        showToast('Verification code sent to your email', 'success');
+        setShowOtpModal(true);
+      } else {
+        showToast(res.data?.error || 'Failed to send verification code', 'error');
+      }
     } catch (error) {
       console.error('Registration Error:', error);
       let errorMsg = error.message || 'Could not create account.';
@@ -75,6 +77,36 @@ export default function RegisterScreen() {
       showToast(errorMsg, 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    if (otp.length !== 4) {
+      showToast('Please enter the 4-digit code', 'warning');
+      return;
+    }
+
+    setVerifyingOtp(true);
+    try {
+      const verifyRes = await apiService.verifyOTP(email.trim().toLowerCase(), otp);
+
+      if (verifyRes.ok && verifyRes.data.verified) {
+        // Step 3: Verify and sync profile with backend
+        const idToken = await firebaseAuth.getIdToken(true);
+        await apiService.setToken(idToken);
+        await apiService.updateProfile({ full_name: fullName });
+
+        setShowOtpModal(false);
+        showToast('Account verified successfully!', 'success');
+
+        setTimeout(() => router.replace('/(tabs)'), 1000);
+      } else {
+        showToast(verifyRes.data?.error || 'Invalid or expired code', 'error');
+      }
+    } catch (error) {
+      showToast('Verification failed. Try again.', 'error');
+    } finally {
+      setVerifyingOtp(false);
     }
   };
 
@@ -178,6 +210,52 @@ export default function RegisterScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* 4-Digit OTP Modal */}
+      <Modal
+        visible={showOtpModal}
+        transparent
+        animationType="fade"
+      >
+        <View style={styles.otpOverlay}>
+          <View style={styles.otpCard}>
+            <MaterialIcons name="mark-email-read" size={48} color={theme.colors.primary} />
+            <Text style={styles.otpTitle}>Verify Your Email</Text>
+            <Text style={styles.otpSub}>Enter the 4-digit code sent to:</Text>
+            <Text style={styles.otpEmail}>{email}</Text>
+
+            <TextInput
+              style={styles.otpInput}
+              placeholder="0000"
+              keyboardType="number-pad"
+              maxLength={4}
+              value={otp}
+              onChangeText={setOtp}
+              autoFocus
+            />
+
+            <TouchableOpacity
+              style={[styles.verifyBtn, verifyingOtp && { opacity: 0.7 }]}
+              onPress={handleVerifyOTP}
+              disabled={verifyingOtp}
+            >
+              {verifyingOtp ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.verifyBtnText}>Verify & Register</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.cancelBtn}
+              onPress={() => setShowOtpModal(false)}
+              disabled={verifyingOtp}
+            >
+              <Text style={styles.cancelBtnText}>Change Email</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -208,4 +286,73 @@ const styles = StyleSheet.create({
   footer: { alignItems: 'center', marginTop: 32 },
   footerText: { color: theme.colors.textSecondary, fontFamily: theme.typography.fontFamily.medium, fontSize: 14 },
   loginLink: { color: theme.colors.primary, fontFamily: theme.typography.fontFamily.bold, fontSize: 15, marginTop: 4 },
+
+  // OTP Modal Styles
+  otpOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  otpCard: {
+    backgroundColor: '#fff',
+    width: '100%',
+    borderRadius: 24,
+    padding: 32,
+    alignItems: 'center',
+    ...theme.shadows.premium,
+  },
+  otpTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: theme.colors.heading,
+    marginTop: 16,
+  },
+  otpSub: {
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  otpEmail: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: theme.colors.primary,
+    marginBottom: 24,
+  },
+  otpInput: {
+    width: '100%',
+    height: 60,
+    backgroundColor: theme.colors.background,
+    borderRadius: 16,
+    textAlign: 'center',
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: theme.colors.primary,
+    letterSpacing: 10,
+    marginBottom: 24,
+  },
+  verifyBtn: {
+    backgroundColor: theme.colors.primary,
+    width: '100%',
+    height: 54,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  verifyBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  cancelBtn: {
+    marginTop: 16,
+    padding: 8,
+  },
+  cancelBtnText: {
+    color: theme.colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
 });

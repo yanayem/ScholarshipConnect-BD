@@ -8,12 +8,13 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from firebase_admin import auth as firebase_auth
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
 import datetime
-
-from .models import Profile, AdminActivityLog
+import random
+from .models import Profile, AdminActivityLog, EmailOTP
 from .serializers import (
     ProfileSerializer, ChangePasswordSerializer, UserSerializer, 
     AdminActivityLogSerializer, ForgotPasswordSerializer
@@ -345,3 +346,59 @@ class UpdateFCMTokenView(APIView):
         profile.save()
         
         return Response({"message": "FCM token updated successfully"}, status=status.HTTP_200_OK)
+
+class SendOTPView(APIView):
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [SensitiveActionThrottle]
+
+    def post(self, request):
+        email = request.data.get('email')
+        if not email:
+            return Response({"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        otp = str(random.randint(1000, 9999))
+        EmailOTP.objects.filter(email=email).delete() # Remove old OTPs
+        EmailOTP.objects.create(email=email, otp=otp)
+
+        subject = "Your Verification Code - ScholarshipConnectBD"
+        message = f"Hello,\n\nYour 4-digit verification code is: {otp}\n\nThis code will expire in 10 minutes.\n\nBest regards,\nScholarshipConnectBD Team"
+        
+        try:
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [email],
+                fail_silently=False,
+            )
+            return Response({"message": "OTP sent successfully to your email."})
+        except Exception as e:
+            return Response({"error": f"Failed to send email: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class VerifyOTPView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email')
+        otp = request.data.get('otp')
+
+        if not email or not otp:
+            return Response({"error": "Email and OTP are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        otp_obj = EmailOTP.objects.filter(email=email, otp=otp).last()
+        if otp_obj and otp_obj.is_valid():
+            otp_obj.is_verified = True
+            otp_obj.save()
+
+            # Mark Firebase User as verified
+            try:
+                user = firebase_auth.get_user_by_email(email)
+                firebase_auth.update_user(user.uid, email_verified=True)
+            except Exception as e:
+                print(f"[OTP] Failed to update Firebase user status: {str(e)}")
+                # Even if Firebase update fails, we might still want to proceed if OTP was correct
+                # but it's safer to ensure sync.
+
+            return Response({"message": "OTP verified successfully.", "verified": True})
+        
+        return Response({"error": "Invalid or expired OTP."}, status=status.HTTP_400_BAD_REQUEST)

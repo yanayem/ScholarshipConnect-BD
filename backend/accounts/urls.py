@@ -15,4 +15,6 @@ urlpatterns = [
     path('leaderboard/', views.LeaderboardView.as_view(), name='leaderboard'),
     path('forgot-password/', views.ForgotPasswordView.as_view(), name='forgot_password'),
     path('update-fcm-token/', views.UpdateFCMTokenView.as_view(), name='update_fcm_token'),
+    path('send-otp/', views.SendOTPView.as_view(), name='send_otp'),
+    path('verify-otp/', views.VerifyOTPView.as_view(), name='verify_otp'),
 ]

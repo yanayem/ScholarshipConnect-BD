@@ -172,13 +172,13 @@ export const firebaseAuth = {
             if (isNative) {
                 const result = await auth.createUserWithEmailAndPassword(email.trim(), password);
                 user = result.user;
-                if (user) await user.sendEmailVerification();
+                // Removed automatic sendEmailVerification (using 4-digit OTP instead)
                 return user;
             } else {
-                const { createUserWithEmailAndPassword, sendEmailVerification } = require('firebase/auth');
+                const { createUserWithEmailAndPassword } = require('firebase/auth');
                 const result = await createUserWithEmailAndPassword(auth, email.trim(), password);
                 user = result.user;
-                if (user) await sendEmailVerification(user);
+                // Removed automatic sendEmailVerification
                 return user;
             }
         } catch (error) {
