@@ -168,15 +168,38 @@ export const firebaseAuth = {
         if (!auth) initializeFirebase();
         if (!auth) throw new Error('Firebase Auth not initialized');
         try {
+            let user;
             if (isNative) {
                 const result = await auth.createUserWithEmailAndPassword(email.trim(), password);
-                return result.user;
+                user = result.user;
+                if (user) await user.sendEmailVerification();
+                return user;
             } else {
-                const { createUserWithEmailAndPassword } = require('firebase/auth');
+                const { createUserWithEmailAndPassword, sendEmailVerification } = require('firebase/auth');
                 const result = await createUserWithEmailAndPassword(auth, email.trim(), password);
-                return result.user;
+                user = result.user;
+                if (user) await sendEmailVerification(user);
+                return user;
             }
         } catch (error) {
+            throw error;
+        }
+    },
+
+    async sendVerificationEmail() {
+        if (!auth) initializeFirebase();
+        const user = auth?.currentUser;
+        if (!user) throw new Error('No user logged in');
+
+        try {
+            if (isNative) {
+                await user.sendEmailVerification();
+            } else {
+                const { sendEmailVerification } = require('firebase/auth');
+                await sendEmailVerification(user);
+            }
+        } catch (error) {
+            console.error('[FIREBASE] Verification Email Error:', error.message);
             throw error;
         }
     },

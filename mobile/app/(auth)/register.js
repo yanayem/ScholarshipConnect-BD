@@ -72,8 +72,13 @@ export default function RegisterScreen() {
       await apiService.setToken(idToken);
       await apiService.updateProfile({ full_name: fullName });
 
-      showToast('Account created successfully!', 'success');
-      setTimeout(() => router.replace('/(tabs)'), 1500);
+      // 3. Inform user to verify email
+      setLoading(false);
+      Alert.alert(
+        "Verification Email Sent",
+        `A verification link has been sent to ${email}. Please verify your email before logging in.`,
+        [{ text: "Go to Login", onPress: () => router.replace('/(auth)/login') }]
+      );
     } catch (error) {
       console.error('Registration Error:', error);
       let errorMsg = error.message || 'Could not create account.';
