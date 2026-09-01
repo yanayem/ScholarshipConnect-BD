@@ -19,10 +19,10 @@ ScholarshipConnectBD is a specialized mobile application built with **React Nati
 
 ## Recent Achievements & Recognition
 
-| 🏆 Champions of SDP 300 | 🎁 Prize Giving Ceremony |
-| :---: | :---: |
+|  Champions of SDP 300 |                Prize Giving Ceremony                |
+| :---: |:-----------------------------------------------------:|
 | <img src="./mobile/assets/IMG_20260818_182021.jpg" width="100%"> | <img src="./mobile/assets/DSC03972.JPG" width="100%"> |
-| **SDP 300 Champions — Summer 2026** | **Award Ceremony at BUBT** |
+| **SDP 300 Champions — Summer 2026** |              **Award Ceremony at BUBT**               |
 
 > **Team Scholarship Connect BD is proud to be awarded the Champions title in SDP 300 — Summer 2026, organized by the BASIS BUBT Chapter Club at Bangladesh University of Business and Technology (BUBT).**
 

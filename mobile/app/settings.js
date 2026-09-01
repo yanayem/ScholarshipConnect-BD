@@ -341,7 +341,7 @@ export default function SettingsScreen() {
         <SettingItem
           icon="info-outline"
           label="Privacy Policy"
-          onPress={() => router.push({ pathname: '/legal', params: { type: 'privacy' } })}
+          onPress={() => router.push('/privacy')}
         />
         <SettingItem
           icon="description"

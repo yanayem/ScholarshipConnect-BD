@@ -54,6 +54,34 @@ const MANUAL_SECTIONS = [
     ]
   },
   {
+    id: 'mentorship',
+    title: 'Mentorship 1-on-1',
+    icon: 'groups',
+    content: [
+      { q: 'How to book a mentor?', a: 'Go to the Community > Network tab, find a mentor, and tap "Book Session". Choose your topic and preferred time.' },
+      { q: 'What happens after booking?', a: 'The mentor receives a request. Once they approve, it will appear in your "Sessions" tab with a "Scheduled" status.' },
+      { q: 'How to become a mentor?', a: 'Go to Profile > Sidebar Menu > Become a Mentor. Admins will review your profile and academic achievements for approval.' },
+    ]
+  },
+  {
+    id: 'verification',
+    title: 'Verification & Contribution',
+    icon: 'verified',
+    content: [
+      { q: 'How to earn ScholarPoints?', a: 'Contribute a valid scholarship (200 pts) or answer community questions. Points can be used to unlock Pro features.' },
+      { q: 'Why is my scholarship "Pending"?', a: 'Every submission is reviewed by staff for authenticity. Once verified, it goes "Live" and you earn your points.' },
+    ]
+  },
+  {
+    id: 'community',
+    title: 'Community Standards',
+    icon: 'forum',
+    content: [
+      { q: 'How to mark a problem as solved?', a: 'If you created a discussion and found an answer, tap the "Mark as Solved" checkmark on your post.' },
+      { q: 'How to report content?', a: 'If you see spam or inappropriate behavior, tap the triple-dot menu on the post and select "Report". Our moderation team will handle it.' },
+    ]
+  },
+  {
     id: 'help',
     title: 'Troubleshooting',
     icon: 'help-outline',

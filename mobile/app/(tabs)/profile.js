@@ -731,6 +731,17 @@ export default function ProfileScreen() {
               style={styles.menuItem}
               onPress={() => {
                 setMenuVisible(false);
+                router.push('/privacy');
+              }}
+            >
+              <Ionicons name="shield-checkmark-outline" size={24} color={theme.colors.textPrimary} />
+              <Text style={styles.menuText}>Privacy Policy</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                setMenuVisible(false);
                 Linking.openURL('https://scholarshipconnectbd.vercel.app/');
               }}
             >
