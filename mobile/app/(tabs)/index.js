@@ -285,6 +285,20 @@ function MentorHome({ user }) {
     });
 
     const loadData = async () => {
+      // Try Cache First
+      try {
+        const cachedSessions = await cacheService.get('mentor_sessions');
+        const cachedImpact = await cacheService.get('mentor_impact');
+
+        if (cachedSessions) {
+          setSessions(cachedSessions);
+          setLoading(false);
+        }
+        if (cachedImpact) {
+          setContributionData(cachedImpact);
+        }
+      } catch (e) {}
+
       try {
         const [mentorshipRes, scholarRes, communityRes] = await Promise.all([
           apiService.getMentorships(),
@@ -292,17 +306,22 @@ function MentorHome({ user }) {
           apiService.getDiscussions()
         ]);
 
-        if (mentorshipRes.ok) setSessions(mentorshipRes.data);
+        if (mentorshipRes.ok) {
+          setSessions(mentorshipRes.data);
+          await cacheService.set('mentor_sessions', mentorshipRes.data, 10);
+        }
 
         if (scholarRes.ok && user) {
           const myScholarships = (scholarRes.data.results || scholarRes.data).filter(s => s.submitted_by === user.user_id);
           const myDiscussions = (communityRes.data.results || communityRes.data).filter(d => d.author === user.user_id);
 
-          setContributionData({
+          const impact = {
             scholarships: myScholarships.length,
             discussions: myDiscussions.length,
             solved: myDiscussions.filter(d => d.is_solved).length
-          });
+          };
+          setContributionData(impact);
+          await cacheService.set('mentor_impact', impact, 30);
         }
       } catch (error) {
         console.error('Failed to load mentor dashboard', error);
@@ -618,11 +637,36 @@ export default function HomeScreen() {
 
   useEffect(() => {
     const loadData = async () => {
+      // 1. Try to load from cache first
       try {
-        const [scholarRes, leaderRes, blogRes] = await Promise.all([
+        const cachedScholarships = await cacheService.get('home_scholarships');
+        const cachedLeaderboard = await cacheService.get('home_leaderboard');
+
+        if (cachedScholarships) {
+          setAllScholarships(cachedScholarships);
+          setFeatured(
+            cachedScholarships
+              .filter(s => s.is_featured && new Date(s.deadline) >= new Date())
+              .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
+              .slice(0, 3)
+          );
+          const countries = [...new Set(cachedScholarships.map(s => s.country))].filter(Boolean).slice(0, 8);
+          setActiveCountries(countries);
+          setLoading(false); // Stop showing full screen loader if we have cache
+        }
+
+        if (cachedLeaderboard) {
+          setLeaderboard(cachedLeaderboard.slice(0, 3));
+        }
+      } catch (e) {
+        console.log('[Home] Cache load error:', e);
+      }
+
+      // 2. Fetch fresh data in the background
+      try {
+        const [scholarRes, leaderRes] = await Promise.all([
           apiService.getScholarships(),
-          apiService.getLeaderboard(),
-          apiService.getBlogPosts()
+          apiService.getLeaderboard()
         ]);
 
         if (scholarRes.ok) {
@@ -636,10 +680,14 @@ export default function HomeScreen() {
           );
           const countries = [...new Set(data.map(s => s.country))].filter(Boolean).slice(0, 8);
           setActiveCountries(countries);
+
+          // Save to cache
+          await cacheService.set('home_scholarships', data, 30); // Cache for 30 mins
         }
 
         if (leaderRes.ok) {
           setLeaderboard(leaderRes.data.slice(0, 3));
+          await cacheService.set('home_leaderboard', leaderRes.data, 60);
         }
 
       } catch (error) {

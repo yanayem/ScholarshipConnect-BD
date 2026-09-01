@@ -41,22 +41,29 @@ export default function ScholarshipsScreen() {
 
   const loadData = async (showLoading = true) => {
     // 1. Try Cache First
-    if (showLoading) {
+    let hasCache = false;
+    try {
       const cachedData = await cacheService.get('scholarships_list');
       const cachedProfile = await cacheService.get('user_profile');
 
-      if (cachedData) {
+      if (cachedData && cachedData.length > 0) {
         setScholarships(cachedData);
         setLoading(false);
+        hasCache = true;
       }
       if (cachedProfile) {
         setUserProfile(cachedProfile);
       }
+    } catch (e) {
+      console.log('[Scholarships] Cache Error:', e);
     }
 
-    if (showLoading && !scholarships.length) setLoading(true);
+    // Only show loader if we have NO cached data and it's the first load
+    if (showLoading && !hasCache) {
+      setLoading(true);
+    }
 
-    // 2. Refresh from API
+    // 2. Refresh from API in the background
     try {
       const [scholarRes, profileRes] = await Promise.all([
         apiService.getScholarships(),

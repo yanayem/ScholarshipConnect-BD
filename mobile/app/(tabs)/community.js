@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, FlatList, RefreshControl, ActivityIndicator, Image, Alert, StatusBar, Platform, Modal, Pressable } from 'react-native';
 import { apiService } from '../../services/api';
+import { cacheService } from '../../services/cache';
 import { theme } from '../../theme';
 import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -26,20 +27,42 @@ export default function CommunityScreen() {
   const [actionModalVisible, setActionModalVisible] = useState(false);
 
   const loadBlogs = async () => {
+    // 1. Try Cache First
     try {
-      const storiesRes = await apiService.getStories();
+      const cachedStories = await cacheService.get('community_stories');
+      const cachedMentors = await cacheService.get('community_mentors');
+      const cachedDiscussions = await cacheService.get('community_discussions');
+
+      if (cachedStories) setStories(cachedStories);
+      if (cachedMentors) setMentors(cachedMentors);
+      if (cachedDiscussions) {
+        setDiscussions(cachedDiscussions);
+        setLoading(false);
+      }
+    } catch (e) {}
+
+    // 2. Fetch fresh data in the background
+    try {
+      const [storiesRes, mentorRes, res] = await Promise.all([
+        apiService.getStories(),
+        apiService.getMentors(),
+        apiService.getDiscussions()
+      ]);
+
       if (storiesRes.ok) {
         const processedStories = storiesRes.data.map(s => ({
           ...s,
           author_avatar_url: s.author_avatar_url || s.author_profile_picture
         }));
         setStories(processedStories);
+        await cacheService.set('community_stories', processedStories, 10);
       }
 
-      const mentorRes = await apiService.getMentors();
-      if (mentorRes.ok) setMentors(mentorRes.data.slice(0, 5));
+      if (mentorRes.ok) {
+        setMentors(mentorRes.data.slice(0, 5));
+        await cacheService.set('community_mentors', mentorRes.data.slice(0, 5), 30);
+      }
 
-      const res = await apiService.getDiscussions();
       if (res.ok) {
         const formatted = res.data.map(item => ({
           id: item.id.toString(),
@@ -61,6 +84,7 @@ export default function CommunityScreen() {
           initials: (item.author_full_name || item.author_name || 'A')[0].toUpperCase()
         }));
         setDiscussions(formatted);
+        await cacheService.set('community_discussions', formatted, 15);
       }
     } catch (error) {
       console.error('Failed to load discussions', error);

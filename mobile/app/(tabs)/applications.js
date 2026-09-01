@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { theme } from '../../theme';
 import { apiService } from '../../services/api';
+import { cacheService } from '../../services/cache';
 import { useToast } from '../../components/Toast';
 
 const STATUS_CONFIG = {
@@ -28,6 +29,14 @@ export default function ApplicationsScreen() {
 
   useEffect(() => {
     const loadData = async () => {
+      // 1. Try Cache First
+      try {
+        const cachedApps = await cacheService.get('user_applications');
+        if (cachedApps) {
+          setApplications(cachedApps);
+        }
+      } catch (e) {}
+
       try {
         const [savedRes, appRes] = await Promise.all([
           apiService.getSavedScholarships(),
@@ -64,6 +73,8 @@ export default function ApplicationsScreen() {
         }
 
         setApplications(data);
+        // Save to cache
+        await cacheService.set('user_applications', data, 10);
       } catch (error) {
         console.error('Failed to load applications', error);
         showToast('Error loading applications', 'error');
