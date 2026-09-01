@@ -8,6 +8,7 @@ import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { theme } from '../theme';
 import { apiService } from '../services/api';
+import { cacheService } from '../services/cache';
 import { useToast } from '../components/Toast';
 import { Loader } from '../components/Loader';
 import ScholarshipCard from '../components/cards/ScholarshipCard';
@@ -19,17 +20,27 @@ export default function PreviousScholarshipsScreen() {
   const { showToast, ToastComponent } = useToast();
 
   const loadData = async () => {
+    // 1. Try Cache First
+    try {
+      const cachedArchive = await cacheService.get('scholarships_archive');
+      if (cachedArchive) {
+        setScholarships(cachedArchive);
+        setLoading(false);
+      }
+    } catch (e) {}
+
+    // 2. Fetch fresh data in the background
     try {
       const res = await apiService.getScholarships();
       if (res.ok) {
         const data = Array.isArray(res.data) ? res.data : (res.data?.results || []);
-        // Filter: ONLY show scholarships where deadline is in the past
         const today = new Date();
         const expired = data.filter(s => new Date(s.deadline) < today);
         setScholarships(expired);
+        await cacheService.set('scholarships_archive', expired, 60); // Cache for 1 hour
       }
     } catch (error) {
-      showToast('Error loading expired scholarships', 'error');
+      if (!scholarships.length) showToast('Error loading expired scholarships', 'error');
     } finally {
       setLoading(false);
       setRefreshing(false);

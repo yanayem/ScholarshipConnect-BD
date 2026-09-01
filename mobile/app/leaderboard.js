@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Activi
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { theme } from '../theme';
 import { apiService } from '../services/api';
+import { cacheService } from '../services/cache';
 import { useRouter } from 'expo-router';
 import { Loader } from '../components/Loader';
 
@@ -16,10 +17,21 @@ export default function LeaderboardScreen() {
   }, []);
 
   const fetchLeaderboard = async () => {
+    // 1. Try Cache First
+    try {
+      const cachedRankings = await cacheService.get('full_leaderboard');
+      if (cachedRankings) {
+        setData(cachedRankings);
+        setLoading(false);
+      }
+    } catch (e) {}
+
+    // 2. Fetch fresh data in the background
     try {
       const res = await apiService.getLeaderboard();
       if (res.ok) {
         setData(res.data);
+        await cacheService.set('full_leaderboard', res.data, 60); // Cache for 60 mins
       }
     } catch (error) {
       console.error(error);

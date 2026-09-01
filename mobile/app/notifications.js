@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { theme } from '../theme';
 import { apiService } from '../services/api';
+import { cacheService } from '../services/cache';
 
 const getTimeAgo = (date) => {
   const seconds = Math.floor((new Date() - new Date(date)) / 1000);
@@ -50,10 +51,21 @@ export default function NotificationsScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const loadNotifications = async () => {
+    // 1. Try Cache First
+    try {
+      const cachedNotifs = await cacheService.get('user_notifications');
+      if (cachedNotifs) {
+        setNotifications(cachedNotifs);
+        setLoading(false);
+      }
+    } catch (e) {}
+
+    // 2. Fetch fresh data in the background
     try {
       const res = await apiService.getNotifications();
       if (res.ok) {
         setNotifications(res.data);
+        await cacheService.set('user_notifications', res.data, 5); // Cache for 5 mins
       }
     } catch (error) {
       console.error('Failed to load notifications', error);

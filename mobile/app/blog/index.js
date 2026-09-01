@@ -8,6 +8,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../theme';
 import { apiService } from '../../services/api';
+import { cacheService } from '../../services/cache';
 import { Loader } from '../../components/Loader';
 
 const { width } = Dimensions.get('window');
@@ -24,23 +25,42 @@ export default function BlogListScreen() {
   const [currentUser, setCurrentUser] = useState(null);
 
   const loadPosts = async () => {
+    // 1. Try Cache First
+    try {
+      const cachedPosts = await cacheService.get('blog_posts');
+      const cachedStories = await cacheService.get('blog_stories');
+      const cachedProfile = await cacheService.get('user_profile');
+
+      if (cachedPosts) {
+        setPosts(cachedPosts);
+        setLoading(false);
+      }
+      if (cachedStories) setStories(cachedStories);
+      if (cachedProfile) setCurrentUser(cachedProfile);
+    } catch (e) {}
+
+    // 2. Fetch fresh data in the background
     try {
       const profileRes = await apiService.getProfile();
-      if (profileRes.ok) setCurrentUser(profileRes.data);
+      if (profileRes.ok) {
+        setCurrentUser(profileRes.data);
+        await cacheService.set('user_profile', profileRes.data, 30);
+      }
 
       const storyRes = await apiService.getStories();
       if (storyRes.ok) {
-        // Post-process stories if avatar_url is missing but profile_picture exists
         const processedStories = storyRes.data.map(s => ({
           ...s,
           author_avatar_url: s.author_avatar_url || s.author_profile_picture
         }));
         setStories(processedStories);
+        await cacheService.set('blog_stories', processedStories, 10);
       }
 
       const res = await apiService.getBlogPosts('blog');
       if (res.ok) {
         setPosts(res.data);
+        await cacheService.set('blog_posts', res.data, 20);
       }
     } catch (e) {
       console.error(e);
