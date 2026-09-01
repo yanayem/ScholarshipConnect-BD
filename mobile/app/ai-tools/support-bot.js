@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { theme } from '../../theme';
 import { apiService } from '../../services/api';
+import { cacheService } from '../../services/cache';
 import { Loader } from '../../components/Loader';
 
 export default function SupportBotScreen() {
@@ -23,6 +24,23 @@ export default function SupportBotScreen() {
     }, []);
 
     const loadHistory = async () => {
+        // 1. Try Cache First
+        try {
+            const cachedHistory = await cacheService.get('ai_chat_history');
+            if (cachedHistory && cachedHistory.length > 0) {
+                const formatted = cachedHistory.map((m, index) => ({
+                    id: m.id ? m.id.toString() : `history-${index}`,
+                    text: m.message,
+                    isUser: m.is_user
+                }));
+                setMessages([
+                    { id: '1', text: 'Hello! I am your ScholarshipConnect AI Assistant. How can I help you today?', isUser: false },
+                    ...formatted
+                ]);
+                setHistoryLoading(false);
+            }
+        } catch (e) {}
+
         try {
             const res = await apiService.getAIChatHistory();
             if (res.ok && res.data && res.data.length > 0) {
@@ -35,6 +53,7 @@ export default function SupportBotScreen() {
                     { id: '1', text: 'Hello! I am your ScholarshipConnect AI Assistant. How can I help you today?', isUser: false },
                     ...formattedMessages
                 ]);
+                await cacheService.set('ai_chat_history', res.data, 60); // Cache for 60 mins
             }
         } catch (error) {
             console.error('[SupportBot] Load History Error:', error);
@@ -109,7 +128,7 @@ export default function SupportBotScreen() {
                 </View>
             </View>
 
-            {historyLoading ? (
+            {historyLoading && messages.length <= 1 ? (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                     <ActivityIndicator size="large" color={theme.colors.primary} />
                     <Text style={{ marginTop: 10, color: theme.colors.textSecondary }}>Loading chat history...</Text>

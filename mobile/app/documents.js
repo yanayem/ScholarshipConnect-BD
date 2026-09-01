@@ -8,6 +8,7 @@ import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { theme } from '../theme';
 import { apiService } from '../services/api';
+import { cacheService } from '../services/cache';
 import { Loader } from '../components/Loader';
 
 export default function DocumentManagement() {
@@ -22,16 +23,26 @@ export default function DocumentManagement() {
   const [uploading, setUploading] = useState(false);
 
   const loadDocuments = async () => {
-    setLoading(true);
+    // 1. Try Cache First
+    try {
+        const cachedDocs = await cacheService.get('user_documents_vault');
+        if (cachedDocs) {
+            setDocs(cachedDocs);
+            setLoading(false);
+        }
+    } catch (e) {}
+
     try {
       const res = await apiService.getDocuments();
       if (res.ok) {
         setDocs(res.data);
+        await cacheService.set('user_documents_vault', res.data, 30); // Cache for 30 mins
       }
     } catch (e) {
       console.log(e);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -148,7 +159,7 @@ export default function DocumentManagement() {
           <MaterialIcons name="sort" size={20} color={theme.colors.textSecondary} />
         </View>
 
-        {loading ? (
+        {loading && docs.length === 0 ? (
           <Loader message="Accessing vault..." />
         ) : docs.length === 0 ? (
           <View style={styles.emptyState}>

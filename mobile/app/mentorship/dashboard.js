@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { theme } from '../../theme';
 import { apiService } from '../../services/api';
+import { cacheService } from '../../services/cache';
 
 export default function MentorDashboardScreen() {
   const [sessions, setSessions] = useState([]);
@@ -17,9 +18,26 @@ export default function MentorDashboardScreen() {
   });
 
   const loadData = async () => {
+    // 1. Try Cache First
+    try {
+        const cachedSessions = await cacheService.get('mentor_dashboard_sessions');
+        const cachedImpact = await cacheService.get('mentor_dashboard_impact');
+        const cachedProfile = await cacheService.get('user_profile');
+
+        if (cachedSessions) {
+            setSessions(cachedSessions);
+            setLoading(false);
+        }
+        if (cachedImpact) setContributionData(cachedImpact);
+        if (cachedProfile) setCurrentUser(cachedProfile);
+    } catch (e) {}
+
     try {
       const userRes = await apiService.getProfile();
-      if (userRes.ok) setCurrentUser(userRes.data);
+      if (userRes.ok) {
+          setCurrentUser(userRes.data);
+          await cacheService.set('user_profile', userRes.data, 30);
+      }
 
       const [mentorshipRes, scholarRes, communityRes] = await Promise.all([
         apiService.getMentorships(),
@@ -27,18 +45,22 @@ export default function MentorDashboardScreen() {
         apiService.getDiscussions()
       ]);
 
-      if (mentorshipRes.ok) setSessions(mentorshipRes.data);
+      if (mentorshipRes.ok) {
+          setSessions(mentorshipRes.data);
+          await cacheService.set('mentor_dashboard_sessions', mentorshipRes.data, 10);
+      }
 
-      // Filter contributions by current user
       if (scholarRes.ok && userRes.ok) {
         const myScholarships = (scholarRes.data.results || scholarRes.data).filter(s => s.submitted_by === userRes.data.user_id);
         const myDiscussions = (communityRes.data.results || communityRes.data).filter(d => d.author === userRes.data.user_id);
 
-        setContributionData({
+        const impact = {
           scholarships: myScholarships.length,
           discussions: myDiscussions.length,
           solved: myDiscussions.filter(d => d.is_solved).length
-        });
+        };
+        setContributionData(impact);
+        await cacheService.set('mentor_dashboard_impact', impact, 30);
       }
     } catch (error) {
       console.error('Failed to load dashboard data', error);
@@ -275,7 +297,7 @@ export default function MentorDashboardScreen() {
         }
         // ... rest of the code ...
         ListEmptyComponent={
-          loading ? (
+          (loading && sessions.length === 0) ? (
             <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginTop: 100 }} />
           ) : (
             <View style={styles.empty}>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert, ActivityIndicator, RefreshControl } from 'react-native';
 import { theme } from '../../theme';
+import { cacheService } from '../../services/cache';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { apiService } from '../../services/api';
@@ -12,9 +13,19 @@ export default function ModerationScreen() {
     const [refreshing, setRefreshing] = useState(false);
 
     const loadReports = async () => {
+        // 1. Try Cache First
+        try {
+            const cachedReports = await cacheService.get('admin_moderation_reports');
+            if (cachedReports) {
+                setReports(cachedReports);
+                setLoading(false);
+            }
+        } catch (e) {}
+
         const res = await apiService.getModerationReports();
         if (res.ok) {
             setReports(res.data);
+            await cacheService.set('admin_moderation_reports', res.data, 5); // Cache for 5 mins
         }
         setLoading(false);
         setRefreshing(false);
@@ -39,7 +50,7 @@ export default function ModerationScreen() {
         }
     };
 
-    if (loading) {
+    if (loading && reports.length === 0) {
         return (
             <View style={styles.centered}>
                 <ActivityIndicator size="large" color={theme.colors.primary} />

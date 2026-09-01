@@ -13,6 +13,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { useLocalSearchParams, router } from 'expo-router';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { apiService } from '../../services/api';
+import { cacheService } from '../../services/cache';
 import { useToast } from '../../components/Toast';
 import { Loader } from '../../components/Loader';
 
@@ -74,6 +75,18 @@ export default function ScholarshipDetails() {
 
   const loadData = async () => {
     if (!id || id === 'undefined') return;
+
+    // 1. Try Cache First
+    try {
+        const cached = await cacheService.get(`scholarship_detail_${id}`);
+        const cachedProfile = await cacheService.get('user_profile');
+        if (cached) {
+            setDetails(cached);
+            setLoading(false);
+        }
+        if (cachedProfile) setUser(cachedProfile);
+    } catch (e) {}
+
     try {
       const [res, staffStatus, profileRes] = await Promise.all([
         apiService.getScholarshipDetail(id),
@@ -84,12 +97,17 @@ export default function ScholarshipDetails() {
       if (res.ok && res.data) {
         setDetails(res.data);
         setIsAdmin(staffStatus);
-        if (profileRes.ok) setUser(profileRes.data);
-      } else {
+        if (profileRes.ok) {
+            setUser(profileRes.data);
+            await cacheService.set('user_profile', profileRes.data, 30);
+        }
+        // Save detail to cache
+        await cacheService.set(`scholarship_detail_${id}`, res.data, 30); // Cache for 30 mins
+      } else if (!details) {
         setError(res.data?.error || 'Scholarship details could not be retrieved.');
       }
     } catch (err) {
-      setError('Network error. Check your connection.');
+      if (!details) setError('Network error. Check your connection.');
     } finally {
       setLoading(false);
     }
@@ -168,7 +186,7 @@ export default function ScholarshipDetails() {
     }
   };
 
-  if (loading) {
+  if (loading && !details) {
     return <Loader message="Loading Scholarship..." />;
   }
 

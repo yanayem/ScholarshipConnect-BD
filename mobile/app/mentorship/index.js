@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { theme } from '../../theme';
 import { apiService } from '../../services/api';
+import { cacheService } from '../../services/cache';
 
 export default function MentorsScreen() {
   const [mentors, setMentors] = useState([]);
@@ -11,14 +12,35 @@ export default function MentorsScreen() {
   const [user, setUser] = useState(null);
 
   const loadMentors = async () => {
-    setLoading(true);
-    const [mentorsRes, userRes] = await Promise.all([
-      apiService.getMentors(),
-      apiService.getProfile()
-    ]);
-    if (mentorsRes.ok) setMentors(mentorsRes.data);
-    if (userRes.ok) setUser(userRes.data);
-    setLoading(false);
+    // 1. Try Cache First
+    try {
+        const cachedMentors = await cacheService.get('mentorship_hub_list');
+        const cachedProfile = await cacheService.get('user_profile');
+        if (cachedMentors) {
+            setMentors(cachedMentors);
+            setLoading(false);
+        }
+        if (cachedProfile) setUser(cachedProfile);
+    } catch (e) {}
+
+    try {
+        const [mentorsRes, userRes] = await Promise.all([
+          apiService.getMentors(),
+          apiService.getProfile()
+        ]);
+        if (mentorsRes.ok) {
+            setMentors(mentorsRes.data);
+            await cacheService.set('mentorship_hub_list', mentorsRes.data, 30);
+        }
+        if (userRes.ok) {
+            setUser(userRes.data);
+            await cacheService.set('user_profile', userRes.data, 30);
+        }
+    } catch (e) {
+        console.error(e);
+    } finally {
+        setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -91,7 +113,7 @@ export default function MentorsScreen() {
           ) : null
         }
         ListEmptyComponent={
-          loading ? (
+          (loading && mentors.length === 0) ? (
             <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginTop: 100 }} />
           ) : (
             <View style={styles.empty}>

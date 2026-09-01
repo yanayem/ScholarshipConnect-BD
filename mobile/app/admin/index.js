@@ -13,6 +13,7 @@ import {
 import Animated, { SlideInRight, SlideOutRight } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { theme } from '../../theme';
+import { cacheService } from '../../services/cache';
 import { MaterialIcons, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { apiService } from '../../services/api';
@@ -58,22 +59,34 @@ export default function AdminConsole() {
   });
 
   const loadStats = async () => {
-    setRefreshing(true);
+    // 1. Try Cache First
     try {
-        const res = await apiService.getScholarships();
-        const usersRes = await apiService.getUsers();
-        const appsRes = await apiService.getApplications();
+        const cachedStats = await cacheService.get('admin_home_stats');
+        if (cachedStats) {
+            setStats(cachedStats);
+        }
+    } catch (e) {}
 
-        if (res.ok) {
-            const data = res.data;
-            setStats({
-                total: data.length,
-                active: data.filter(s => s.status === 'active').length,
-                pending: data.filter(s => s.status === 'pending').length,
-                rejected: data.filter(s => s.status === 'rejected').length,
+    // 2. Fetch fresh data in the background
+    try {
+        const [scholarRes, usersRes, appsRes] = await Promise.all([
+          apiService.getScholarships(),
+          apiService.getUsers(),
+          apiService.getApplications()
+        ]);
+
+        if (scholarRes.ok) {
+            const scholarData = Array.isArray(scholarRes.data) ? scholarRes.data : scholarRes.data.results || [];
+            const newStats = {
+                total: scholarData.length,
+                active: scholarData.filter(s => s.status === 'active').length,
+                pending: scholarData.filter(s => s.status === 'pending').length,
+                rejected: scholarData.filter(s => s.status === 'rejected').length,
                 users: usersRes.ok ? usersRes.data.length : 0,
                 apps: appsRes.ok ? appsRes.data.length : 0
-            });
+            };
+            setStats(newStats);
+            await cacheService.set('admin_home_stats', newStats, 10); // Cache for 10 mins
         }
     } catch (e) {
         console.error(e);

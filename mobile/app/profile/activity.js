@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { theme } from '../../theme';
 import { apiService } from '../../services/api';
+import { cacheService } from '../../services/cache';
 
 export default function ActivityScreen() {
   const [activity, setActivity] = useState([]);
@@ -12,10 +13,21 @@ export default function ActivityScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const loadActivity = async () => {
+    // 1. Try Cache First
+    try {
+        const cachedActivity = await cacheService.get('user_activity_history');
+        if (cachedActivity) {
+            setActivity(cachedActivity.activity);
+            setSummary(cachedActivity.summary);
+            setLoading(false);
+        }
+    } catch (e) {}
+
     const res = await apiService.getUserActivity();
     if (res.ok) {
       setActivity(res.data.activity);
       setSummary(res.data.summary);
+      await cacheService.set('user_activity_history', res.data, 10); // Cache for 10 mins
     }
     setLoading(false);
     setRefreshing(false);
@@ -89,7 +101,7 @@ export default function ActivityScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} />
         }
         ListEmptyComponent={
-          loading ? (
+          (loading && activity.length === 0) ? (
             <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginTop: 50 }} />
           ) : (
             <View style={styles.emptyContainer}>

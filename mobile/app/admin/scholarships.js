@@ -12,6 +12,7 @@ import {
   Platform
 } from 'react-native';
 import { theme } from '../../theme';
+import { cacheService } from '../../services/cache';
 import { MaterialIcons, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { apiService } from '../../services/api';
@@ -44,7 +45,19 @@ export default function ManageScholarships() {
   const { showToast, ToastComponent } = useToast();
 
   const loadScholarships = async (silent = false) => {
-    if (!silent) setLoading(true);
+    // 1. Try Cache First (only for initial load and if no search/filters)
+    if (!silent && !search && filterStatus === 'all') {
+        try {
+            const cached = await cacheService.get('admin_scholarships');
+            if (cached) {
+                setScholarships(cached);
+                setLoading(false);
+            }
+        } catch (e) {}
+    }
+
+    if (!silent && !scholarships.length) setLoading(true);
+
     try {
       let params = filterStatus === 'all' || filterStatus === 'archive' ? '' : `status=${filterStatus}`;
       if (search) {
@@ -57,18 +70,21 @@ export default function ManageScholarships() {
         today.setHours(0, 0, 0, 0);
 
         if (filterStatus === 'archive') {
-          // Show ONLY expired scholarships
           data = data.filter(s => new Date(s.deadline) < today);
         } else {
-          // Hide expired scholarships from other views
           data = data.filter(s => new Date(s.deadline) >= today);
         }
 
         setScholarships(data);
+
+        // Only cache the main 'all' list without search
+        if (!search && filterStatus === 'all') {
+            await cacheService.set('admin_scholarships', data, 10);
+        }
       }
     } catch (error) {
       console.log('Error loading admin scholarships', error);
-      showToast('Error loading scholarships', 'error');
+      if (!scholarships.length) showToast('Error loading scholarships', 'error');
     } finally {
       setLoading(false);
     }
@@ -217,7 +233,7 @@ export default function ManageScholarships() {
         </View>
       </View>
 
-      {loading ? (
+      {loading && scholarships.length === 0 ? (
         <Loader message="Fetching scholarship records..." />
       ) : (
         <FlatList

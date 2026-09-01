@@ -10,6 +10,7 @@ import {
   TextInput, TouchableOpacity, StatusBar, ActivityIndicator, RefreshControl
 } from 'react-native';
 import { theme } from '../../theme';
+import { cacheService } from '../../services/cache';
 import { MaterialIcons, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { apiService } from '../../services/api';
 import { useRouter } from 'expo-router';
@@ -23,10 +24,20 @@ export default function UserAudit() {
   const router = useRouter();
 
   const loadUsers = async () => {
+    // 1. Try Cache First
+    try {
+        const cachedUsers = await cacheService.get('admin_users_directory');
+        if (cachedUsers) {
+            setUsers(cachedUsers);
+            setLoading(false);
+        }
+    } catch (e) {}
+
     try {
         const res = await apiService.getUsers();
         if (res.ok) {
             setUsers(res.data);
+            await cacheService.set('admin_users_directory', res.data, 20); // Cache for 20 mins
         }
     } catch (e) {
         console.error(e);
@@ -113,7 +124,7 @@ export default function UserAudit() {
         </View>
       </View>
 
-      {loading ? (
+      {loading && users.length === 0 ? (
         <Loader message="Loading directory..." />
       ) : (
         <FlatList

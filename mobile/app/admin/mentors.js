@@ -10,6 +10,7 @@ import {
   ActivityIndicator, Image, Alert
 } from 'react-native';
 import { theme } from '../../theme';
+import { cacheService } from '../../services/cache';
 import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { apiService } from '../../services/api';
@@ -22,11 +23,20 @@ export default function MentorManagement() {
   const { showToast, ToastComponent } = useToast();
 
   const loadApplications = async () => {
+    // 1. Try Cache First
     try {
-      setLoading(true);
+        const cached = await cacheService.get('admin_mentor_applications');
+        if (cached) {
+            setApplications(cached);
+            setLoading(false);
+        }
+    } catch (e) {}
+
+    try {
       const res = await apiService.getMentorApplications();
       if (res.ok) {
         setApplications(res.data);
+        await cacheService.set('admin_mentor_applications', res.data, 10); // Cache for 10 mins
       }
     } catch (e) {
       console.error('[ADMIN] Failed to load mentor applications:', e);
@@ -126,7 +136,7 @@ export default function MentorManagement() {
         <Text style={styles.subtitle}>Review students who want to become official mentors</Text>
       </View>
 
-      {loading ? (
+      {loading && applications.length === 0 ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>

@@ -5,6 +5,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown, useSharedValue, useAnimatedStyle, withTiming, withDelay } from 'react-native-reanimated';
 import { theme } from '../../theme';
 import { apiService } from '../../services/api';
+import { cacheService } from '../../services/cache';
 
 const { width } = Dimensions.get('window');
 
@@ -39,16 +40,26 @@ export default function ProgressScreen() {
 
   useEffect(() => {
     const fetchAnalytics = async () => {
+      // 1. Try Cache First
+      try {
+          const cachedAnalytics = await cacheService.get('user_progress_analytics');
+          if (cachedAnalytics) {
+              setAnalytics(cachedAnalytics);
+              setLoading(false);
+          }
+      } catch (e) {}
+
       const res = await apiService.getStudentAnalytics();
       if (res.ok) {
         setAnalytics(res.data);
+        await cacheService.set('user_progress_analytics', res.data, 30); // Cache for 30 mins
       }
       setLoading(false);
     };
     fetchAnalytics();
   }, []);
 
-  if (loading) {
+  if (loading && !analytics) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color={theme.colors.primary} />

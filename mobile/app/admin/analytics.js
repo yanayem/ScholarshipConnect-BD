@@ -11,6 +11,7 @@ import {
   ActivityIndicator, Dimensions
 } from 'react-native';
 import { theme } from '../../theme';
+import { cacheService } from '../../services/cache';
 import { MaterialIcons, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { apiService } from '../../services/api';
@@ -46,11 +47,20 @@ export default function AnalyticsDashboard() {
   const router = useRouter();
 
   const loadAnalytics = async () => {
+    // 1. Try Cache First
     try {
-      setLoading(true);
+        const cached = await cacheService.get('admin_analytics_data');
+        if (cached) {
+            setData(cached);
+            setLoading(false);
+        }
+    } catch (e) {}
+
+    try {
       const res = await apiService.getAdminStats();
       if (res.ok) {
         setData(res.data);
+        await cacheService.set('admin_analytics_data', res.data, 30); // Cache for 30 mins
       }
     } catch (e) {
       console.error('[ADMIN] Failed to load analytics:', e);
@@ -63,7 +73,7 @@ export default function AnalyticsDashboard() {
     loadAnalytics();
   }, []);
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={theme.colors.primary} />

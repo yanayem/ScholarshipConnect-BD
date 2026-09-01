@@ -4,6 +4,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { MaterialIcons, FontAwesome5, Ionicons, Feather } from '@expo/vector-icons';
 import { theme } from '../../theme';
 import { apiService } from '../../services/api';
+import { cacheService } from '../../services/cache';
 import { Loader } from '../../components/Loader';
 
 export default function MentorProfileScreen() {
@@ -18,22 +19,39 @@ export default function MentorProfileScreen() {
   const [submittingReview, setSubmittingReview] = useState(false);
 
   const fetchMentorDetails = async () => {
+    // 1. Try Cache First
+    try {
+        const cachedMentor = await cacheService.get(`mentor_detail_${id}`);
+        const cachedReviews = await cacheService.get(`mentor_reviews_${id}`);
+        if (cachedMentor) {
+            setMentor(cachedMentor);
+            setLoading(false);
+        }
+        if (cachedReviews) setReviews(cachedReviews);
+    } catch (e) {}
+
     try {
       const [mentorRes, profileRes] = await Promise.all([
         apiService.getMentors(),
         apiService.getProfile()
       ]);
 
-      if (profileRes.ok) setCurrentUser(profileRes.data);
+      if (profileRes.ok) {
+          setCurrentUser(profileRes.data);
+          await cacheService.set('user_profile', profileRes.data, 30);
+      }
 
       if (mentorRes.ok) {
         const found = mentorRes.data.find(m => (m.user_id || m.user || m.id).toString() === id.toString());
-        setMentor(found);
+        if (found) {
+            setMentor(found);
+            await cacheService.set(`mentor_detail_${id}`, found, 20);
+        }
 
-        // Fetch reviews
         const reviewsRes = await apiService.getMentorReviews(id);
         if (reviewsRes.ok) {
           setReviews(reviewsRes.data);
+          await cacheService.set(`mentor_reviews_${id}`, reviewsRes.data, 15);
         }
       }
     } catch (error) {
@@ -69,7 +87,7 @@ export default function MentorProfileScreen() {
     }
   };
 
-  if (loading) return <Loader message="Loading mentor profile..." />;
+  if (loading && !mentor) return <Loader message="Loading mentor profile..." />;
   if (!mentor) return (
     <View style={styles.errorContainer}>
       <Text>Mentor not found</Text>

@@ -5,6 +5,7 @@ import {
   StatusBar, ActivityIndicator
 } from 'react-native';
 import { theme } from '../../theme';
+import { cacheService } from '../../services/cache';
 import { MaterialIcons, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { apiService } from '../../services/api';
@@ -20,15 +21,28 @@ export default function SubmissionFeedbackScreen() {
   const { showToast, ToastComponent } = useToast();
 
   const loadSubmissions = async (silent = false) => {
-    if (!silent) setLoading(true);
+    // 1. Try Cache First
+    if (!silent) {
+        try {
+            const cached = await cacheService.get('user_submission_feedback');
+            if (cached) {
+                setSubmissions(cached);
+                setLoading(false);
+            }
+        } catch (e) {}
+    }
+
+    if (!silent && !submissions.length) setLoading(true);
+
     try {
       const res = await apiService.getSubmissionFeedback();
       if (res.ok) {
         setSubmissions(res.data);
+        await cacheService.set('user_submission_feedback', res.data, 10); // Cache for 10 mins
       }
     } catch (error) {
       console.log('Error loading submission feedback', error);
-      showToast('Error loading feedback', 'error');
+      if (!submissions.length) showToast('Error loading feedback', 'error');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -78,7 +92,7 @@ export default function SubmissionFeedbackScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      {loading ? (
+      {loading && submissions.length === 0 ? (
         <Loader message="Fetching your submissions..." />
       ) : (
         <FlatList

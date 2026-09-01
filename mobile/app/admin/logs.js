@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, ActivityIndicator, RefreshControl } from 'react-native';
 import { theme } from '../../theme';
+import { cacheService } from '../../services/cache';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { apiService } from '../../services/api';
@@ -12,9 +13,19 @@ export default function HistoryLogsScreen() {
     const [refreshing, setRefreshing] = useState(false);
 
     const loadLogs = async () => {
+        // 1. Try Cache First
+        try {
+            const cachedLogs = await cacheService.get('admin_history_logs');
+            if (cachedLogs) {
+                setLogs(cachedLogs);
+                setLoading(false);
+            }
+        } catch (e) {}
+
         const res = await apiService.getAdminLogs();
         if (res.ok) {
             setLogs(res.data);
+            await cacheService.set('admin_history_logs', res.data, 5); // Cache for 5 mins
         }
         setLoading(false);
         setRefreshing(false);
@@ -36,7 +47,7 @@ export default function HistoryLogsScreen() {
         return { name: 'settings', color: theme.colors.primary };
     };
 
-    if (loading) {
+    if (loading && logs.length === 0) {
         return (
             <View style={styles.centered}>
                 <ActivityIndicator size="large" color={theme.colors.primary} />
