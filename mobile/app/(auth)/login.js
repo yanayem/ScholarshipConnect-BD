@@ -60,8 +60,12 @@ export default function LoginScreen() {
       // 1. Sign in with Firebase using our Unified Service
       const userCredential = await firebaseAuth.signIn(cleanEmail, password);
 
+      // Reload user to get fresh emailVerified status (Crucial for Android/Native)
+      await userCredential.reload();
+      const updatedUser = firebaseAuth.getCurrentUser();
+
       // Check if email is verified
-      if (!userCredential.emailVerified) {
+      if (!updatedUser.emailVerified) {
         console.log('[LOGIN] Email not verified.');
         await firebaseAuth.signOut();
         showToast('Please verify your email address first. Check your inbox.', 'warning');

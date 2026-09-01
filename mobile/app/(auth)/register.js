@@ -53,18 +53,7 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
-      const isExpoGo = Constants.executionEnvironment === 'storeClient';
-      if (isExpoGo) {
-         Alert.alert(
-           "Expo Go Detected",
-           "Native Firebase Authentication does not work in Expo Go. Use 'npm run android' or the Web version.",
-           [{ text: "OK" }]
-         );
-         setLoading(false);
-         return;
-      }
-
-      // 1. Create User with our Unified Service
+      // 1. Create User with our Unified Service (Works on both Native & Expo Go)
       const userCredential = await firebaseAuth.signUp(email.trim(), password);
 
       // 2. Sync with Backend
