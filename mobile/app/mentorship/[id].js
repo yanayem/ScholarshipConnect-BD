@@ -130,7 +130,9 @@ export default function MentorProfileScreen() {
         >
           <MaterialIcons name="arrow-back" size={24} color={theme.colors.heading} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{mentor?.is_mentor ? 'Mentor Profile' : 'Student Profile'}</Text>
+        <Text style={styles.headerTitle}>
+          {mentor?.is_staff ? 'Staff Profile' : (mentor?.is_mentor ? 'Mentor Profile' : 'Student Profile')}
+        </Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -149,9 +151,18 @@ export default function MentorProfileScreen() {
           </View>
 
           <Text style={styles.name}>{mentor.full_name || mentor.username}</Text>
-          <Text style={styles.major}>{mentor.is_mentor ? (mentor.major_course || mentor.university || 'Expert Mentor') : (mentor.university || 'Student')}</Text>
+          <Text style={styles.major}>
+            {mentor.is_staff ? 'Administrator' : (mentor.is_mentor ? (mentor.major_course || 'Verified Mentor') : (mentor.university || 'Student'))}
+          </Text>
 
-          {mentor.is_mentor ? (
+          {mentor.is_staff ? (
+            <View style={styles.statsRow}>
+                <View style={styles.statBox}>
+                  <MaterialIcons name="security" size={24} color={theme.colors.primary} />
+                  <Text style={[styles.statLab, { marginTop: 8 }]}>Official Staff</Text>
+                </View>
+            </View>
+          ) : mentor.is_mentor ? (
             <View style={styles.statsRow}>
               <View style={styles.statBox}>
                 <Text style={styles.statVal}>{mentor.rating || '0.0'}</Text>
@@ -188,19 +199,28 @@ export default function MentorProfileScreen() {
               <Text style={styles.rateMentorBtnText}>Rate this Mentor</Text>
             </TouchableOpacity>
           )}
-          <Text style={styles.sectionTitle}>About Mentor</Text>
+          <Text style={styles.sectionTitle}>
+            {mentor.is_staff ? 'About Administrator' : (mentor.is_mentor ? 'About Mentor' : 'About Student')}
+          </Text>
           <Text style={styles.bioText}>
-            {mentor.mentorship_bio || mentor.bio || "Hello! I am a verified mentor on ScholarshipConnectBD. I specialize in helping students navigate their higher education journey."}
+            {mentor.is_staff
+              ? "Official system administrator helping students and managing the platform."
+              : (mentor.mentorship_bio || mentor.bio || "Hello! I am a member of ScholarshipConnectBD.")
+            }
           </Text>
 
-          <Text style={styles.sectionTitle}>Expertise Areas</Text>
-          <View style={styles.tagsContainer}>
-            {(mentor.expertise_areas || mentor.research_interests || "General, SOP, CV").split(',').map((tag, i) => (
-              <View key={i} style={styles.tagBadge}>
-                <Text style={styles.tagText}>{tag.trim()}</Text>
+          {mentor.is_mentor && (
+            <>
+              <Text style={styles.sectionTitle}>Expertise Areas</Text>
+              <View style={styles.tagsContainer}>
+                {(mentor.expertise_areas || mentor.research_interests || "General").split(',').map((tag, i) => (
+                  <View key={i} style={styles.tagBadge}>
+                    <Text style={styles.tagText}>{tag.trim()}</Text>
+                  </View>
+                ))}
               </View>
-            ))}
-          </View>
+            </>
+          )}
 
           <View style={styles.infoCard}>
             <View style={styles.infoRow}>
@@ -339,15 +359,18 @@ export default function MentorProfileScreen() {
             <Text style={styles.messageBtnText}>Message</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity
-          style={[styles.bookBtn, mentor.user_id === currentUser?.user_id ? { flex: 1 } : { flex: 2 }]}
-          onPress={() => router.push({
-            pathname: '/mentorship/request',
-            params: { mentorId: mentor.user_id || mentor.user || mentor.id, mentorName: mentor.full_name }
-          })}
-        >
-          <Text style={styles.bookBtnText}>Book Session</Text>
-        </TouchableOpacity>
+
+        {mentor.is_mentor && (
+            <TouchableOpacity
+              style={[styles.bookBtn, mentor.user_id === currentUser?.user_id ? { display: 'none' } : { flex: 2 }]}
+              onPress={() => router.push({
+                pathname: '/mentorship/request',
+                params: { mentorId: mentor.user_id || mentor.user || mentor.id, mentorName: mentor.full_name }
+              })}
+            >
+              <Text style={styles.bookBtnText}>Book Session</Text>
+            </TouchableOpacity>
+        )}
       </View>
     </View>
   );
