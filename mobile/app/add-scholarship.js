@@ -453,10 +453,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: theme.colors.background,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: theme.borderRadius.md,
-    height: 48,
+    borderWidth: 1.2,
+    borderColor: '#000000', // Dark border like the Category image
+    borderRadius: 20, // High rounded corners
+    height: 52,
     overflow: 'hidden',
   },
   dateInput: {
