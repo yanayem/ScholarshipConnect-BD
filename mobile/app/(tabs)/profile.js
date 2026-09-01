@@ -47,17 +47,26 @@ export default function ProfileScreen() {
         apiService.getDocuments()
       ]);
 
-      setStats({
+      const newStats = {
         saved: savedRes.ok ? savedRes.data.length : 0,
         applied: appsRes.ok ? appsRes.data.length : 0,
         documents: docsRes.ok ? docsRes.data.length : 0
-      });
+      };
+      setStats(newStats);
+      await cacheService.set('user_stats', newStats, 10);
     } catch (error) {
       console.error('Failed to fetch stats', error);
     }
   };
 
   const loadData = async () => {
+    // 1. Try Cache First for Stats
+    try {
+      const cachedStats = await cacheService.get('user_stats');
+      if (cachedStats) setStats(cachedStats);
+    } catch (e) {}
+
+    // 2. Refresh fresh data in the background
     await Promise.all([fetchProfile(true), fetchStats()]);
     setLoading(false);
   };
@@ -196,9 +205,7 @@ export default function ProfileScreen() {
     ]);
   };
 
-  if (loading) {
-    return <Loader message="Loading Profile..." />;
-  }
+  // Removed full-screen loader to allow cache-first rendering
 
   const initials = user?.full_name
     ? user.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()

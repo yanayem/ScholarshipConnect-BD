@@ -35,6 +35,7 @@ export const UserProvider = ({ children }) => {
       if (res.ok) {
         setUser(res.data);
         await AsyncStorage.setItem('is_staff', res.data.is_staff.toString());
+        await AsyncStorage.setItem('cached_user_profile', JSON.stringify(res.data));
 
         // Register for push notifications after successful login
         notificationService.registerForPushNotifications();
@@ -53,10 +54,18 @@ export const UserProvider = ({ children }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      // Check if we have a token in storage first
+      // 1. Try to load from cache immediately for instant UI
+      try {
+        const cached = await AsyncStorage.getItem('cached_user_profile');
+        if (cached) {
+          setUser(JSON.parse(cached));
+          setLoading(false);
+        }
+      } catch (e) {}
+
+      // 2. Check token and restore session
       const hasToken = await AsyncStorage.getItem('token');
       if (hasToken) {
-        // If we expect to be logged in, wait for Firebase to restore session
         await firebaseAuth.waitForUser();
       }
       const profile = await fetchProfile();

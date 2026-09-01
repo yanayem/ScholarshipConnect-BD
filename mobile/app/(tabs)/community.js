@@ -372,14 +372,16 @@ export default function CommunityScreen() {
               </>
             }
             ListEmptyComponent={
-              loading ? (
-                <Loader message="Fetching discussions..." />
-              ) : (
+              (loading && discussions.length === 0) ? (
+                <View style={{ marginTop: 50, alignItems: 'center' }}>
+                   <ActivityIndicator color={theme.colors.primary} size="small" />
+                </View>
+              ) : discussions.length === 0 ? (
                 <View style={styles.emptyContainer}>
                   <MaterialIcons name="forum" size={64} color={theme.colors.placeholder} />
                   <Text style={styles.emptyText}>No discussions found.</Text>
                 </View>
-              )
+              ) : null
             }
           />
         </>
@@ -439,7 +441,11 @@ export default function CommunityScreen() {
               </TouchableOpacity>
             )}
             ListEmptyComponent={
-              loading ? <ActivityIndicator color={theme.colors.primary} style={{ marginTop: 50 }} /> : <Text style={styles.emptyText}>No mentors available at the moment.</Text>
+              (loading && mentors.length === 0) ? (
+                <ActivityIndicator color={theme.colors.primary} size="small" style={{ marginTop: 50 }} />
+              ) : mentors.length === 0 ? (
+                <Text style={styles.emptyText}>No mentors available at the moment.</Text>
+              ) : null
             }
           />
         </View>
