@@ -14,27 +14,37 @@ import * as ImagePicker from 'expo-image-picker';
 import { apiService } from '../services/api';
 import { useToast } from '../components/Toast';
 
-const InputField = ({ label, value, onChangeText, name, placeholder, multiline = false, numberOfLines = 1, keyboardType = 'default' }) => (
-  <View style={styles.inputContainer}>
-    <Text style={styles.label}>{label}</Text>
-    <TextInput
-      style={[styles.input, multiline && styles.textArea]}
-      placeholder={placeholder}
-      placeholderTextColor={theme.colors.placeholder}
-      value={value}
-      onChangeText={(text) => onChangeText(name, text)}
-      multiline={multiline}
-      numberOfLines={numberOfLines}
-      keyboardType={keyboardType}
-    />
-  </View>
-);
+const InputField = ({ label, value, onChangeText, name, placeholder, multiline = false, numberOfLines = 1, keyboardType = 'default' }) => {
+  const [isFocused, setIsFocused] = useState(false);
+  return (
+    <View style={styles.inputContainer}>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput
+        style={[
+          styles.input,
+          multiline && styles.textArea,
+          isFocused && styles.inputFocused
+        ]}
+        placeholder={placeholder}
+        placeholderTextColor={theme.colors.placeholder}
+        value={value}
+        onChangeText={(text) => onChangeText(name, text)}
+        multiline={multiline}
+        numberOfLines={numberOfLines}
+        keyboardType={keyboardType}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+      />
+    </View>
+  );
+};
 
 export default function AddScholarship() {
   const router = useRouter();
   const { showToast, ToastComponent } = useToast();
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [isDeadlineFocused, setIsDeadlineFocused] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     provider: '',
@@ -201,7 +211,10 @@ export default function AddScholarship() {
             <View style={{ flex: 1 }}>
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Deadline *</Text>
-                <View style={styles.dateInputWrapper}>
+                <View style={[
+                  styles.dateInputWrapper,
+                  isDeadlineFocused && styles.inputFocused
+                ]}>
                   <TextInput
                     style={styles.dateInput}
                     placeholder="YYYY-MM-DD"
@@ -209,6 +222,8 @@ export default function AddScholarship() {
                     value={formData.deadline}
                     onChangeText={(text) => handleInputChange('deadline', text)}
                     editable={true}
+                    onFocus={() => setIsDeadlineFocused(true)}
+                    onBlur={() => setIsDeadlineFocused(false)}
                   />
                   <TouchableOpacity
                     onPress={() => setShowCalendar(true)}
@@ -432,13 +447,18 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: theme.colors.background,
-    borderWidth: 0,
+    borderWidth: 1.2,
+    borderColor: 'transparent', // Default no visible border
     borderRadius: 20, // High rounded corners
     paddingHorizontal: theme.spacing.md,
     height: 52,
     fontSize: theme.typography.sizes.base,
     fontFamily: theme.typography.fontFamily.regular,
     color: theme.colors.textPrimary,
+  },
+  inputFocused: {
+    borderColor: '#000000',
+    borderWidth: 1.2,
   },
   textArea: {
     height: 120,
@@ -452,7 +472,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: theme.colors.background,
-    borderWidth: 0,
+    borderWidth: 1.2,
+    borderColor: 'transparent',
     borderRadius: 20, // High rounded corners
     height: 52,
     overflow: 'hidden',
