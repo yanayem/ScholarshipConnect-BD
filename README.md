@@ -17,6 +17,29 @@ ScholarshipConnectBD is a specialized mobile application built with **React Nati
 
 ---
 
+## Recent Achievements & Recognition
+
+<p align="center">
+  <img src="./mobile/assets/IMG_20260818_182021.jpg" alt="SDP 300 Champions" width="45%">
+  <img src="./mobile/assets/DSC03972.jpg" alt="Prize Giving Ceremony" width="45%">
+</p>
+
+> **🏆 Champions of SDP 300 — Summer 2026**
+
+Team **Scholarship Connect BD** is proud to be awarded the **Champions title** in **SDP 300 — Summer 2026**, organized by the **BASIS BUBT Chapter Club** at **Bangladesh University of Business and Technology (BUBT)**.
+
+This recognition is a reflection of our team’s dedication to innovation, creativity, and excellence in software development. As students of BUBT, we are grateful for the platform that nurtures talent and encourages impactful ideas.
+
+Winning this title is not the end of our journey. It is a milestone that inspires us to continue learning, growing, and contributing to the tech ecosystem. We remain committed to building solutions that matter and to representing BUBT with pride in future endeavors.
+
+<p align="center">
+  <img src="./mobile/assets/DSC03647.JPG" alt="Team Scholarship Connect BD" width="100%">
+  <br>
+  <i>Team Scholarship Connect BD at the Award Ceremony</i>
+</p>
+
+---
+
 ## Core Features
 - [x] **Smart Dashboard**: Real-time announcements and featured scholarships.
 - [x] **Scholarship Discovery**: Advanced search and multi-layer filtering (Country, Level, Field).
