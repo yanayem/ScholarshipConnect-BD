@@ -46,8 +46,8 @@ export default function TabLayout() {
           backgroundColor: TAB_BG,
           borderTopWidth: 1,
           borderTopColor: theme.colors.divider,
-          height: Platform.OS === 'ios' ? 88 : 68,
-          paddingBottom: Platform.OS === 'ios' ? 30 : 10,
+          height: Platform.OS === 'ios' ? 88 : 70,
+          paddingBottom: Platform.OS === 'ios' ? 30 : 12,
           paddingTop: 8,
           borderTopLeftRadius: 25,
           borderTopRightRadius: 25,
@@ -76,19 +76,19 @@ export default function TabLayout() {
         },
       }}
     >
-      {/* 1. Dashboard (Home) */}
+      {/* 1. Dashboard (Common) */}
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Dashboard',
+          title: isMentorMode ? 'Dashboard' : 'Home',
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="grid-view" size={26} color={color} />
+            <MaterialIcons name={isMentorMode ? "dashboard" : "home"} size={26} color={color} />
           ),
           headerShown: false,
         }}
       />
 
-      {/* 2. Scholarships */}
+      {/* 2. Scholarships (Student Only) or Sessions (Mentor Only) */}
       <Tabs.Screen
         name="scholarships"
         options={{
@@ -97,10 +97,23 @@ export default function TabLayout() {
             <MaterialIcons name="school" size={26} color={color} />
           ),
           headerTitle: 'Explore Scholarships',
+          href: isMentorMode ? null : undefined,
         }}
       />
 
-      {/* 3. Applications */}
+      <Tabs.Screen
+        name="sessions"
+        options={{
+          title: 'Sessions',
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="event-available" size={26} color={color} />
+          ),
+          headerTitle: 'My Sessions',
+          href: isMentorMode ? undefined : null,
+        }}
+      />
+
+      {/* 3. Applications (Student Only) or Inbox (Mentor Only) */}
       <Tabs.Screen
         name="applications"
         options={{
@@ -109,10 +122,10 @@ export default function TabLayout() {
             <MaterialIcons name="assignment" size={26} color={color} />
           ),
           headerTitle: 'My Applications',
+          href: isMentorMode ? null : undefined,
         }}
       />
 
-      {/* 4. Inbox */}
       <Tabs.Screen
         name="inbox"
         options={{
@@ -121,10 +134,23 @@ export default function TabLayout() {
             <MaterialIcons name="mail-outline" size={26} color={color} />
           ),
           headerTitle: 'Messages',
+          href: isMentorMode ? undefined : null,
         }}
       />
 
-      {/* 5. Profile */}
+      {/* 4. Community (Shared) */}
+      <Tabs.Screen
+        name="community"
+        options={{
+          title: 'Community',
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="groups" size={26} color={color} />
+          ),
+          headerTitle: 'Community Feed',
+        }}
+      />
+
+      {/* 5. Profile (Shared) */}
       <Tabs.Screen
         name="profile"
         options={{
@@ -136,10 +162,8 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Hidden Technical Tabs (Keep functional but hide from Bottom Bar) */}
+      {/* Hidden Technical Tabs */}
       <Tabs.Screen name="calendar" options={{ href: null }} />
-      <Tabs.Screen name="community" options={{ href: null }} />
-      <Tabs.Screen name="sessions" options={{ href: null }} />
       <Tabs.Screen name="eligibility" options={{ href: null }} />
     </Tabs>
   );
