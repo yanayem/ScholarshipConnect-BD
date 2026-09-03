@@ -4,16 +4,12 @@ import { theme } from '../theme';
 
 /**
  * REUSABLE LOADER: A consistent loading indicator for the app.
- * - Supports full-screen modal mode or inline mode.
- * - Uses theme colors for consistency.
+ * - MODIFIED: Removed the "Box" look and message to make it less intrusive.
  */
 export const Loader = ({ visible = true, fullScreen = false, message = 'Loading...' }) => {
   const content = (
     <View style={fullScreen ? styles.modalOverlay : styles.inlineContainer}>
-      <View style={styles.loaderBox}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-        {message ? <Text style={styles.loaderText}>{message}</Text> : null}
-      </View>
+       <ActivityIndicator size="large" color={theme.colors.primary} />
     </View>
   );
 
@@ -31,7 +27,7 @@ export const Loader = ({ visible = true, fullScreen = false, message = 'Loading.
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(255,255,255,0.7)', // More subtle background
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -39,15 +35,12 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    flex: 1,
+    minHeight: 150, // Ensure it takes some space
   },
   loaderBox: {
-    backgroundColor: '#fff',
-    padding: 24,
-    borderRadius: 16,
+    // Box styles removed for a cleaner look
     alignItems: 'center',
     gap: 12,
-    ...theme.shadows.card,
   },
   loaderText: {
     fontFamily: theme.typography.fontFamily.medium,

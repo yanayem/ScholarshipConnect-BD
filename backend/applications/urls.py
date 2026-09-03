@@ -4,8 +4,9 @@ from .views import (
     SavedScholarshipDestroyView,
     ScholarshipApplicationListCreateView,
     UserDocumentListCreateView,
-    DocumentDeleteView,
-    ScholarshipApplicationUpdateView
+    DocumentDetailView,
+    ScholarshipApplicationUpdateView,
+    ApplicationDocumentRemoveView
 )
 
 urlpatterns = [
@@ -13,6 +14,7 @@ urlpatterns = [
     path('saved/<int:pk>/', SavedScholarshipDestroyView.as_view(), name='saved-scholarship-delete'),
     path('apply/', ScholarshipApplicationListCreateView.as_view(), name='scholarship-apply'),
     path('apply/<int:pk>/', ScholarshipApplicationUpdateView.as_view(), name='scholarship-application-update'),
+    path('apply/<int:pk>/documents/<int:doc_id>/', ApplicationDocumentRemoveView.as_view(), name='application-document-remove'),
     path('documents/', UserDocumentListCreateView.as_view(), name='user-documents'),
-    path('documents/<int:pk>/', DocumentDeleteView.as_view(), name='document-delete'),
+    path('documents/<int:pk>/', DocumentDetailView.as_view(), name='document-detail'),
 ]

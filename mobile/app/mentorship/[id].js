@@ -96,7 +96,8 @@ export default function MentorProfileScreen() {
     }
   };
 
-  if (loading && !mentor) return <Loader message="Loading mentor profile..." />;
+  // Removed full-screen loader to allow cache-first or progressive rendering
+  // if (loading && !mentor) return <Loader message="Loading mentor profile..." />;
 
   if (!mentor) return (
     <View style={styles.root}>
@@ -109,12 +110,18 @@ export default function MentorProfileScreen() {
         <View style={{ width: 40 }} />
       </View>
       <View style={styles.errorContainer}>
-        <Ionicons name="person-outline" size={80} color={theme.colors.divider} />
-        <Text style={styles.errorTitle}>Profile Not Found</Text>
-        <Text style={styles.errorSub}>The user you are looking for is not registered as a mentor or the profile is private.</Text>
-        <TouchableOpacity style={styles.goBackBtn} onPress={() => router.back()}>
-          <Text style={styles.goBackText}>Go Back</Text>
-        </TouchableOpacity>
+        {loading ? (
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+        ) : (
+          <>
+            <Ionicons name="person-outline" size={80} color={theme.colors.divider} />
+            <Text style={styles.errorTitle}>Profile Not Found</Text>
+            <Text style={styles.errorSub}>The user you are looking for is not registered as a mentor or the profile is private.</Text>
+            <TouchableOpacity style={styles.goBackBtn} onPress={() => router.back()}>
+              <Text style={styles.goBackText}>Go Back</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </View>
   );

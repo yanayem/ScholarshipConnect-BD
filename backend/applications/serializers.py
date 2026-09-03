@@ -25,7 +25,7 @@ class ScholarshipApplicationSerializer(serializers.ModelSerializer):
             'id', 'user', 'user_full_name', 'user_avatar_url', 'scholarship', 'scholarship_title', 
             'scholarship_country', 'scholarship_level', 'scholarship_deadline',
             'status', 'application_type', 'full_name', 'email', 'phone', 'university', 
-            'cgpa', 'ielts_score', 'academic_level', 'sop', 'user_documents',
+            'cgpa', 'ielts_score', 'academic_level', 'sop', 'user_documents', 'documents',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['user']
@@ -40,7 +40,12 @@ class ScholarshipApplicationSerializer(serializers.ModelSerializer):
         # Only include documents if request is by staff or the owner
         request = self.context.get('request')
         if request and (request.user.is_staff or request.user == obj.user):
-            docs = UserDocument.objects.filter(user=obj.user)
+            # If documents are explicitly attached, return those
+            if obj.documents.exists():
+                docs = obj.documents.all()
+            else:
+                # Fallback for old applications: return all user documents
+                docs = UserDocument.objects.filter(user=obj.user)
             return UserDocumentSerializer(docs, many=True).data
         return []
 

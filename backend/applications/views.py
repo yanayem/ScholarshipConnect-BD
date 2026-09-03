@@ -145,14 +145,34 @@ class UserDocumentListCreateView(generics.ListCreateAPIView):
         serializer.save(user=self.request.user)
 
 # ==========================
-# Delete a specific document from the user's vault.
+# Retrieve, Update, or Delete a specific document from the user's vault.
 # ==========================
-class DocumentDeleteView(generics.DestroyAPIView):
+class DocumentDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserDocumentSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return UserDocument.objects.filter(user=self.request.user)
+        user = self.request.user
+        if user.is_staff:
+            return UserDocument.objects.all()
+        return UserDocument.objects.filter(user=user)
+
+# ==========================
+# Remove a specific document from an application without deleting from vault.
+# ==========================
+class ApplicationDocumentRemoveView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, pk, doc_id):
+        try:
+            application = ScholarshipApplication.objects.get(pk=pk, user=request.user)
+            document = application.documents.get(pk=doc_id)
+            application.documents.remove(document)
+            return Response({"message": "Document removed from application"}, status=status.HTTP_200_OK)
+        except ScholarshipApplication.DoesNotExist:
+            return Response({"error": "Application not found"}, status=status.HTTP_404_NOT_FOUND)
+        except UserDocument.DoesNotExist:
+            return Response({"error": "Document not found in this application"}, status=status.HTTP_404_NOT_FOUND)
 
 # ==========================
 # Admin-only view to update the processing status of applications.

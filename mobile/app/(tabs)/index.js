@@ -12,7 +12,6 @@ import { theme } from '../../theme';
 import { apiService } from '../../services/api';
 import { cacheService } from '../../services/cache';
 import { useToast } from '../../components/Toast';
-import { Loader } from '../../components/Loader';
 import { useMentorMode } from '../../context/MentorModeContext';
 
 import { useUser } from '../../context/UserContext';
@@ -197,8 +196,10 @@ function StudentHome({ user, featured, loading, leaderboard, activeCountries, al
 
         {/* Featured Scholarships */}
         <Text style={styles.sectionTitle}>Featured Scholarships</Text>
-        {loading ? (
-          <Loader message="Loading feed..." />
+        {loading && featured.length === 0 ? (
+          <View style={{ padding: 40, alignItems: 'center' }}>
+             <ActivityIndicator size="large" color={theme.colors.primary} />
+          </View>
         ) : featured.filter(s =>
           s.title.toLowerCase().includes(search.toLowerCase())
         ).map((item, index) => (
@@ -566,7 +567,7 @@ function MentorHome({ user }) {
       );
     };
 
-    if (loading) return <Loader message="Setting up your dashboard..." />;
+    // if (loading) return <Loader message="Setting up your dashboard..." />;
 
     return (
         <View style={styles.root}>
@@ -650,7 +651,11 @@ export default function HomeScreen() {
               .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
               .slice(0, 3)
           );
-          const countries = [...new Set(cachedScholarships.map(s => s.country))].filter(Boolean).slice(0, 8);
+          const rawCountriesCached = cachedScholarships
+            .map(s => s.country)
+            .filter(Boolean)
+            .flatMap(c => c.split(',').map(name => name.trim()));
+          const countries = [...new Set(rawCountriesCached)].slice(0, 8);
           setActiveCountries(countries);
           setLoading(false); // Stop showing full screen loader if we have cache
         }
@@ -678,7 +683,11 @@ export default function HomeScreen() {
               .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
               .slice(0, 3)
           );
-          const countries = [...new Set(data.map(s => s.country))].filter(Boolean).slice(0, 8);
+          const rawCountries = data
+            .map(s => s.country)
+            .filter(Boolean)
+            .flatMap(c => c.split(',').map(name => name.trim()));
+          const countries = [...new Set(rawCountries)].slice(0, 8);
           setActiveCountries(countries);
 
           // Save to cache
@@ -699,7 +708,7 @@ export default function HomeScreen() {
     loadData();
   }, []);
 
-  if (loading) return <Loader message="Loading..." />;
+  // if (loading) return <Loader message="Loading..." />;
 
   const initials = user?.full_name
     ? user.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()

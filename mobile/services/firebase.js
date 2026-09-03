@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
  * FIREBASE SERVICE: Reliable Hybrid Logic
@@ -66,12 +67,22 @@ const initializeFirebase = () => {
         }
         
         if (!isNative) {
-            console.log('[FIREBASE] Initializing Web/Expo Go SDK...');
+            console.log('[FIREBASE] Initializing Web/Expo Go SDK with persistent auth...');
             const { initializeApp, getApps, getApp } = require('firebase/app');
-            const { getAuth } = require('firebase/auth');
+            const { initializeAuth, getAuth, getReactNativePersistence } = require('firebase/auth');
             const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-            auth = getAuth(app);
-            console.log('[FIREBASE] Web Auth initialization successful');
+            
+            // Use initializeAuth with AsyncStorage persistence so the session
+            // survives app restarts (like Facebook). Only on first init.
+            try {
+                auth = initializeAuth(app, {
+                    persistence: getReactNativePersistence(AsyncStorage),
+                });
+            } catch (e) {
+                // If auth was already initialized (hot reload), fall back to getAuth
+                auth = getAuth(app);
+            }
+            console.log('[FIREBASE] Web Auth initialization successful (persistent)');
         }
 
         if (!auth) {

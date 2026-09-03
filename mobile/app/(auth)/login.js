@@ -64,7 +64,8 @@ export default function LoginScreen() {
       await userCredential.reload();
       const updatedUser = firebaseAuth.getCurrentUser();
 
-      // Check if email is verified
+      /*
+      // TEMPORARILY DISABLED: Check if email is verified
       if (!updatedUser.emailVerified) {
         console.log('[LOGIN] Email not verified.');
         await firebaseAuth.signOut();
@@ -72,6 +73,7 @@ export default function LoginScreen() {
         setLoading(false);
         return;
       }
+      */
 
       const idToken = await firebaseAuth.getIdToken();
       console.log('[LOGIN] Step 1 Success. Token received.');

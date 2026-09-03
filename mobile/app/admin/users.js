@@ -124,25 +124,27 @@ export default function UserAudit() {
         </View>
       </View>
 
-      {loading && users.length === 0 ? (
-        <Loader message="Loading directory..." />
-      ) : (
-        <FlatList
-          data={filtered}
-          renderItem={renderItem}
-          keyExtractor={item => item.id.toString()}
-          contentContainerStyle={styles.list}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} />
-          }
-          ListEmptyComponent={
-              <View style={styles.empty}>
-                  <MaterialCommunityIcons name="account-search-outline" size={60} color={theme.colors.placeholder} />
-                  <Text style={styles.emptyText}>No users found</Text>
-              </View>
-          }
-        />
-      )}
+      <FlatList
+        data={filtered}
+        renderItem={renderItem}
+        keyExtractor={item => item.id.toString()}
+        contentContainerStyle={styles.list}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} />
+        }
+        ListEmptyComponent={
+            <View style={styles.empty}>
+                {loading ? (
+                  <ActivityIndicator size="large" color={theme.colors.primary} />
+                ) : (
+                  <>
+                    <MaterialCommunityIcons name="account-search-outline" size={60} color={theme.colors.placeholder} />
+                    <Text style={styles.emptyText}>No users found</Text>
+                  </>
+                )}
+            </View>
+        }
+      />
     </View>
   );
 }

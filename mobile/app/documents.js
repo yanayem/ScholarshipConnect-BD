@@ -19,8 +19,19 @@ export default function DocumentManagement() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [docName, setDocName] = useState('');
+  const [docType, setDocType] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [uploading, setUploading] = useState(false);
+
+  const DOCUMENT_TYPES = [
+    { label: 'CV / Resume', value: 'CV' },
+    { label: 'Transcript', value: 'Transcript' },
+    { label: 'Passport', value: 'Passport' },
+    { label: 'IELTS / TOEFL', value: 'Language Test' },
+    { label: 'Recommendation Letter', value: 'Recommendation' },
+    { label: 'Certificate', value: 'Certificate' },
+    { label: 'Other', value: 'Other' },
+  ];
 
   const loadDocuments = async () => {
     // 1. Try Cache First
@@ -71,6 +82,42 @@ export default function DocumentManagement() {
     );
   };
 
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editingDoc, setEditingDoc] = useState(null);
+  const [editName, setEditName] = useState('');
+  const [editType, setEditType] = useState('');
+
+  const openEditModal = (doc) => {
+    setEditingDoc(doc);
+    setEditName(doc.name);
+    setEditType(doc.doc_type || '');
+    setEditModalVisible(true);
+  };
+
+  const handleUpdateDocument = async () => {
+    if (!editName.trim()) {
+      Alert.alert('Required', 'Document name cannot be empty.');
+      return;
+    }
+    setUploading(true);
+    try {
+      const res = await apiService.updateDocument(editingDoc.id, {
+        name: editName,
+        doc_type: editType
+      });
+      if (res.ok) {
+        setDocs(docs.map(d => d.id === editingDoc.id ? res.data : d));
+        setEditModalVisible(false);
+        Alert.alert('Success', 'Document updated successfully!');
+      } else {
+        Alert.alert('Error', 'Failed to update document.');
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Something went wrong.');
+    }
+    setUploading(false);
+  };
+
   const handlePickFile = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -95,17 +142,19 @@ export default function DocumentManagement() {
       Alert.alert('Required', 'Please enter a document name.');
       return;
     }
+    if (!docType) {
+      Alert.alert('Required', 'Please select a document type.');
+      return;
+    }
 
     setUploading(true);
     try {
-      const typeStr = docName.toLowerCase().includes('passport') ? 'Identity' :
-                     docName.toLowerCase().includes('transcript') ? 'Academic' : 'Other';
-
-      const res = await apiService.uploadDocument(selectedFile, docName, typeStr, expiryDate);
+      const res = await apiService.uploadDocument(selectedFile, docName, docType, expiryDate);
       
       if (res.ok) {
         setModalVisible(false);
         setDocName('');
+        setDocType('');
         setExpiryDate('');
         setSelectedFile(null);
         loadDocuments();
@@ -127,6 +176,12 @@ export default function DocumentManagement() {
       default: return theme.colors.textSecondary;
     }
   };
+
+  const [selectedFilter, setSelectedFilter] = useState('All');
+
+  const filteredDocs = docs.filter(doc => 
+    selectedFilter === 'All' ? true : doc.doc_type === selectedFilter
+  );
 
   return (
     <View style={styles.root}>
@@ -156,21 +211,33 @@ export default function DocumentManagement() {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>All Documents</Text>
-          <MaterialIcons name="sort" size={20} color={theme.colors.textSecondary} />
         </View>
+
+        {/* Filters */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
+           {['All', 'CV', 'Transcript', 'Passport', 'Other'].map(f => (
+             <TouchableOpacity 
+                key={f} 
+                style={[styles.filterChip, selectedFilter === f && styles.filterChipActive]}
+                onPress={() => setSelectedFilter(f)}
+             >
+                <Text style={[styles.filterText, selectedFilter === f && styles.filterTextActive]}>{f}</Text>
+             </TouchableOpacity>
+           ))}
+        </ScrollView>
 
         {loading && docs.length === 0 ? (
           <Loader message="Accessing vault..." />
-        ) : docs.length === 0 ? (
+        ) : filteredDocs.length === 0 ? (
           <View style={styles.emptyState}>
             <MaterialIcons name="folder-zip" size={80} color={theme.colors.divider} />
-            <Text style={styles.emptyText}>Vault is empty</Text>
+            <Text style={styles.emptyText}>No {selectedFilter !== 'All' ? selectedFilter : ''} documents found</Text>
             <TouchableOpacity style={styles.emptyAction} onPress={handlePickFile}>
-                <Text style={styles.emptyActionText}>Upload First Document</Text>
+                <Text style={styles.emptyActionText}>Upload New Document</Text>
             </TouchableOpacity>
           </View>
         ) : (
-          docs.map(doc => (
+          filteredDocs.map(doc => (
             <View key={doc.id} style={[styles.docCard, theme.shadows.soft]}>
               <View style={styles.docIconBox}>
                  <MaterialIcons name="description" size={24} color={theme.colors.primary} />
@@ -178,6 +245,11 @@ export default function DocumentManagement() {
 
               <View style={styles.docMain}>
                 <Text style={styles.docName} numberOfLines={1}>{doc.name}</Text>
+                {doc.doc_type && (
+                  <View style={styles.docTypeBadge}>
+                    <Text style={styles.docTypeBadgeText}>{doc.doc_type}</Text>
+                  </View>
+                )}
                 <View style={styles.statusRow}>
                   <View style={[styles.statusDot, { backgroundColor: getStatusColor(doc.status) }]} />
                   <Text style={[styles.statusText, { color: getStatusColor(doc.status) }]}>{doc.status}</Text>
@@ -188,6 +260,9 @@ export default function DocumentManagement() {
               </View>
 
               <View style={styles.docActions}>
+                <TouchableOpacity style={styles.actionBtn} onPress={() => openEditModal(doc)}>
+                  <MaterialIcons name="edit" size={20} color={theme.colors.primary} />
+                </TouchableOpacity>
                 <TouchableOpacity style={styles.actionBtn} onPress={() => handleDelete(doc.id, doc.name)}>
                   <MaterialIcons name="delete-outline" size={20} color={theme.colors.error} />
                 </TouchableOpacity>
@@ -201,6 +276,44 @@ export default function DocumentManagement() {
            <Text style={styles.infoBoxText}>Your documents are encrypted and only accessible by you.</Text>
         </View>
       </ScrollView>
+
+      {/* Edit Modal */}
+      <Modal visible={editModalVisible} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Edit Document</Text>
+              <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+                <MaterialIcons name="close" size={24} color={theme.colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.label}>Document Name</Text>
+            <TextInput
+              style={styles.input}
+              value={editName}
+              onChangeText={setEditName}
+            />
+
+            <Text style={styles.label}>Document Type *</Text>
+            <View style={styles.typeChipsWrap}>
+              {DOCUMENT_TYPES.map(t => (
+                <TouchableOpacity
+                  key={t.value}
+                  style={[styles.typeChip, editType === t.value && styles.typeChipActive]}
+                  onPress={() => setEditType(t.value)}
+                >
+                  <Text style={[styles.typeChipText, editType === t.value && styles.typeChipTextActive]}>{t.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <TouchableOpacity style={styles.confirmBtn} onPress={handleUpdateDocument} disabled={uploading}>
+              {uploading ? <ActivityIndicator color="#fff" /> : <Text style={styles.confirmBtnText}>Save Changes</Text>}
+            </TouchableOpacity>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
 
       {/* Upload Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
@@ -230,10 +343,29 @@ export default function DocumentManagement() {
             <Text style={styles.label}>Document Name</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. Passport, IELTS Result"
+              placeholder="e.g. My Passport, BSc Transcript"
               value={docName}
               onChangeText={setDocName}
             />
+
+            <Text style={styles.label}>Document Type *</Text>
+            <View style={styles.typeChipsWrap}>
+              {DOCUMENT_TYPES.map(t => (
+                <TouchableOpacity
+                  key={t.value}
+                  style={[
+                    styles.typeChip,
+                    docType === t.value && styles.typeChipActive
+                  ]}
+                  onPress={() => setDocType(t.value)}
+                >
+                  <Text style={[
+                    styles.typeChipText,
+                    docType === t.value && styles.typeChipTextActive
+                  ]}>{t.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
             <Text style={styles.label}>Expiry Date (Optional)</Text>
             <TextInput
@@ -280,6 +412,11 @@ const styles = StyleSheet.create({
   },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: theme.colors.heading },
+  filterScroll: { marginBottom: 16 },
+  filterChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: theme.colors.background, marginRight: 8, borderWidth: 1, borderColor: theme.colors.divider },
+  filterChipActive: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
+  filterText: { fontSize: 13, color: theme.colors.textSecondary, fontWeight: '600' },
+  filterTextActive: { color: '#fff' },
   docCard: {
     backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 12,
     flexDirection: 'row', alignItems: 'center'
@@ -290,11 +427,14 @@ const styles = StyleSheet.create({
   },
   docMain: { flex: 1, marginLeft: 16 },
   docName: { fontSize: 15, fontWeight: 'bold', color: theme.colors.heading },
+  docTypeBadge: { alignSelf: 'flex-start', backgroundColor: theme.colors.background, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, marginTop: 4 },
+  docTypeBadgeText: { fontSize: 10, fontWeight: 'bold', color: theme.colors.primary },
   statusRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
   statusDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
   statusText: { fontSize: 12, fontWeight: '600' },
   expiryText: { fontSize: 12, color: theme.colors.textSecondary },
-  actionBtn: { padding: 8 },
+  docActions: { flexDirection: 'row', alignItems: 'center' },
+  actionBtn: { padding: 8, marginLeft: 4 },
   emptyState: { alignItems: 'center', paddingVertical: 60 },
   emptyText: { color: theme.colors.placeholder, marginTop: 12, fontSize: 16 },
   emptyAction: { marginTop: 20, backgroundColor: theme.colors.primaryLight, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12 },
@@ -317,6 +457,14 @@ const styles = StyleSheet.create({
   previewImage: { width: '100%', height: '100%', resizeMode: 'cover' },
   label: { fontSize: 14, fontWeight: 'bold', color: theme.colors.heading, marginBottom: 8, marginTop: 12 },
   input: { backgroundColor: theme.colors.background, borderRadius: 12, padding: 14, fontSize: 15, borderWidth: 1, borderColor: theme.colors.divider },
+  typeChipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
+  typeChip: { 
+    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, 
+    backgroundColor: theme.colors.background, borderWidth: 1, borderColor: theme.colors.divider 
+  },
+  typeChipActive: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
+  typeChipText: { fontSize: 13, color: theme.colors.textSecondary, fontWeight: '500' },
+  typeChipTextActive: { color: '#fff' },
   confirmBtn: { backgroundColor: theme.colors.primary, borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 32 },
   confirmBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 }
 });

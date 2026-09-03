@@ -187,7 +187,11 @@ export default function ScholarshipDetails() {
   };
 
   if (loading && !details) {
-    return <Loader message="Loading Scholarship..." />;
+    return (
+        <View style={styles.loader}>
+            <ActivityIndicator size="large" color={UI.colors.primary} />
+        </View>
+    );
   }
 
   if (error || !details) {

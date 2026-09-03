@@ -4,19 +4,19 @@
  * - Real-time eligibility highlighting based on user profile.
  * - Features a Deadline Tracker and AI Matchmaker integration.
  */
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, TextInput, ScrollView,
-  TouchableOpacity, StyleSheet, StatusBar, RefreshControl, Platform
+  TouchableOpacity, StyleSheet, StatusBar, RefreshControl, Platform,
+  ActivityIndicator
 } from 'react-native';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { theme } from '../../theme';
 import { apiService } from '../../services/api';
 import { cacheService } from '../../services/cache';
 import { useToast } from '../../components/Toast';
-import { Loader } from '../../components/Loader';
 import ScholarshipCard from '../../components/cards/ScholarshipCard';
 
 const COUNTRIES = ['All', 'Japan', 'UK', 'Germany', 'Europe', 'Australia', 'Korea', 'USA', 'China', 'Turkey', 'Canada'];
@@ -25,19 +25,25 @@ const FIELDS = ['All', 'Engineering', 'STEM', 'Arts', 'Business', 'Medicine', 'S
 const FUNDING = ['All', 'Full Fund', 'Partial', 'Tuition Only'];
 
 export default function ScholarshipsScreen() {
-  const [search, setSearch] = useState('');
-  const [country, setCountry] = useState('All');
+  const { search: initialSearch, country: initialCountry } = useLocalSearchParams();
+  const [search, setSearch] = useState(initialSearch || '');
+  const [country, setCountry] = useState(initialCountry || 'All');
   const [level, setLevel] = useState('All');
   const [field, setField] = useState('All');
   const [funding, setFunding] = useState('All');
   const [showFilters, setShowFilters] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [sortBy, setSortBy] = useState('deadline');
-
+  
   const [scholarships, setScholarships] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { showToast, ToastComponent } = useToast();
+
+  useEffect(() => {
+    if (initialSearch) setSearch(initialSearch);
+    if (initialCountry) setCountry(initialCountry);
+  }, [initialSearch, initialCountry]);
 
   const loadData = async (showLoading = true) => {
     // 1. Try Cache First
@@ -142,7 +148,7 @@ export default function ScholarshipsScreen() {
     const matchSearch = (s.title || '').toLowerCase().includes(search.toLowerCase()) ||
                         (s.provider || '').toLowerCase().includes(search.toLowerCase()) ||
                         (s.description || '').toLowerCase().includes(search.toLowerCase());
-    const matchCountry = country === 'All' || s.country === country;
+    const matchCountry = country === 'All' || (s.country || '').includes(country);
     const matchLevel = level === 'All' || (s.level || '').includes(level);
     const matchField = field === 'All' || (s.field || '').includes(field);
     const matchFunding = funding === 'All' || (s.amount || '').toLowerCase().includes(funding.toLowerCase().replace(' fund', ''));
@@ -239,7 +245,7 @@ export default function ScholarshipsScreen() {
             <MaterialIcons name="auto-awesome" size={24} color="#fff" />
           </View>
           <View style={{ flex: 1, marginLeft: 12 }}>
-            <Text style={styles.aiMatchTitle}>AI Smart Match</Text>
+            <Text style={styles.aiMatchTitle}>find you best scholarship</Text>
             <Text style={styles.aiMatchSub}>Based on your profile: CGPA {userProfile?.cgpa || 'N/A'}</Text>
           </View>
           <View style={styles.matchBadge}>
@@ -287,8 +293,10 @@ export default function ScholarshipsScreen() {
         </View>
 
         {/* Scholarship List */}
-        {loading ? (
-          <Loader message="Finding scholarships..." />
+        {loading && scholarships.length === 0 ? (
+          <View style={{ padding: 40, alignItems: 'center' }}>
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+          </View>
         ) : filtered.length === 0 ? (
           <View style={styles.emptyBox}>
             <MaterialIcons name="search-off" size={48} color={theme.colors.placeholder} />

@@ -13,14 +13,31 @@ export default function Index() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = await AsyncStorage.getItem('token');
         const hasSeenOnboarding = await AsyncStorage.getItem('has_seen_onboarding');
+        const token = await AsyncStorage.getItem('token');
+
+        // Also check if Firebase has a persisted user session
+        let hasFirebaseUser = false;
+        if (!token) {
+          try {
+            const { firebaseAuth } = require('../services/firebase');
+            const fbUser = await firebaseAuth.waitForUser();
+            if (fbUser) {
+              // Firebase session is alive — get a fresh token
+              const freshToken = await firebaseAuth.getIdToken();
+              if (freshToken) {
+                await AsyncStorage.setItem('token', freshToken);
+                hasFirebaseUser = true;
+              }
+            }
+          } catch (e) {}
+        }
 
         // Small delay to ensure navigation is ready
         setTimeout(() => {
           if (!hasSeenOnboarding) {
             router.replace('/onboarding');
-          } else if (token) {
+          } else if (token || hasFirebaseUser) {
             router.replace('/(tabs)');
           } else {
             router.replace('/(auth)/login');

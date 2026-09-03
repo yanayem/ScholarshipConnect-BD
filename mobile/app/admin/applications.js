@@ -220,23 +220,25 @@ export default function ApplicationManager() {
         </View>
       </View>
 
-      {loading && apps.length === 0 ? (
-        <Loader message="Loading submissions..." />
-      ) : (
-        <FlatList
-          data={filtered}
-          renderItem={renderItem}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} />}
-          ListEmptyComponent={
-              <View style={styles.empty}>
-                  <MaterialCommunityIcons name="folder-search-outline" size={60} color={theme.colors.placeholder} />
-                  <Text style={styles.emptyText}>No applications found</Text>
-              </View>
-          }
-        />
-      )}
+      <FlatList
+        data={filtered}
+        renderItem={renderItem}
+        keyExtractor={item => item.id}
+        contentContainerStyle={styles.list}
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} />}
+        ListEmptyComponent={
+            <View style={styles.empty}>
+                {loading ? (
+                  <ActivityIndicator size="large" color={theme.colors.primary} />
+                ) : (
+                  <>
+                    <MaterialCommunityIcons name="folder-search-outline" size={60} color={theme.colors.placeholder} />
+                    <Text style={styles.emptyText}>No applications found</Text>
+                  </>
+                )}
+            </View>
+        }
+      />
     </View>
   );
 }

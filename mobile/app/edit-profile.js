@@ -144,9 +144,10 @@ export default function EditProfileScreen() {
     setGeneratingBio(false);
   };
 
-  if (loading) {
-    return <Loader message="Setting up editor..." />;
-  }
+  // Removed full-screen loader to allow immediate rendering
+  // if (loading) {
+  //   return <Loader message="Setting up editor..." />;
+  // }
 
   const completion = getCompletion();
 
@@ -428,9 +429,9 @@ export default function EditProfileScreen() {
             <Animated.View style={[styles.progressBarFill, { width: `${completion}%` }]} />
           </View>
           <Text style={styles.completionHint}>
-            {completion < 50 ? '💡 Complete your profile for AI Matchmaking' :
-             completion < 80 ? '🚀 High accuracy matching is almost ready!' :
-             '🌟 Your profile is elite! Ready for applications.'}
+            {completion < 50 ? 'Complete your profile to find you best scholarship' :
+             completion < 80 ? 'High accuracy matching is almost ready!' :
+             'Your profile is elite! Ready for applications.'}
           </Text>
         </View>
       </LinearGradient>
@@ -612,7 +613,7 @@ const styles = StyleSheet.create({
   unifiedCard: {
     backgroundColor: '#fff',
     borderRadius: 24,
-    minHeight: 400,
+    minHeight: 800,
     ...theme.shadows.premium,
     // Removed overflow: 'hidden' to allow dropdowns to be visible
   },
@@ -636,7 +637,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   row: { flexDirection: 'row' },
-  textArea: { minHeight: 100, textAlignVertical: 'top', paddingTop: 12 },
+  textArea: { minHeight: 180, textAlignVertical: 'top', paddingTop: 12 },
   inputContainer: { marginBottom: 16 },
   label: {
     fontSize: 14, fontFamily: theme.typography.fontFamily.semiBold,

@@ -89,9 +89,7 @@ export default function TabLayout() {
         }}
       />
 
-
-
-      {/* 3. Calendar (Student Only) */}
+      {/* 2. Calendar (Student Only) */}
       <Tabs.Screen
         name="calendar"
         options={{
@@ -104,7 +102,7 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 4. Sessions (Mentor Only) */}
+      {/* 3. Sessions (Mentor Only) */}
       <Tabs.Screen
         name="sessions"
         options={{
@@ -117,7 +115,7 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 5. Home / Dashboard (Center for BOTH modes) */}
+      {/* 4. Home / Dashboard (Center for BOTH modes) */}
       <Tabs.Screen
         name="index"
         options={{
@@ -135,7 +133,7 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 6. Applications (Student Only) */}
+      {/* 5. Applications (Student Only) */}
       <Tabs.Screen
         name="applications"
         options={{
@@ -148,7 +146,7 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 7. Community (Shared) */}
+      {/* 6. Community (Shared) */}
       <Tabs.Screen
         name="community"
         options={{
@@ -160,7 +158,7 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 8. Inbox (Mentor Only in Bottom Nav) */}
+      {/* 7. Inbox (Mentor Only in Bottom Nav) */}
       <Tabs.Screen
         name="inbox"
         options={{
@@ -173,7 +171,7 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 9. Profile (Mentor Only - Position 5 for Mentor) */}
+      {/* 8. Profile (Mentor Only - Position 5 for Mentor) */}
       <Tabs.Screen
         name="profile"
         options={{
@@ -194,8 +192,6 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
-  );
-}
   );
 }
 

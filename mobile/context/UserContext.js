@@ -63,11 +63,22 @@ export const UserProvider = ({ children }) => {
         }
       } catch (e) {}
 
-      // 2. Check token and restore session
-      const hasToken = await AsyncStorage.getItem('token');
-      if (hasToken) {
-        await firebaseAuth.waitForUser();
+      // 2. Always wait for Firebase to restore persisted session
+      // (Firebase now persists auth state in AsyncStorage, so it will
+      // automatically restore the user on app restart — like Facebook)
+      const firebaseUser = await firebaseAuth.waitForUser();
+      
+      if (firebaseUser) {
+        // Firebase session is alive — ensure we have a fresh token stored
+        const hasToken = await AsyncStorage.getItem('token');
+        if (!hasToken) {
+          const freshToken = await firebaseAuth.getIdToken();
+          if (freshToken) {
+            await AsyncStorage.setItem('token', freshToken);
+          }
+        }
       }
+
       const profile = await fetchProfile();
 
       // Setup listeners if profile was fetched

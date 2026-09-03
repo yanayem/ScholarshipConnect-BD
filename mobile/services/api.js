@@ -660,7 +660,7 @@ export const apiService = {
         if (data.title) formData.append('title', data.title);
         if (data.content) formData.append('content', data.content);
         if (data.category) formData.append('category', data.category);
-        if (data.is_solved !== undefined) formData.append('is_solved', data.is_solved);
+        if (data.is_solved !== undefined) formData.append('is_solved', String(data.is_solved));
 
         if (data.image) {
           if (Platform.OS === 'web') {
@@ -963,10 +963,14 @@ export const apiService = {
 
   async uploadDocument(fileData, name, type, expiryDate = null) {
     try {
+      if (!fileData || !fileData.uri) {
+        return { ok: false, data: { error: 'Invalid file selected' } };
+      }
+
       const formData = new FormData();
-      formData.append('name', name);
-      formData.append('doc_type', type);
-      if (expiryDate) formData.append('expiry_date', expiryDate);
+      formData.append('name', String(name || ''));
+      formData.append('doc_type', String(type || ''));
+      if (expiryDate) formData.append('expiry_date', String(expiryDate));
 
       if (Platform.OS === 'web') {
         const response = await fetch(fileData.uri);
@@ -981,9 +985,33 @@ export const apiService = {
       }
 
       const headers = await getHeaders(true);
-      // IMPORTANT: Remove Content-Type for FormData to let the browser set boundary
-      delete headers['Content-Type'];
+      const token = headers['Authorization'];
 
+      // Using XMLHttpRequest for better reliability with FormData/Files on Native
+      if (Platform.OS !== 'web') {
+        return new Promise((resolve) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', `${API_URL}/applications/documents/`);
+          if (token) {
+            xhr.setRequestHeader('Authorization', token);
+          }
+          xhr.onload = () => {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status, data });
+            } catch (e) {
+              resolve({ ok: false, data: { error: 'Invalid response from server' } });
+            }
+          };
+          xhr.onerror = () => {
+            resolve({ ok: false, data: { error: 'Network request failed' } });
+          };
+          xhr.send(formData);
+        });
+      }
+
+      // Fallback for Web
+      delete headers['Content-Type'];
       const response = await fetch(`${API_URL}/applications/documents/`, {
         method: 'POST',
         headers: headers,
@@ -999,11 +1027,25 @@ export const apiService = {
     try {
       const response = await fetch(`${API_URL}/applications/documents/${id}/`, {
         method: 'DELETE',
-        headers: await getHeaders(),
+        headers: await getHeaders(true),
       });
-      return { ok: response.ok };
+      // Django DELETE usually returns 204 No Content.
+      return { ok: response.ok, status: response.status };
     } catch (error) {
       return networkError(error, 'Delete Document');
+    }
+  },
+
+  async updateDocument(id, data) {
+    try {
+      const response = await fetch(`${API_URL}/applications/documents/${id}/`, {
+        method: 'PATCH',
+        headers: await getHeaders(true),
+        body: JSON.stringify(data),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Update Document');
     }
   },
 

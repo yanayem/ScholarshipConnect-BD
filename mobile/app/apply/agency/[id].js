@@ -28,9 +28,10 @@ export default function AgencyApplyScreen() {
   });
 
   const [isAutoFilled, setIsAutoFilled] = useState(false);
+  const [vaultDocs, setVaultDocs] = useState([]);
 
   useEffect(() => {
-    const loadProfile = async () => {
+    const loadProfileAndDocs = async () => {
       try {
         const res = await apiService.getProfile();
         if (res.ok) {
@@ -46,14 +47,29 @@ export default function AgencyApplyScreen() {
           }));
           setIsAutoFilled(true);
         }
+
+        const docRes = await apiService.getDocuments();
+        if (docRes.ok) {
+          setVaultDocs(docRes.data || []);
+        }
       } catch (e) {}
     };
-    loadProfile();
+    loadProfileAndDocs();
   }, []);
+
+  const hasCV = vaultDocs.some(d => d.doc_type === 'CV' || d.name.toLowerCase().includes('cv') || d.name.toLowerCase().includes('resume'));
+  const hasTranscript = vaultDocs.some(d => d.doc_type === 'Transcript' || d.name.toLowerCase().includes('transcript'));
+  const hasPassport = vaultDocs.some(d => d.doc_type === 'Passport' || d.name.toLowerCase().includes('passport'));
+  const hasAllRequired = hasCV && hasTranscript && hasPassport;
 
   const handleSubmit = async () => {
     if (!formData.fullName || !formData.email || !formData.phone) {
       showToast('Please fill in your name, email, and phone number so we can contact you.', 'warning');
+      return;
+    }
+
+    if (!hasAllRequired) {
+      showToast('You must upload your CV, Transcript, and Passport to the Document Vault before applying.', 'error');
       return;
     }
 
@@ -70,6 +86,7 @@ export default function AgencyApplyScreen() {
         academic_level: formData.academicLevel,
         sop: formData.sop,
         application_type: 'Agency', // Sets this as an Agency Processing request
+        documents: vaultDocs.map(d => d.id), // Link all vault docs to this application explicitly
       };
 
       const res = await apiService.applyForScholarship(payload);
@@ -228,22 +245,41 @@ export default function AgencyApplyScreen() {
               onChangeText={(v) => setFormData({...formData, sop: v})}
             />
 
-            <View style={[styles.infoBox, { marginTop: 24, backgroundColor: 'rgba(42, 157, 143, 0.1)', borderLeftColor: theme.colors.primary }]}>
-              <MaterialIcons name="folder-shared" size={24} color={theme.colors.primaryDark} style={{marginRight: 10}} />
+            <View style={[styles.infoBox, { marginTop: 24, backgroundColor: hasAllRequired ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)', borderLeftColor: hasAllRequired ? theme.colors.success : theme.colors.error }]}>
+              <MaterialIcons name="folder-shared" size={24} color={hasAllRequired ? theme.colors.success : theme.colors.error} style={{marginRight: 10, marginBottom: 8}} />
               <View style={{flex: 1}}>
-                <Text style={{fontWeight: 'bold', color: theme.colors.primaryDark}}>Important Note</Text>
-                <Text style={{fontSize: 12, color: theme.colors.textSecondary, marginTop: 4}}>
-                  Please ensure your latest CV, Transcripts, and Passport are uploaded to the <Text style={{fontWeight: 'bold'}}>Document Vault</Text> in your Profile so our experts can access them.
+                <Text style={{fontWeight: 'bold', color: hasAllRequired ? theme.colors.success : theme.colors.error}}>
+                  {hasAllRequired ? 'Required Documents Ready' : 'Required Documents Missing'}
                 </Text>
+                <Text style={{fontSize: 12, color: theme.colors.textSecondary, marginTop: 4, marginBottom: 8}}>
+                  To submit an agency request, you must have the following uploaded in your <Text style={{fontWeight: 'bold'}}>Document Vault</Text>:
+                </Text>
+                <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 4}}>
+                  <MaterialIcons name={hasCV ? "check-circle" : "cancel"} size={16} color={hasCV ? theme.colors.success : theme.colors.error} style={{marginRight: 6}} />
+                  <Text style={{fontSize: 13, color: theme.colors.textPrimary}}>CV / Resume</Text>
+                </View>
+                <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 4}}>
+                  <MaterialIcons name={hasTranscript ? "check-circle" : "cancel"} size={16} color={hasTranscript ? theme.colors.success : theme.colors.error} style={{marginRight: 6}} />
+                  <Text style={{fontSize: 13, color: theme.colors.textPrimary}}>Transcript</Text>
+                </View>
+                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                  <MaterialIcons name={hasPassport ? "check-circle" : "cancel"} size={16} color={hasPassport ? theme.colors.success : theme.colors.error} style={{marginRight: 6}} />
+                  <Text style={{fontSize: 13, color: theme.colors.textPrimary}}>Passport</Text>
+                </View>
+                {!hasAllRequired && (
+                  <TouchableOpacity onPress={() => router.push('/documents')} style={{marginTop: 12, backgroundColor: theme.colors.error, padding: 8, borderRadius: 8, alignSelf: 'flex-start'}}>
+                    <Text style={{color: '#FFF', fontSize: 12, fontWeight: 'bold'}}>Go to Document Vault</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
 
           </View>
 
           <TouchableOpacity
-            style={[styles.submitBtn, loading && { opacity: 0.7 }]}
+            style={[styles.submitBtn, (loading || !hasAllRequired) && { opacity: 0.7, backgroundColor: !hasAllRequired ? theme.colors.placeholder : '#8E44AD' }]}
             onPress={handleSubmit}
-            disabled={loading}
+            disabled={loading || !hasAllRequired}
           >
             <Text style={styles.submitBtnText}>
               {loading ? 'Submitting Request...' : 'Submit Request to Agency'}

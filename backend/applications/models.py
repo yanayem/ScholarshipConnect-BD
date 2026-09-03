@@ -39,6 +39,9 @@ class ScholarshipApplication(models.Model):
     academic_level = models.CharField(max_length=50, blank=True)
     sop = models.TextField(verbose_name="Statement of Purpose")
     
+    # Selected documents for this specific application
+    documents = models.ManyToManyField('UserDocument', related_name='applications', blank=True)
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
