@@ -78,7 +78,6 @@ export default function RootLayout() {
                 <Stack.Screen name="index" />
                 <Stack.Screen name="(auth)" />
                 <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="scholarships/[id]" />
                 <Stack.Screen name="apply/[id]" />
                 <Stack.Screen name="reminders" />
                 <Stack.Screen name="documents" />

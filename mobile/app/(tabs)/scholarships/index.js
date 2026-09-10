@@ -13,11 +13,11 @@ import {
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { theme } from '../../theme';
-import { apiService } from '../../services/api';
-import { cacheService } from '../../services/cache';
-import { useToast } from '../../components/Toast';
-import ScholarshipCard from '../../components/cards/ScholarshipCard';
+import { theme } from '../../../theme';
+import { apiService } from '../../../services/api';
+import { cacheService } from '../../../services/cache';
+import { useToast } from '../../../components/Toast';
+import ScholarshipCard from '../../../components/cards/ScholarshipCard';
 
 const COUNTRIES = ['All', 'Japan', 'UK', 'Germany', 'Europe', 'Australia', 'Korea', 'USA', 'China', 'Turkey', 'Canada'];
 const LEVELS = ['All', 'Bachelors', 'Masters', 'PhD', 'Diploma'];
@@ -34,7 +34,7 @@ export default function ScholarshipsScreen() {
   const [showFilters, setShowFilters] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [sortBy, setSortBy] = useState('deadline');
-  
+
   const [scholarships, setScholarships] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

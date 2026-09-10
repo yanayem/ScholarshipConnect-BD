@@ -12,10 +12,10 @@ import {
 import * as WebBrowser from 'expo-web-browser';
 import { useLocalSearchParams, router } from 'expo-router';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
-import { apiService } from '../../services/api';
-import { cacheService } from '../../services/cache';
-import { useToast } from '../../components/Toast';
-import { Loader } from '../../components/Loader';
+import { apiService } from '../../../services/api';
+import { cacheService } from '../../../services/cache';
+import { useToast } from '../../../components/Toast';
+import { Loader } from '../../../components/Loader';
 
 const { width, height } = Dimensions.get('window');
 
@@ -424,7 +424,7 @@ export default function ScholarshipDetails() {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.hybridOptionCard, { borderColor: UI.colors.primary, borderWidth: 1.5, backgroundColor: 'rgba(42, 157, 143, 0.05)' }]}
               onPress={async () => {
                 setShowApplyModal(false);
@@ -461,7 +461,7 @@ export default function ScholarshipDetails() {
               <Ionicons name="open-outline" size={20} color={UI.colors.primary} />
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.hybridOptionCard, { borderColor: '#8E44AD', borderWidth: 1.5, backgroundColor: 'rgba(142, 68, 173, 0.05)' }]}
               onPress={() => {
                 setShowApplyModal(false);

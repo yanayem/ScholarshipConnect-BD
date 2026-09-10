@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image, StatusBar, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
-import { theme } from '../../theme';
-import { apiService } from '../../services/api';
+import { theme } from '../../../theme';
+import { apiService } from '../../../services/api';
 
 export default function MatchmakerScreen() {
   const [loading, setLoading] = useState(true);

@@ -78,7 +78,7 @@ export default function TabLayout() {
 
       {/* 1. Scholarships (Student Only) */}
       <Tabs.Screen
-        name="scholarships"
+        name="scholarships/index"
         options={{
           title: 'Scholarships',
           tabBarIcon: ({ color }) => (
@@ -184,7 +184,25 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Hidden Technical Tabs */}
+      {/* Hidden Technical Tabs and Nested Routes */}
+      <Tabs.Screen
+        name="scholarships/[id]"
+        options={{
+          href: null,
+          tabBarStyle: { display: 'none' },
+          headerShown: false,
+        }}
+      />
+
+      <Tabs.Screen
+        name="scholarships/matchmaker"
+        options={{
+          href: null,
+          tabBarStyle: { display: 'none' },
+          headerShown: false,
+        }}
+      />
+
       <Tabs.Screen
         name="eligibility"
         options={{

@@ -73,6 +73,13 @@ For a complete user manual, in-depth system architecture, Data Flow Diagrams (DF
 - **[Complete User Manual & Documentation](./DOCUMENTATION.md)**
 - **[System Design & Architecture](https://github.com/yanayem/ScholarshipConnect-BD/blob/main/backend/docs/SYSTEM_DESIGN.md)**
 
+### API Documentation (Swagger)
+The backend provides interactive API documentation powered by `drf-spectacular`.
+
+- **Swagger UI**: [http://localhost:8000/swagger/api/](http://localhost:8000/swagger/api/) (Interactive testing)
+- **Redoc**: [http://localhost:8000/api/redoc/](http://localhost:8000/api/redoc/) (Clean documentation)
+- **OpenAPI Schema**: [http://localhost:8000/api/schema/](http://localhost:8000/api/schema/)
+
 ### Core Diagrams
 | Diagram Name | Preview Link |
 | :--- | :--- |
