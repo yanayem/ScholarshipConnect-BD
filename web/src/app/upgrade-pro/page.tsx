@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Header from '@/components/Header';
 import { apiService } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'react-router-dom'; // Using router later, for now Link
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   ShieldCheck,
@@ -18,7 +18,6 @@ import {
   Wallet,
   Trophy
 } from 'lucide-react';
-import { useRouter as useNextRouter } from 'next/navigation';
 
 const BENEFITS = [
   { title: 'Unlimited AI Tools', desc: 'SOP Helper, CV Reviewer & Live Support without daily limits.', icon: Zap, color: 'text-blue-600 bg-blue-50' },
@@ -29,7 +28,7 @@ const BENEFITS = [
 
 export default function UpgradeProPage() {
   const { user, loading: authLoading } = useAuth();
-  const router = useNextRouter();
+  const router = useRouter();
   const [processing, setProcessing] = useState(false);
 
   if (authLoading) return null;
