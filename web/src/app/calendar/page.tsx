@@ -147,18 +147,18 @@ export default function CalendarPage() {
                 )}
              </section>
 
-             <div className="bg-slate-900 rounded-[2rem] p-8 text-white text-center relative overflow-hidden">
+             <div className="border-[3px] border-slate-900 rounded-[2rem] p-8 text-slate-900 text-center relative overflow-hidden bg-white">
                 <div className="relative z-10">
-                   <AlertCircle className="text-red-400 mx-auto mb-4" size={32} />
+                   <AlertCircle className="text-red-500 mx-auto mb-4" size={32} />
                    <h4 className="font-bold text-sm mb-2">Reminder System</h4>
-                   <p className="text-slate-400 text-[10px] leading-relaxed mb-6">
+                   <p className="text-slate-500 text-[10px] leading-relaxed mb-6">
                       Get email and browser alerts 48 hours before your saved scholarship deadlines.
                    </p>
-                   <button className="w-full py-2.5 bg-white text-slate-900 text-xs font-bold rounded-xl hover:bg-slate-100 transition-colors uppercase tracking-widest">
+                   <button className="w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition-colors uppercase tracking-widest">
                       Enable Alerts
                    </button>
                 </div>
-                <CalendarIcon size={120} className="absolute -bottom-10 -right-10 text-white/5 rotate-12" />
+                <CalendarIcon size={120} className="absolute -bottom-10 -right-10 text-slate-50 rotate-12" />
              </div>
           </div>
         </div>

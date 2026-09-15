@@ -20,7 +20,7 @@ class Scholarship(models.Model):
     level = models.CharField(max_length=100, blank=True, default='', db_index=True, help_text="e.g. Bachelors, Masters, PhD")
     field = models.CharField(max_length=100, blank=True, default='', db_index=True, help_text="e.g. Engineering, Arts, etc.")
     min_cgpa = SafeDecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
-    deadline = models.DateField(db_index=True)
+    deadline = models.DateField(db_index=True, null=True, blank=True)
     description = models.TextField(blank=True, default='')
     eligibility = models.TextField(blank=True, default='')
     official_link = models.URLField(blank=True, default='')

@@ -66,7 +66,10 @@ export default function AdminScholarshipsPage() {
                  <Filter size={16} />
                  Filters
               </button>
-              <button className="flex-1 md:flex-none px-6 py-3 bg-primary text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
+              <button
+                onClick={() => router.push('/scholarships/add')}
+                className="flex-1 md:flex-none px-6 py-3 bg-primary text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+              >
                  <Plus size={18} />
                  Add New
               </button>

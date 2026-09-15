@@ -92,18 +92,18 @@ export default function LeaderboardPage() {
              ))}
 
              {/* Info Box */}
-             <div className="mt-12 bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden">
+             <div className="mt-12 bg-white border border-slate-200 rounded-3xl p-8 text-slate-900 relative overflow-hidden">
                 <div className="relative z-10 max-w-lg">
                    <h3 className="font-bold text-lg mb-2">How to earn points?</h3>
-                   <p className="text-slate-400 text-sm leading-relaxed mb-6">
+                   <p className="text-slate-500 text-sm leading-relaxed mb-6">
                      Get points by helping others in the community, sharing scholarship updates, or having your SOP reviewed by mentors.
                    </p>
-                   <Link href="/community" className="inline-flex items-center gap-2 text-xs font-bold bg-white text-slate-900 px-5 py-2.5 rounded-xl hover:bg-slate-100 transition-colors">
+                   <Link href="/community" className="inline-flex items-center gap-2 text-xs font-bold bg-slate-900 text-white px-5 py-2.5 rounded-xl hover:bg-slate-800 transition-colors">
                      Join Discussion
                      <ArrowUpRight size={14} />
                    </Link>
                 </div>
-                <Trophy size={120} className="absolute -bottom-6 -right-6 text-white/5 rotate-12" />
+                <Trophy size={120} className="absolute -bottom-6 -right-6 text-slate-50 rotate-12" />
              </div>
           </div>
         )}

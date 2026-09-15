@@ -102,6 +102,22 @@ export const apiService = {
     return await handleResponse(response);
   },
 
+  async addScholarship(formData: FormData) {
+    const user = auth.currentUser;
+    const headers: Record<string, string> = {};
+    if (user) {
+      const token = await user.getIdToken();
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_URL}/scholarships/`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    return await handleResponse(response);
+  },
+
   // --- Community ---
   async getDiscussions(params = '') {
     const response = await fetch(`${API_URL}/community/${params ? '?' + params : ''}`, {
@@ -200,6 +216,23 @@ export const apiService = {
       method: 'POST',
       headers: await getHeaders(true),
       body: JSON.stringify({ scholarship_id: scholarshipId }),
+    });
+    return await handleResponse(response);
+  },
+
+  async aiLiveSupport(message: string, history: string[] = []) {
+    const response = await fetch(`${API_URL}/ai/live-support/`, {
+      method: 'POST',
+      headers: await getHeaders(true),
+      body: JSON.stringify({ message, history }),
+    });
+    return await handleResponse(response);
+  },
+
+  async getAIChatHistory() {
+    const response = await fetch(`${API_URL}/ai/chat-history/`, {
+      method: 'GET',
+      headers: await getHeaders(true),
     });
     return await handleResponse(response);
   },

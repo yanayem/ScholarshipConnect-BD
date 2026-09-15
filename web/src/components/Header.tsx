@@ -45,8 +45,8 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href={user ? "/home" : "/"} className="flex items-center gap-2 shrink-0">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold">S</div>
-            <span className="text-base font-bold text-slate-900 tracking-tight hidden sm:block">ScholarshipConnect<span className="text-primary">BD</span></span>
+            <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-primary/20">S</div>
+            <span className="text-base font-black text-slate-900 tracking-tight hidden sm:block">ScholarshipConnect<span className="text-primary">BD</span></span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -83,15 +83,15 @@ export default function Header() {
                 )}
 
                 <Link href="/profile" className="flex items-center gap-2 border-l border-slate-100 pl-4">
-                  <div className="w-8 h-8 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-primary text-[10px] font-bold">
-                    {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover rounded-lg" /> : user.full_name?.charAt(0)}
+                  <div className="w-9 h-9 bg-gray-50 border border-black/5 rounded-xl flex items-center justify-center text-primary text-[10px] font-bold hover:shadow-md transition-all">
+                    {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover rounded-xl" /> : user.full_name?.charAt(0)}
                   </div>
                 </Link>
               </>
             ) : (
               <>
-                <Link href="/login" className="text-[11px] font-bold uppercase tracking-widest text-slate-500 hover:text-primary">Login</Link>
-                <Link href="/register" className="bg-primary text-white px-5 py-2 rounded-lg text-[11px] font-bold uppercase tracking-widest hover:bg-primary/90 transition-all">Join</Link>
+                <Link href="/login" className="text-[11px] font-black uppercase tracking-widest text-slate-500 hover:text-primary transition-colors">Login</Link>
+                <Link href="/register" className="bg-primary text-white px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20 transition-all">Join</Link>
               </>
             )}
           </div>

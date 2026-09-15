@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --background: #F8F2E7;
-  --foreground: #222222;
-  --primary: #2A9D8F;
+  --background: #F8F2E7; /* Mobile Warm Cream */
+  --foreground: #222222; /* Mobile Heading */
+  --primary: #2A9D8F;    /* Mobile Premium Teal */
   --primary-light: #E6F7F5;
   --text-secondary: #6B7280;
 }
@@ -20,4 +20,55 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Modern Minimal Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Custom Premium Scrollbar for Chat/Lists */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(42, 157, 143, 0.1); /* Primary Teal with low opacity */
+  border-radius: 20px;
+}
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: rgba(42, 157, 143, 0.3);
+}
+
+/* Page Container Sharp corners as requested */
+.page-container {
+  @apply bg-white border border-slate-200 rounded-sm shadow-sm;
+}
+
+/* Component/Instrument Softer corners as requested */
+.element-lg {
+  @apply rounded-lg;
 }
