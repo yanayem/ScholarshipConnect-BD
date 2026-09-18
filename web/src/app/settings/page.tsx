@@ -139,6 +139,25 @@ export default function SettingsPage() {
               </div>
            </section>
 
+           {/* Subscription */}
+           <section>
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Subscription & Billing</h3>
+              <div className="bg-white border border-slate-100 rounded-[32px] overflow-hidden divide-y divide-slate-50 shadow-sm">
+                 <div className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
+                    <div className="flex items-center gap-4">
+                       <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center">
+                          <CreditCard size={20} />
+                       </div>
+                       <div>
+                          <p className="text-sm font-bold text-slate-900">Payment Methods</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Manage your cards and billing info</p>
+                       </div>
+                    </div>
+                    <ChevronRight size={18} className="text-slate-300" />
+                 </div>
+              </div>
+           </section>
+
            {/* Academic & Tools */}
            <section>
               <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Academic & Tools</h3>
@@ -167,6 +186,82 @@ export default function SettingsPage() {
                        </div>
                     </div>
                     <ChevronRight size={18} className="text-slate-300" />
+                 </div>
+              </div>
+           </section>
+
+           {/* Notifications */}
+           <section>
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Notifications</h3>
+              <div className="bg-white border border-slate-100 rounded-[32px] overflow-hidden divide-y divide-slate-50 shadow-sm">
+                 <div className="flex items-center justify-between p-6">
+                    <div className="flex items-center gap-4">
+                       <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                          <Bell size={20} />
+                       </div>
+                       <div>
+                          <p className="text-sm font-bold text-slate-900">Email Notifications</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Scholarship alerts & news</p>
+                       </div>
+                    </div>
+                    <button className="w-12 h-6 rounded-full relative transition-all bg-primary">
+                       <div className="absolute top-1 w-4 h-4 bg-white rounded-full transition-all right-1"></div>
+                    </button>
+                 </div>
+
+                 <div className="flex items-center justify-between p-6">
+                    <div className="flex items-center gap-4">
+                       <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center">
+                          <Mail size={20} />
+                       </div>
+                       <div>
+                          <p className="text-sm font-bold text-slate-900">Newsletter</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Weekly digest of opportunities</p>
+                       </div>
+                    </div>
+                    <button className="w-12 h-6 rounded-full relative transition-all bg-slate-200">
+                       <div className="absolute top-1 w-4 h-4 bg-white rounded-full transition-all left-1"></div>
+                    </button>
+                 </div>
+              </div>
+           </section>
+
+           {/* App Preferences */}
+           <section>
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">App Preferences</h3>
+              <div className="bg-white border border-slate-100 rounded-[32px] overflow-hidden divide-y divide-slate-50 shadow-sm">
+                 <div className="flex items-center justify-between p-6">
+                    <div className="flex items-center gap-4">
+                       <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
+                          <Moon size={20} />
+                       </div>
+                       <div>
+                          <p className="text-sm font-bold text-slate-900">Dark Mode</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Toggle appearance theme</p>
+                       </div>
+                    </div>
+                    <button
+                      onClick={() => setDarkMode(!darkMode)}
+                      className={`w-12 h-6 rounded-full relative transition-all ${darkMode ? 'bg-primary' : 'bg-slate-200'}`}
+                    >
+                       <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${darkMode ? 'right-1' : 'left-1'}`}></div>
+                    </button>
+                 </div>
+
+                 <div className="flex items-center justify-between p-6">
+                    <div className="flex items-center gap-4">
+                       <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center">
+                          <Globe size={20} />
+                       </div>
+                       <div>
+                          <p className="text-sm font-bold text-slate-900">Language</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Bengali / English</p>
+                       </div>
+                    </div>
+                    <select className="text-[10px] font-bold bg-slate-50 border-none outline-none px-3 py-1 rounded-lg uppercase tracking-widest">
+                       <option>English</option>
+                       <option>Bengali</option>
+                    </select>
                  </div>
               </div>
            </section>
@@ -255,6 +350,42 @@ export default function SettingsPage() {
                  </div>
               </div>
            </section>
+
+                 <div className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
+                    <div className="flex items-center gap-4">
+                       <div className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center">
+                          <AlertTriangle size={20} />
+                       </div>
+                       <div>
+                          <p className="text-sm font-bold text-slate-900">Report a Bug</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Help us improve</p>
+                       </div>
+                    </div>
+                    <ChevronRight size={18} className="text-slate-300" />
+                 </div>
+              </div>
+           </section>
+
+           {/* Admin Portal */}
+           {user.is_staff && (
+             <section>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Admin Dashboard</h3>
+                <div className="bg-white border border-slate-100 rounded-[32px] overflow-hidden divide-y divide-slate-50 shadow-sm">
+                   <div onClick={() => router.push('/admin')} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
+                      <div className="flex items-center gap-4">
+                         <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
+                            <Shield size={20} />
+                         </div>
+                         <div>
+                            <p className="text-sm font-bold text-slate-900">Scholarship Management</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Review & verify submissions</p>
+                         </div>
+                      </div>
+                      <ChevronRight size={18} className="text-slate-300" />
+                   </div>
+                </div>
+             </section>
+           )}
 
            {/* Danger Zone */}
            <section className="pt-6 border-t border-slate-100">

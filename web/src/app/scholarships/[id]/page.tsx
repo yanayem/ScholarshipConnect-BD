@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { apiService } from '@/lib/api';
 import { Scholarship } from '@/types';
-import { Calendar, Briefcase, Heart, ArrowLeft, Globe, ShieldCheck, Brain, DollarSign, GraduationCap, Link as LinkIcon } from 'lucide-react';
+import { Calendar, Briefcase, Heart, ArrowLeft, Globe, ShieldCheck, Brain, DollarSign, GraduationCap, Link as LinkIcon, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
@@ -129,6 +129,16 @@ export default function ScholarshipDetail() {
                       Applied: {scholarship.application_status}
                     </span>
                   )}
+                  {user && scholarship.min_cgpa && (
+                    <span className={`text-[10px] px-3 py-1 rounded-lg font-black uppercase tracking-widest border flex items-center gap-1 ${
+                      (user.cgpa || 0) >= scholarship.min_cgpa
+                      ? 'bg-blue-50 text-blue-600 border-blue-100'
+                      : 'bg-amber-50 text-amber-600 border-amber-100'
+                    }`}>
+                      <ShieldCheck size={12} />
+                      {(user.cgpa || 0) >= scholarship.min_cgpa ? 'Eligible (GPA Match)' : 'GPA below target'}
+                    </span>
+                  )}
                 </div>
               </header>
 
@@ -149,13 +159,39 @@ export default function ScholarshipDetail() {
                 <section>
                   <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">What's Covered</h3>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                     {['Full Tuition Fees', 'Living Allowance', 'Airfare Coverage', 'Health Insurance'].map(item => (
-                       <li key={item} className="flex items-center gap-3 text-xs font-bold text-slate-700 bg-slate-50/50 px-5 py-4 rounded-2xl border border-slate-100">
-                         <ShieldCheck size={18} className="text-primary" />
-                         {item}
+                     {(scholarship.amount?.toLowerCase().includes('full') || !scholarship.amount) ? (
+                       ['Full Tuition Fees', 'Living Allowance', 'Airfare Coverage', 'Health Insurance'].map(item => (
+                         <li key={item} className="flex items-center gap-3 text-xs font-bold text-slate-700 bg-slate-50/50 px-5 py-4 rounded-2xl border border-slate-100">
+                           <ShieldCheck size={18} className="text-primary" />
+                           {item}
+                         </li>
+                       ))
+                     ) : (
+                       <li className="flex items-center gap-3 text-xs font-bold text-slate-700 bg-slate-50/50 px-5 py-4 rounded-2xl border border-slate-100 col-span-2">
+                         <DollarSign size={18} className="text-primary" />
+                         Award Amount: {scholarship.amount}
                        </li>
-                     ))}
+                     )}
                   </ul>
+                </section>
+
+                <section>
+                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Required Documents</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                     {[
+                       { icon: <Mail size={16}/>, label: 'SOP' },
+                       { icon: <Briefcase size={16}/>, label: 'CV/Resume' },
+                       { icon: <GraduationCap size={16}/>, label: 'Transcripts' },
+                       { icon: <Globe size={16}/>, label: 'Passport' }
+                     ].map((doc, i) => (
+                       <div key={i} className="flex flex-col items-center gap-3 p-4 rounded-2xl border border-slate-100 bg-white shadow-sm">
+                         <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
+                           {doc.icon}
+                         </div>
+                         <span className="text-[10px] font-black uppercase tracking-tighter text-slate-600">{doc.label}</span>
+                       </div>
+                     ))}
+                  </div>
                 </section>
 
                 <section>
@@ -202,7 +238,16 @@ export default function ScholarshipDetail() {
                         <div className="w-12 h-12 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center shrink-0 border border-red-100">
                           <Calendar size={24} />
                         </div>
-                        <span className="font-bold text-slate-900 text-lg">{scholarship.deadline || 'Ongoing'}</span>
+                        <div>
+                          <span className="font-bold text-slate-900 text-lg block">{scholarship.deadline || 'Ongoing'}</span>
+                          {scholarship.deadline && (
+                            <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">
+                              {Math.ceil((new Date(scholarship.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) > 0
+                                ? `${Math.ceil((new Date(scholarship.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days left`
+                                : 'Passed'}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
