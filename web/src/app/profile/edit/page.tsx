@@ -126,7 +126,7 @@ export default function EditProfilePage() {
                     type="text"
                     name="full_name"
                     required
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
                     value={formData.full_name}
                     onChange={handleChange}
                   />
@@ -137,7 +137,7 @@ export default function EditProfilePage() {
                     type="text"
                     name="phone_number"
                     placeholder="+880 1XXX-XXXXXX"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
                     value={formData.phone_number}
                     onChange={handleChange}
                   />
@@ -148,7 +148,7 @@ export default function EditProfilePage() {
                     name="bio"
                     rows={3}
                     placeholder="Tell us about yourself..."
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium resize-none"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium resize-none"
                     value={formData.bio}
                     onChange={handleChange}
                   />
@@ -167,7 +167,7 @@ export default function EditProfilePage() {
                   <input
                     type="text"
                     name="university"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
                     value={formData.university}
                     onChange={handleChange}
                   />
@@ -176,7 +176,7 @@ export default function EditProfilePage() {
                   <label className="text-xs font-bold text-gray-500 uppercase ml-1">Current Degree Level</label>
                   <select
                     name="current_level"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium appearance-none"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium appearance-none"
                     value={formData.current_level}
                     onChange={handleChange}
                   >
@@ -192,7 +192,7 @@ export default function EditProfilePage() {
                     type="text"
                     name="cgpa"
                     placeholder="e.g. 3.85"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
                     value={formData.cgpa}
                     onChange={handleChange}
                   />
@@ -202,7 +202,7 @@ export default function EditProfilePage() {
                   <input
                     type="text"
                     name="current_location"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
                     value={formData.current_location}
                     onChange={handleChange}
                   />
@@ -222,7 +222,7 @@ export default function EditProfilePage() {
                     type="text"
                     name="ielts_score"
                     placeholder="e.g. 7.5"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
                     value={formData.ielts_score}
                     onChange={handleChange}
                   />
@@ -233,7 +233,7 @@ export default function EditProfilePage() {
                     type="text"
                     name="gre_score"
                     placeholder="e.g. 320"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
                     value={formData.gre_score}
                     onChange={handleChange}
                   />
@@ -253,7 +253,7 @@ export default function EditProfilePage() {
                     type="text"
                     name="target_countries"
                     placeholder="USA, Germany, Canada, UK"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
                     value={formData.target_countries}
                     onChange={handleChange}
                   />
@@ -264,7 +264,7 @@ export default function EditProfilePage() {
                     type="text"
                     name="research_interests"
                     placeholder="AI, Renewable Energy, Economics"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
                     value={formData.research_interests}
                     onChange={handleChange}
                   />
@@ -275,7 +275,7 @@ export default function EditProfilePage() {
                     type="text"
                     name="skills"
                     placeholder="Python, Public Speaking, Writing"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
                     value={formData.skills}
                     onChange={handleChange}
                   />
@@ -287,14 +287,14 @@ export default function EditProfilePage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-primary text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
+                className="flex-1 bg-primary text-white py-4 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
               >
                 {loading ? <Loader2 className="animate-spin" size={20} /> : <><Save size={20} /> Save Changes</>}
               </button>
               <button
                 type="button"
                 onClick={() => router.push('/profile')}
-                className="px-8 py-4 bg-white border border-gray-200 text-gray-500 rounded-xl font-bold hover:bg-gray-50 transition-all"
+                className="px-8 py-4 bg-white border border-gray-200 text-gray-500 rounded-lg font-bold hover:bg-gray-50 transition-all"
               >
                 Cancel
               </button>

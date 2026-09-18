@@ -64,7 +64,7 @@ export default function UpgradeProPage() {
       <Header />
 
       <main className="max-w-6xl mx-auto px-6 py-10 lg:py-16">
-        <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 md:p-16 shadow-sm">
+        <div className="bg-white border border-slate-200 rounded-sm p-8 md:p-16 shadow-sm">
           <div className="text-center max-w-2xl mx-auto mb-20 space-y-8">
              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary-light text-primary text-[10px] font-black uppercase tracking-[0.2em]">
                 <Crown size={14} />
@@ -78,8 +78,8 @@ export default function UpgradeProPage() {
              {/* Benefits */}
              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {BENEFITS.map((benefit, i) => (
-                  <div key={i} className={`p-8 border rounded-[2rem] space-y-6 hover:shadow-xl transition-all bg-white group ${benefit.color}`}>
-                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center bg-white shadow-sm group-hover:scale-110 transition-transform`}>
+                  <div key={i} className={`p-8 border rounded-lg space-y-6 hover:shadow-xl transition-all bg-white group ${benefit.color}`}>
+                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center bg-white shadow-sm group-hover:scale-110 transition-transform`}>
                         <benefit.icon size={24} />
                      </div>
                      <div className="space-y-2">
@@ -95,7 +95,7 @@ export default function UpgradeProPage() {
                 <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-8">Choose your plan</h2>
 
                 {/* Option 1: ScholarPoints */}
-                <div className={`border-[3px] rounded-[2.5rem] p-10 transition-all relative overflow-hidden bg-slate-50/50 ${((user as any).scholar_points || 0) >= 200 ? 'border-primary' : 'border-slate-100 opacity-60'}`}>
+                <div className={`border-[3px] rounded-lg p-10 transition-all relative overflow-hidden bg-slate-50/50 ${((user as any).scholar_points || 0) >= 200 ? 'border-primary' : 'border-slate-100 opacity-60'}`}>
                    <div className="relative z-10 flex justify-between items-start">
                       <div className="space-y-6">
                          <div>
@@ -112,7 +112,7 @@ export default function UpgradeProPage() {
                          <button
                            onClick={handlePointUpgrade}
                            disabled={processing || ((user as any).scholar_points || 0) < 200}
-                           className="w-full sm:w-auto px-10 py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition-all disabled:bg-slate-200 shadow-xl shadow-primary/20"
+                           className="w-full sm:w-auto px-10 py-4 bg-primary text-white rounded-lg font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition-all disabled:bg-slate-200 shadow-xl shadow-primary/20"
                          >
                            Redeem Points
                          </button>
@@ -123,11 +123,11 @@ export default function UpgradeProPage() {
                 </div>
 
                 {/* Option 2: Cash Payment */}
-                <div className="border-[3px] border-slate-900 rounded-[2.5rem] p-10 text-slate-900 relative overflow-hidden bg-white shadow-2xl shadow-slate-200">
+                <div className="border-[3px] border-primary-light rounded-lg p-10 text-slate-900 relative overflow-hidden bg-white shadow-2xl shadow-slate-200">
                    <div className="relative z-10 flex justify-between items-start">
                       <div className="space-y-6">
                          <div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Instant Access</p>
+                            <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-2">Instant Access</p>
                             <h3 className="text-3xl font-black text-slate-900">500 BDT</h3>
                             <p className="text-xs text-slate-400 font-black uppercase tracking-wider mt-1">30 Days Pro Access</p>
                          </div>
@@ -139,7 +139,7 @@ export default function UpgradeProPage() {
                          </div>
                          <Link
                            href="/checkout"
-                           className="inline-block px-12 py-5 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-300"
+                           className="inline-block px-12 py-5 bg-primary text-white rounded-lg font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition-all shadow-xl shadow-primary/20"
                          >
                            Upgrade Now
                            <ArrowRight size={18} className="inline ml-3" />

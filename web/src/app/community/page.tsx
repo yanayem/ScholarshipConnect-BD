@@ -34,7 +34,7 @@ export default function CommunityPage() {
       <Header />
 
       <main className="max-w-6xl mx-auto px-6 py-10 lg:py-16">
-        <div className="bg-white border border-black/5 rounded-[40px] p-8 md:p-12 shadow-sm">
+        <div className="bg-white border border-slate-200 rounded-sm p-8 md:p-12 shadow-sm">
           <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
             <div>
               <h1 className="text-3xl font-bold text-slate-900 mb-2">Community</h1>
@@ -87,15 +87,15 @@ export default function CommunityPage() {
                {loading ? (
                  <div className="space-y-6">
                     {[1, 2, 3].map(i => (
-                      <div key={i} className="h-48 border border-black/5 rounded-[32px] animate-pulse bg-gray-50/30"></div>
+                      <div key={i} className="h-48 border border-black/5 rounded-lg animate-pulse bg-gray-50/30"></div>
                     ))}
                  </div>
                ) : (
                  <div className="space-y-6">
                     {posts.map((post) => (
-                      <div key={post.id} className="border border-black/5 rounded-[32px] p-8 hover:border-primary/20 transition-all bg-gray-50/20 group">
-                         <div className="flex items-center gap-4 mb-6">
-                            <div className="w-12 h-12 bg-white border border-black/5 rounded-2xl flex items-center justify-center text-slate-400 font-bold text-lg uppercase shadow-sm">
+                      <div key={post.id} className="border border-slate-100 rounded-lg p-6 hover:border-primary/20 transition-all bg-gray-50/20 group">
+                         <div className="flex items-center gap-4 mb-4">
+                            <div className="w-10 h-10 bg-white border border-black/5 rounded-xl flex items-center justify-center text-slate-400 font-bold text-base uppercase shadow-sm">
                                {post.author_name?.[0] || 'A'}
                             </div>
                             <div>
@@ -109,20 +109,20 @@ export default function CommunityPage() {
                             <button className="ml-auto p-2 text-slate-300 hover:text-slate-600 transition-colors"><MoreVerticalIcon size={20} /></button>
                          </div>
 
-                         <h3 className="font-bold text-slate-900 text-xl mb-3 group-hover:text-primary transition-colors leading-snug">{post.title}</h3>
-                         <p className="text-slate-500 text-sm mb-8 line-clamp-3 leading-relaxed font-medium">{post.content}</p>
+                         <h3 className="font-bold text-slate-900 text-lg mb-2 group-hover:text-primary transition-colors leading-snug">{post.title}</h3>
+                         <p className="text-slate-500 text-sm mb-4 line-clamp-3 leading-relaxed font-medium">{post.content}</p>
 
-                         <div className="flex items-center gap-8 pt-6 border-t border-slate-100">
+                         <div className="flex items-center gap-8 pt-4 border-t border-slate-100">
                             <button className="flex items-center gap-2.5 text-slate-400 hover:text-primary transition-all">
-                               <MessageCircle size={20} />
+                               <MessageCircle size={18} />
                                <span className="text-[10px] font-black uppercase tracking-widest">{post.comments_count || 0} Comments</span>
                             </button>
                             <button className="flex items-center gap-2.5 text-slate-400 hover:text-red-500 transition-all">
-                               <Heart size={20} />
+                               <Heart size={18} />
                                <span className="text-[10px] font-black uppercase tracking-widest">{post.likes_count || 0} Likes</span>
                             </button>
                             <button className="ml-auto text-slate-300 hover:text-primary transition-all">
-                               <Share2 size={18} />
+                               <Share2 size={16} />
                             </button>
                          </div>
                       </div>

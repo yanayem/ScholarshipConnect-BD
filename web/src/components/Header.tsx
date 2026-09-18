@@ -37,7 +37,7 @@ export default function Header() {
     { name: 'Community', href: '/community', icon: Users },
   ];
 
-  const currentNav = (isMentorMode && user?.is_staff) ? mentorNav : studentNav;
+  const currentNav = (isMentorMode && user?.is_mentor && user?.is_staff) ? mentorNav : studentNav;
 
   return (
     <header className="bg-white sticky top-0 z-50 border-b border-slate-100">
@@ -73,7 +73,7 @@ export default function Header() {
                    <div className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-red-500 rounded-full"></div>
                 </Link>
 
-                {user.is_staff && (
+                {user.is_mentor && user.is_staff && (
                   <button
                     onClick={toggleMentorMode}
                     className="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-primary transition-colors border-l border-slate-100 pl-4"
@@ -83,8 +83,10 @@ export default function Header() {
                 )}
 
                 <Link href="/profile" className="flex items-center gap-2 border-l border-slate-100 pl-4">
-                  <div className="w-9 h-9 bg-gray-50 border border-black/5 rounded-xl flex items-center justify-center text-primary text-[10px] font-bold hover:shadow-md transition-all">
-                    {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover rounded-xl" /> : user.full_name?.charAt(0)}
+                  <div className="w-9 h-9 bg-gray-50 border border-black/5 rounded-xl flex items-center justify-center text-primary text-[10px] font-bold hover:shadow-md transition-all overflow-hidden">
+                    {(user.avatar || (user as any).avatar_url || (user as any).profile_picture_url) ? (
+                      <img src={user.avatar || (user as any).avatar_url || (user as any).profile_picture_url} className="w-full h-full object-cover rounded-xl" />
+                    ) : user.full_name?.charAt(0)}
                   </div>
                 </Link>
               </>

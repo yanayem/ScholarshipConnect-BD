@@ -43,7 +43,7 @@ export default function ScholarshipList() {
       <Header />
 
       <main className="max-w-6xl mx-auto px-6 py-10 lg:py-16">
-        <div className="bg-white border border-black/5 rounded-[40px] p-8 md:p-12 shadow-sm">
+        <div className="bg-white border border-slate-200 rounded-sm p-8 md:p-12 shadow-sm">
         <header className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 mb-2">Scholarships</h1>
@@ -97,12 +97,17 @@ export default function ScholarshipList() {
                 <Link
                   key={item.id}
                   href={`/scholarships/${item.id}`}
-                  className="group border border-black/5 rounded-[24px] p-6 flex justify-between items-center hover:border-primary/30 transition-all bg-gray-50/30 shadow-sm"
+                  className="group border border-slate-100 rounded-lg p-6 flex justify-between items-center hover:border-primary/30 transition-all bg-gray-50/30 shadow-sm"
                 >
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
                        <h4 className="font-bold text-slate-900 group-hover:text-primary transition-colors text-lg">{item.title}</h4>
                        {item.amount && <span className="text-[9px] bg-emerald-50 text-emerald-600 px-2.5 py-0.5 rounded-lg font-black uppercase tracking-widest border border-emerald-100">{item.amount}</span>}
+                       {item.is_applied && (
+                         <span className="text-[9px] bg-blue-50 text-blue-600 px-2.5 py-0.5 rounded-lg font-black uppercase tracking-widest border border-blue-100 flex items-center gap-0.5">
+                           Applied
+                         </span>
+                       )}
                     </div>
                     <div className="flex gap-6 text-slate-500 text-xs font-bold uppercase tracking-tight opacity-70">
                       <span className="flex items-center gap-1.5"><MapPin size={14} className="text-primary" /> {item.country}</span>

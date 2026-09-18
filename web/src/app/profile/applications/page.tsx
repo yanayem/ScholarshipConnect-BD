@@ -22,16 +22,16 @@ import Link from 'next/link';
 
 const STATUS_CONFIG: any = {
   Saved:        { color: 'text-slate-500', bg: 'bg-slate-50', icon: Bookmark },
-  Preparing:    { color: 'text-amber-600', bg: 'bg-amber-50', icon: Clock },
-  Submitted:    { color: 'text-blue-600', bg: 'bg-blue-50', icon: Send },
+  Applied:      { color: 'text-blue-600', bg: 'bg-blue-50', icon: Send },
+  Processing:   { color: 'text-amber-600', bg: 'bg-amber-50', icon: Clock },
   'Under Review': { color: 'text-purple-600', bg: 'bg-purple-50', icon: Clock },
   Shortlisted:  { color: 'text-emerald-600', bg: 'bg-emerald-50', icon: Star },
   Accepted:     { color: 'text-emerald-700', bg: 'bg-emerald-100', icon: CheckCircle2 },
   Rejected:     { color: 'text-red-600', bg: 'bg-red-50', icon: XCircle },
 };
 
-const TABS = ['All', 'Saved', 'Preparing', 'Submitted', 'Under Review', 'Shortlisted', 'Accepted', 'Rejected'];
-const STEPS = ['Saved', 'Preparing', 'Submitted', 'Under Review', 'Shortlisted', 'Accepted'];
+const TABS = ['All', 'Saved', 'Applied', 'Processing', 'Under Review', 'Accepted', 'Rejected'];
+const STEPS = ['Saved', 'Applied', 'Processing', 'Under Review', 'Accepted'];
 
 export default function ApplicationsPage() {
   const { user, loading: authLoading } = useAuth();
@@ -54,8 +54,23 @@ export default function ApplicationsPage() {
         ]);
         let data: any[] = [];
 
+        if (appRes.ok) {
+          const appList = Array.isArray(appRes.data) ? appRes.data : ((appRes.data as any).results || []);
+          data = data.concat(appList.map((item: any) => ({
+            id: 'a' + item.id,
+            scholarship_id: item.scholarship,
+            title: item.scholarship_title || 'N/A',
+            country: item.scholarship_country || 'N/A',
+            level: item.scholarship_level || 'N/A',
+            deadline: item.scholarship_deadline || 'N/A',
+            status: item.status,
+            type: item.application_type
+          })));
+        }
+
         if (savedRes.ok) {
-          data = data.concat((savedRes.data as any[]).map(item => ({
+          const savedList = Array.isArray(savedRes.data) ? savedRes.data : ((savedRes.data as any).results || []);
+          data = data.concat(savedList.map((item: any) => ({
             id: 's' + item.id,
             scholarship_id: item.scholarship_details?.id,
             title: item.scholarship_details?.title || 'N/A',
@@ -67,20 +82,17 @@ export default function ApplicationsPage() {
           })));
         }
 
-        if (appRes.ok) {
-          data = data.concat((appRes.data as any[]).map(item => ({
-            id: 'a' + item.id,
-            scholarship_id: item.scholarship_id,
-            title: item.scholarship_title || 'N/A',
-            country: item.scholarship_country || 'N/A',
-            level: item.scholarship_level || 'N/A',
-            deadline: item.scholarship_deadline || 'N/A',
-            status: item.application_type === 'Self' ? 'Saved' : item.status,
-            type: item.application_type
-          })));
-        }
+        // Deduplicate or sort so Applied status shows up instead of Saved
+        const uniqueDataMap = new Map();
+        data.forEach(item => {
+          const key = String(item.scholarship_id || item.title).toLowerCase().trim();
+          const existing = uniqueDataMap.get(key);
+          if (!existing || (existing.status === 'Saved' && item.status !== 'Saved')) {
+            uniqueDataMap.set(key, item);
+          }
+        });
 
-        setApplications(data);
+        setApplications(Array.from(uniqueDataMap.values()));
       } catch (error) {
         console.error('Failed to load applications', error);
       } finally {
@@ -153,37 +165,37 @@ export default function ApplicationsPage() {
                 const StatusIcon = cfg.icon;
 
                 return (
-                  <div key={item.id} className="group border border-slate-100 rounded-lg p-8 hover:border-primary/30 transition-all bg-slate-50/20 shadow-sm">
-                    <div className="flex flex-col md:flex-row justify-between items-start gap-8">
-                      <div className="flex-1 space-y-5">
-                         <div className="flex flex-wrap items-center gap-3">
-                            <div className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-sm ${cfg.bg} ${cfg.color}`}>
-                               <StatusIcon size={16} />
+                  <div key={item.id} className="group border border-slate-100 rounded-lg p-5 hover:border-primary/30 transition-all bg-slate-50/20 shadow-sm">
+                    <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+                      <div className="flex-1 space-y-3">
+                         <div className="flex flex-wrap items-center gap-2">
+                            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-widest shadow-sm ${cfg.bg} ${cfg.color}`}>
+                               <StatusIcon size={14} />
                                {item.status}
                             </div>
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest border border-slate-200 px-3 py-1.5 rounded-lg bg-white">
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest border border-slate-200 px-2.5 py-1 rounded-md bg-white">
                                {item.type === 'Self' ? 'Self-Guided' : 'Expert-Assisted'}
                             </span>
                          </div>
 
                          <Link href={`/scholarships/${item.scholarship_id}`} className="block group/link">
-                            <h3 className="text-2xl font-bold text-slate-900 group-hover/link:text-primary transition-colors tracking-tight">{item.title}</h3>
+                            <h3 className="text-lg font-bold text-slate-900 group-hover/link:text-primary transition-colors tracking-tight leading-tight">{item.title}</h3>
                          </Link>
 
-                         <div className="flex flex-wrap gap-8 text-xs font-bold text-slate-500 uppercase tracking-tight opacity-70">
-                            <span className="flex items-center gap-2"><MapPin size={18} className="text-primary" /> {item.country}</span>
-                            <span className="flex items-center gap-2"><GraduationCap size={18} className="text-primary" /> {item.level}</span>
-                            <span className="flex items-center gap-2 text-red-500"><Calendar size={18} /> Deadline: {item.deadline}</span>
+                         <div className="flex flex-wrap gap-4 text-[11px] font-bold text-slate-500 uppercase tracking-tight opacity-70">
+                            <span className="flex items-center gap-1.5"><MapPin size={15} className="text-primary" /> {item.country}</span>
+                            <span className="flex items-center gap-1.5"><GraduationCap size={15} className="text-primary" /> {item.level}</span>
+                            <span className="flex items-center gap-1.5 text-red-500"><Calendar size={15} /> {item.deadline}</span>
                          </div>
                       </div>
 
-                      <div className="flex items-center gap-4 w-full md:w-auto">
+                      <div className="flex items-center gap-3 w-full md:w-auto">
                          {item.type !== 'Self' && (
-                           <button className="flex-1 md:flex-none p-4 bg-white border border-slate-200 text-slate-600 rounded-lg hover:text-primary transition-all shadow-sm">
-                              <MessageCircle size={22} />
+                           <button className="flex-1 md:flex-none p-2.5 bg-white border border-slate-200 text-slate-600 rounded-md hover:text-primary transition-all shadow-sm">
+                              <MessageCircle size={18} />
                            </button>
                          )}
-                         <button className="flex-1 md:flex-none px-10 py-4 bg-slate-900 text-white rounded-lg font-black text-xs uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-200">
+                         <button className="flex-1 md:flex-none px-6 py-3 bg-slate-900 text-white rounded-md font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg shadow-slate-100">
                             Update
                          </button>
                       </div>
@@ -191,16 +203,16 @@ export default function ApplicationsPage() {
 
                     {/* Progress Line */}
                     {item.status !== 'Rejected' && item.type !== 'Self' && (
-                      <div className="mt-12 pt-10 border-t border-slate-200 overflow-x-auto scrollbar-hide">
-                         <div className="flex min-w-[700px] justify-between relative px-4">
-                            <div className="absolute top-2.5 left-0 right-0 h-1 bg-slate-200 rounded-full -z-0"></div>
+                      <div className="mt-8 pt-6 border-t border-slate-200 overflow-x-auto scrollbar-hide">
+                         <div className="flex min-w-[500px] justify-between relative px-2">
+                            <div className="absolute top-1.5 left-0 right-0 h-0.5 bg-slate-200 rounded-full -z-0"></div>
                             {STEPS.map((step, i) => {
                                const currentIdx = STEPS.indexOf(item.status);
                                const isActive = i <= currentIdx;
                                return (
-                                 <div key={step} className="flex flex-col items-center gap-4 relative z-10 bg-slate-50/20 px-3">
-                                    <div className={`w-5 h-5 rounded-full border-[3px] border-white shadow-md ${isActive ? 'bg-primary ring-2 ring-primary/20' : 'bg-slate-300'}`}></div>
-                                    <span className={`text-[10px] font-black uppercase tracking-tighter ${isActive ? 'text-primary' : 'text-slate-400'}`}>
+                                 <div key={step} className="flex flex-col items-center gap-2 relative z-10 bg-slate-50/20 px-2">
+                                    <div className={`w-3.5 h-3.5 rounded-full border-[2px] border-white shadow-sm ${isActive ? 'bg-primary ring-2 ring-primary/10' : 'bg-slate-300'}`}></div>
+                                    <span className={`text-[8px] font-black uppercase tracking-tighter ${isActive ? 'text-primary' : 'text-slate-400'}`}>
                                        {step === 'Under Review' ? 'Review' : step}
                                     </span>
                                  </div>

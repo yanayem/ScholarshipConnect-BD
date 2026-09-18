@@ -102,6 +102,14 @@ export const apiService = {
     return await handleResponse(response);
   },
 
+  async unsaveScholarship(saveId: number) {
+    const response = await fetch(`${API_URL}/applications/saved/${saveId}/`, {
+      method: 'DELETE',
+      headers: await getHeaders(true),
+    });
+    return await handleResponse(response);
+  },
+
   async addScholarship(formData: FormData) {
     const user = auth.currentUser;
     const headers: Record<string, string> = {};
@@ -177,6 +185,15 @@ export const apiService = {
     return await handleResponse(response);
   },
 
+  async applyForScholarship(applicationData: any) {
+    const response = await fetch(`${API_URL}/applications/apply/`, {
+      method: 'POST',
+      headers: await getHeaders(true),
+      body: JSON.stringify(applicationData),
+    });
+    return await handleResponse(response);
+  },
+
   async upgradeWithPoints() {
     const response = await fetch(`${API_URL}/accounts/upgrade-pro/`, {
       method: 'POST',
@@ -196,6 +213,14 @@ export const apiService = {
 
   async getMentorships() {
     const response = await fetch(`${API_URL}/community/mentorships/`, {
+      method: 'GET',
+      headers: await getHeaders(true),
+    });
+    return await handleResponse(response);
+  },
+
+  async getDocuments() {
+    const response = await fetch(`${API_URL}/applications/documents/`, {
       method: 'GET',
       headers: await getHeaders(true),
     });

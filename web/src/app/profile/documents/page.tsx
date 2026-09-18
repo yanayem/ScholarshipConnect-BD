@@ -26,7 +26,8 @@ export default function DocVaultPage() {
       <Header />
 
       <main className="max-w-5xl mx-auto px-6 py-12">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+        <div className="bg-white border border-slate-200 rounded-sm p-8 md:p-12 shadow-sm">
+          <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 mb-2">Document Vault</h1>
             <p className="text-slate-500 text-sm font-medium flex items-center gap-2">
@@ -34,7 +35,7 @@ export default function DocVaultPage() {
                Your documents are encrypted and secure.
             </p>
           </div>
-          <button className="bg-primary text-white px-6 py-3 rounded-2xl font-bold hover:bg-primary/90 transition-all flex items-center gap-2 shadow-lg shadow-primary/20 text-sm">
+          <button className="bg-primary text-white px-6 py-3 rounded-lg font-bold hover:bg-primary/90 transition-all flex items-center gap-2 shadow-lg shadow-primary/20 text-sm">
              <Plus size={20} />
              Upload New
           </button>
@@ -47,10 +48,10 @@ export default function DocVaultPage() {
               <input
                 type="text"
                 placeholder="Search documents..."
-                className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm font-medium bg-slate-50/50"
+                className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm font-medium bg-slate-50/50"
               />
            </div>
-           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 flex flex-col items-center justify-center">
+           <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 flex flex-col items-center justify-center">
               <span className="text-slate-900 font-bold text-lg">{docs.length} / 20</span>
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Storage Used</span>
            </div>
@@ -59,8 +60,8 @@ export default function DocVaultPage() {
         {/* Documents Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
            {docs.map((doc) => (
-             <div key={doc.id} className="group border border-slate-200 rounded-3xl p-6 hover:border-primary/50 transition-all hover:shadow-sm bg-white relative">
-                <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-primary-light transition-colors">
+             <div key={doc.id} className="group border border-slate-200 rounded-lg p-6 hover:border-primary/50 transition-all hover:shadow-sm bg-white relative">
+                <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-6 group-hover:bg-primary-light transition-colors">
                    <FileText size={24} className="text-slate-400 group-hover:text-primary" />
                 </div>
 
@@ -80,8 +81,8 @@ export default function DocVaultPage() {
            ))}
 
            {/* Upload Placeholder */}
-           <button className="border-2 border-dashed border-slate-200 rounded-3xl p-6 flex flex-col items-center justify-center gap-3 hover:bg-slate-50 hover:border-primary/30 transition-all text-slate-400 hover:text-primary group">
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center border border-slate-200 group-hover:border-primary/30">
+           <button className="border-2 border-dashed border-slate-200 rounded-lg p-6 flex flex-col items-center justify-center gap-3 hover:bg-slate-50 hover:border-primary/30 transition-all text-slate-400 hover:text-primary group">
+              <div className="w-12 h-12 rounded-lg flex items-center justify-center border border-slate-200 group-hover:border-primary/30">
                  <Upload size={24} />
               </div>
               <span className="text-xs font-bold uppercase tracking-widest">Add Document</span>
@@ -89,8 +90,8 @@ export default function DocVaultPage() {
         </div>
 
         {/* Security Notice */}
-        <div className="mt-20 p-8 border border-slate-100 rounded-3xl bg-slate-50 flex items-start gap-6">
-           <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shrink-0 border border-slate-100">
+        <div className="mt-20 p-8 border border-slate-100 rounded-lg bg-slate-50 flex items-start gap-6">
+           <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shrink-0 border border-slate-100">
               <ShieldCheck size={24} className="text-emerald-500" />
            </div>
            <div>
@@ -100,6 +101,7 @@ export default function DocVaultPage() {
               </p>
            </div>
         </div>
+      </div>
       </main>
     </div>
   );
