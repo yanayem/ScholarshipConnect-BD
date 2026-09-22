@@ -25,6 +25,7 @@ import {
   Lock,
   Repeat,
   Users,
+  Bell,
   Globe,
   Mail,
   Phone,
@@ -111,23 +112,28 @@ export default function ProfilePage() {
       <main className="max-w-7xl mx-auto px-6 py-10 lg:py-16 flex flex-col lg:flex-row gap-10">
         {/* Left Sidebar Navigation */}
         <aside className="w-full lg:w-72 shrink-0 space-y-4">
-           <div className="bg-white border border-slate-200 rounded-sm p-6 shadow-sm overflow-hidden relative">
+           <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-hidden relative">
               <div className="absolute top-0 left-0 w-full h-1 bg-primary"></div>
               <div className="flex items-center gap-4 mb-8">
-                 <div className="w-12 h-12 bg-primary-light border border-primary/10 rounded-lg flex items-center justify-center text-primary font-bold overflow-hidden">
+                 <div className="w-12 h-12 bg-slate-100 border border-slate-200 text-primary rounded-xl flex items-center justify-center font-bold text-sm overflow-hidden">
                     {(user.avatar || u.avatar_url || u.profile_picture_url) ? (
-                      <img src={user.avatar || u.avatar_url || u.profile_picture_url} className="w-full h-full object-cover rounded-lg" alt="Avatar" />
+                      <img src={user.avatar || u.avatar_url || u.profile_picture_url} className="w-full h-full object-cover" alt="Avatar" />
                     ) : initials}
                  </div>
                  <div className="min-w-0">
-                    <p className="font-bold text-slate-900 truncate">{user.full_name}</p>
-                    <p className="text-[10px] font-medium text-primary uppercase tracking-widest">Scholar Pro</p>
+                    <div className="flex items-center gap-2">
+                       <p className="font-bold text-slate-900 truncate">{user.full_name}</p>
+                       {user.is_staff && (
+                         <span className="bg-slate-900 text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded tracking-widest">Staff</span>
+                       )}
+                    </div>
+                    <p className="text-[10px] font-bold text-primary uppercase tracking-wider">Scholar Pro</p>
                  </div>
               </div>
 
               <nav className="space-y-1">
                  {user.is_mentor ? (
-                   <div className="px-4 py-3 flex items-center justify-between bg-primary/5 rounded-lg mb-4 border border-primary/10">
+                   <div className="px-4 py-3 flex items-center justify-between bg-primary/5 rounded-xl mb-4 border border-primary/10">
                       <div className="flex items-center gap-3">
                          <Repeat size={18} className="text-primary" />
                          <span className="text-xs font-bold text-slate-700">{isMentorMode ? 'Mentor Mode' : 'Student Mode'}</span>
@@ -142,7 +148,7 @@ export default function ProfilePage() {
                  ) : (
                    <button
                      onClick={handleBecomeMentor}
-                     className="w-full flex items-center gap-3 px-4 py-3 mb-4 bg-primary-light text-primary rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary/20 transition-all"
+                     className="w-full flex items-center gap-3 px-4 py-3 mb-4 bg-primary-light text-primary rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-primary/20 transition-all"
                    >
                       <GraduationCap size={18} />
                       Become a Mentor
@@ -151,40 +157,37 @@ export default function ProfilePage() {
 
                  {[
                    { name: 'Dashboard', icon: Trophy, href: '/profile' },
+                   ...((user as any).is_staff ? [{ name: 'Admin Console', icon: ShieldCheck, href: '/admin' }] : []),
                    { name: 'My Applications', icon: Send, href: '/profile/applications' },
                    { name: 'Document Vault', icon: FileText, href: '/profile/documents' },
                    { name: 'Saved Scholarships', icon: Bookmark, href: '/scholarships?filter=saved' },
                    { name: 'Leaderboard', icon: Star, href: '/community/leaderboard' },
                    { name: 'My Insights', icon: LineChart, href: '/profile/progress' },
-                   { name: 'Submission Feedback', icon: MessageSquare, href: '/profile/submission-feedback' },
                    { name: 'History & Activity', icon: History, href: '/profile/activity' },
                    { name: 'Find Mentors', icon: Users, href: '/mentorship' },
-                   { name: 'Notifications', icon: ShieldCheck, href: '/notifications' },
-                   { name: 'Edit Profile', icon: Edit3, href: '/profile/edit' },
-                   { name: 'Account Settings', icon: Settings, href: '/settings' },
-                   { name: 'About Developers', icon: Info, href: '/about' },
+                   { name: 'Notifications', icon: Bell, href: '/notifications' },
+                   { name: 'Account Settings', icon: Settings, href: '/profile/settings' },
                    { name: 'Privacy Policy', icon: Lock, href: '/privacy' },
                  ].map((item) => (
                    <Link
                      key={item.name}
                      href={item.href}
-                     className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
+                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
                        pathname === item.href
-                       ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                       : 'text-slate-500 hover:bg-slate-50 hover:text-primary'
+                       ? 'bg-primary text-white shadow-md'
+                       : 'text-slate-600 hover:bg-slate-50 hover:text-primary'
                      }`}
                    >
-                     <item.icon size={18} />
-                     {item.name}
+                     <item.icon size={16} />
+                     <span>{item.name}</span>
                    </Link>
                  ))}
               </nav>
 
               <button
                 onClick={() => apiService.logout().then(() => router.push('/'))}
-                className="w-full flex items-center gap-3 px-4 py-3 mt-6 bg-red-50 text-red-500 rounded-lg text-sm font-semibold uppercase tracking-widest hover:bg-red-100 transition-all"
+                className="w-full flex items-center justify-center gap-2 py-2 mt-4 bg-red-50 text-red-500 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-red-100 transition-all"
               >
-                 <ArrowRight size={18} className="rotate-180" />
                  Log Out
               </button>
            </div>

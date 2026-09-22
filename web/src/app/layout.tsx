@@ -27,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased pb-20 lg:pb-0`} suppressHydrationWarning>
         <AuthProvider>
           <MentorModeProvider>
             <ProtectedRoute>

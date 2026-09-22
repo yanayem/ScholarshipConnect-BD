@@ -17,6 +17,8 @@ export default function ScholarshipDetail() {
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [saveId, setSaveId] = useState<number | null>(null);
+  const [sopLoading, setSopLoading] = useState(false);
+  const [aiSop, setAiSop] = useState<string | null>(null);
 
   useEffect(() => {
     const loadDetail = async () => {
@@ -87,6 +89,28 @@ export default function ScholarshipDetail() {
     router.push(`/scholarships/apply/agency/${id}?title=${encodeURIComponent(scholarship?.title || '')}`);
   };
 
+  const handleGenerateSOP = async () => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    setSopLoading(true);
+    setAiSop(null);
+    try {
+      const res = await apiService.aiWriteSOP(scholarship?.id as number);
+      if (res.ok && res.data) {
+        setAiSop(res.data.sop || res.data.text || JSON.stringify(res.data));
+      } else {
+        alert('Failed to generate SOP. Please try again.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error generating SOP.');
+    } finally {
+      setSopLoading(false);
+    }
+  };
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -121,6 +145,51 @@ export default function ScholarshipDetail() {
                   )}
                 </div>
                 <h1 className="text-4xl font-bold text-slate-900 mb-4 leading-tight">{scholarship.title}</h1>
+
+                {/* Pro Features Action Bar Row (Exactly as requested) */}
+                <div className="flex flex-col sm:flex-row gap-4 my-6 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                  <button
+                    onClick={handleGenerateSOP}
+                    disabled={sopLoading}
+                    className="flex-1 flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl hover:border-primary/30 transition-all text-left group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
+                        <Brain size={20} className="group-hover:scale-110 transition-transform" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-slate-900">AI SOP Helper</p>
+                        <span className="inline-block mt-1 text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-amber-400 text-slate-950 tracking-wider">
+                          {user?.is_pro ? 'PRO: ACTIVE' : 'PRO: UNLOCK'}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      if(!user?.is_pro) {
+                        router.push('/upgrade-pro');
+                      } else {
+                        router.push('/ai-tools/eligibility');
+                      }
+                    }}
+                    className="flex-1 flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl hover:border-primary/30 transition-all text-left group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <ShieldCheck size={20} className="group-hover:scale-110 transition-transform" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-slate-900">Eligibility Check</p>
+                        <span className="inline-block mt-1 text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-amber-400 text-slate-950 tracking-wider">
+                          {user?.is_pro ? 'PRO: ACTIVE' : 'PRO: UNLOCK'}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+
                 <div className="flex flex-wrap items-center gap-4 mb-4">
                   <p className="text-slate-500 font-medium text-lg">Provided by <span className="text-slate-900 underline decoration-primary/20 underline-offset-4">{scholarship.provider}</span></p>
                   {scholarship.is_applied && (
@@ -194,6 +263,29 @@ export default function ScholarshipDetail() {
                   </div>
                 </section>
 
+                {aiSop && (
+                  <section className="animate-fade-in">
+                    <h3 className="text-xs font-black text-primary uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                      <Brain size={16} />
+                      AI Generated SOP Draft
+                    </h3>
+                    <div className="bg-primary/5 border border-primary/10 rounded-[32px] p-8 md:p-10 relative">
+                      <div className="whitespace-pre-wrap text-slate-700 text-sm leading-relaxed font-medium">
+                        {aiSop}
+                      </div>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(aiSop);
+                          alert('SOP copied to clipboard!');
+                        }}
+                        className="mt-8 text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/80 transition-colors flex items-center gap-2"
+                      >
+                        Copy to Clipboard
+                      </button>
+                    </div>
+                  </section>
+                )}
+
                 <section>
                   <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Requirements</h3>
                   <div className="bg-gray-50 border border-black/5 rounded-lg p-8">
@@ -228,7 +320,7 @@ export default function ScholarshipDetail() {
                         <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shrink-0 border border-emerald-100">
                           <DollarSign size={24} />
                         </div>
-                        <span className="font-bold text-slate-900 text-lg">{scholarship.amount || 'Fully Funded'}</span>
+                        <span className="font-bold text-slate-900 text-sm">{scholarship.amount || 'Fully Funded'}</span>
                       </div>
                     </div>
 
@@ -239,7 +331,7 @@ export default function ScholarshipDetail() {
                           <Calendar size={24} />
                         </div>
                         <div>
-                          <span className="font-bold text-slate-900 text-lg block">{scholarship.deadline || 'Ongoing'}</span>
+                          <span className="font-bold text-slate-900 text-sm block">{scholarship.deadline || 'Ongoing'}</span>
                           {scholarship.deadline && (
                             <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">
                               {Math.ceil((new Date(scholarship.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) > 0
@@ -257,7 +349,7 @@ export default function ScholarshipDetail() {
                         <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shrink-0 border border-blue-100">
                           <Globe size={24} />
                         </div>
-                        <span className="font-bold text-slate-900 text-lg">{scholarship.country}</span>
+                        <span className="font-bold text-slate-900 text-sm leading-snug">{scholarship.country}</span>
                       </div>
                     </div>
 
@@ -268,7 +360,7 @@ export default function ScholarshipDetail() {
                           <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center shrink-0 border border-purple-100">
                             <Briefcase size={24} />
                           </div>
-                          <span className="font-bold text-slate-900 text-lg">{scholarship.field}</span>
+                          <span className="font-bold text-slate-900 text-sm leading-snug">{scholarship.field}</span>
                         </div>
                       </div>
                     )}
@@ -280,7 +372,7 @@ export default function ScholarshipDetail() {
                           <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center shrink-0 border border-amber-100">
                             <GraduationCap size={24} />
                           </div>
-                          <span className="font-bold text-slate-900 text-lg">{scholarship.category}</span>
+                          <span className="font-bold text-slate-900 text-sm leading-snug">{scholarship.category}</span>
                         </div>
                       </div>
                     )}
@@ -293,6 +385,14 @@ export default function ScholarshipDetail() {
                    >
                      {scholarship.official_link ? <LinkIcon size={16} /> : null}
                      {scholarship.official_link ? 'Apply Officially' : 'Apply Externally'}
+                   </button>
+                   <button
+                     onClick={handleGenerateSOP}
+                     disabled={sopLoading}
+                     className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-950/20 flex items-center justify-center gap-2 disabled:bg-slate-400"
+                   >
+                     <Brain size={18} />
+                     {sopLoading ? 'AI is Writing SOP...' : 'Write SOP with AI'}
                    </button>
                    <button
                      onClick={() => router.push('/ai-tools/matchmaker')}

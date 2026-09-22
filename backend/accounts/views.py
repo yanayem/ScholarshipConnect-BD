@@ -138,8 +138,8 @@ class LeaderboardView(APIView):
             # Sort by points descending in Python memory
             data.sort(key=lambda x: x['scholar_points'], reverse=True)
             
-            # Return top 10 results
-            return Response(data[:10], status=status.HTTP_200_OK)
+            # Return top 100 results for a better community view
+            return Response(data[:100], status=status.HTTP_200_OK)
             
         except:
             # Emergency fallback: ensures Render never returns 500 HTML page

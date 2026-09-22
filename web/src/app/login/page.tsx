@@ -74,15 +74,15 @@ export default function LoginPage() {
       </div>
 
       {/* Right Side: Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8 md:p-12 lg:p-16">
         <div className="w-full max-w-md">
           <div className="mb-10 text-center lg:text-left">
-            <Link href="/" className="inline-flex items-center gap-2 mb-12">
+            <Link href="/" className="inline-flex items-center gap-2 mb-8 lg:mb-12">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-primary/20">S</div>
-              <span className="font-bold text-xl tracking-tight text-slate-900">ScholarshipConnect<span className="text-primary">BD</span></span>
+              <span className="font-bold text-lg sm:text-xl tracking-tight text-slate-900">ScholarshipConnect<span className="text-primary">BD</span></span>
             </Link>
-            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Sign In</h2>
-            <p className="text-slate-500 mt-2 font-medium">Enter your details to access your account.</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Sign In</h2>
+            <p className="text-slate-500 mt-2 font-medium text-sm sm:text-base">Enter your details to access your account.</p>
           </div>
 
           {error && (

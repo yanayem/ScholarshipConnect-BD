@@ -39,8 +39,8 @@ export default function Home() {
               Empowering Bangladeshi Scholars
             </div>
 
-            <h1 className="text-5xl lg:text-7xl font-bold text-slate-900 leading-[1.1] tracking-tight">
-              Unlock Your <span className="text-primary underline decoration-primary/20 underline-offset-8">International</span> Journey.
+            <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold text-slate-900 leading-[1.2] lg:leading-[1.1] tracking-tight">
+              Unlock Your <span className="text-primary underline decoration-primary/20 underline-offset-4 lg:underline-offset-8">International</span> Journey.
             </h1>
 
             <p className="text-lg text-slate-500 font-medium leading-relaxed">
@@ -131,20 +131,20 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24">
+      <section className="py-12 md:py-24">
          <div className="max-w-6xl mx-auto px-6">
-            <div className="border-[3px] border-slate-900 rounded-[3rem] p-12 md:p-20 text-center text-slate-900 relative overflow-hidden">
-               <div className="relative z-10 max-w-2xl mx-auto space-y-8">
-                  <h2 className="text-4xl md:text-5xl font-bold leading-tight">Ready to start your application?</h2>
-                  <p className="text-slate-500 font-medium text-lg">Join 10,000+ Bangladeshi students using ScholarAI to secure their future.</p>
-                  <Link href="/register" className="inline-flex items-center gap-2 px-10 py-4 bg-primary text-white rounded-2xl font-bold hover:bg-primary/90 transition-all shadow-xl shadow-primary/20">
+            <div className="border-[2px] md:border-[3px] border-slate-900 rounded-[2rem] md:rounded-[3rem] p-8 md:p-20 text-center text-slate-900 relative overflow-hidden">
+               <div className="relative z-10 max-w-2xl mx-auto space-y-6 md:space-y-8">
+                  <h2 className="text-3xl md:text-5xl font-bold leading-tight">Ready to start your application?</h2>
+                  <p className="text-slate-500 font-medium text-base md:text-lg">Join 10,000+ Bangladeshi students using ScholarAI to secure their future.</p>
+                  <Link href="/register" className="w-full sm:w-auto inline-flex items-center gap-2 px-10 py-4 bg-primary text-white rounded-2xl font-bold hover:bg-primary/90 transition-all shadow-xl shadow-primary/20">
                      Create Free Account
                      <ArrowRight size={20} />
                   </Link>
                </div>
 
-               <Globe size={300} className="absolute -bottom-20 -right-20 text-slate-100 pointer-events-none" />
-               <Sparkles size={100} className="absolute top-10 left-10 text-slate-100 pointer-events-none rotate-12" />
+               <Globe size={300} className="absolute -bottom-20 -right-20 text-slate-100/50 pointer-events-none hidden md:block" />
+               <Sparkles size={100} className="absolute top-10 left-10 text-slate-100/50 pointer-events-none rotate-12 hidden md:block" />
             </div>
          </div>
       </section>

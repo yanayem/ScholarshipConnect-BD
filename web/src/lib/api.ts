@@ -185,6 +185,14 @@ export const apiService = {
     return await handleResponse(response);
   },
 
+  async searchLiveScholarships(query: string = '') {
+    const response = await fetch(`${API_URL}/scholarships/live-search/${query ? '?q=' + query : ''}`, {
+      method: 'GET',
+      headers: await getHeaders(true),
+    });
+    return await handleResponse(response);
+  },
+
   async applyForScholarship(applicationData: any) {
     const response = await fetch(`${API_URL}/applications/apply/`, {
       method: 'POST',
@@ -263,6 +271,23 @@ export const apiService = {
   },
 
   // --- Admin ---
+  async adminLogin(username: string, password: string) {
+    const response = await fetch(`${API_URL}/accounts/admin-login/`, {
+      method: 'POST',
+      headers: await getHeaders(true),
+      body: JSON.stringify({ username, password }),
+    });
+    return await handleResponse(response);
+  },
+
+  async getUsers(params = '') {
+    const response = await fetch(`${API_URL}/accounts/users/${params ? '?' + params : ''}`, {
+      method: 'GET',
+      headers: await getHeaders(true),
+    });
+    return await handleResponse(response);
+  },
+
   async getAdminStats() {
     const response = await fetch(`${API_URL}/scholarships/admin-stats/`, {
       method: 'GET',
@@ -271,7 +296,93 @@ export const apiService = {
     return await handleResponse(response);
   },
 
+  async getAdminLogs() {
+    const response = await fetch(`${API_URL}/accounts/admin/logs/`, {
+      method: 'GET',
+      headers: await getHeaders(true),
+    });
+    return await handleResponse(response);
+  },
+
+  async getAdminBroadcasts() {
+    const response = await fetch(`${API_URL}/notifications/broadcast/`, {
+      method: 'GET',
+      headers: await getHeaders(true),
+    });
+    return await handleResponse(response);
+  },
+
+  async sendBroadcast(title: string, message: string) {
+    const response = await fetch(`${API_URL}/notifications/broadcast/`, {
+      method: 'POST',
+      headers: await getHeaders(true),
+      body: JSON.stringify({ title, message }),
+    });
+    return await handleResponse(response);
+  },
+
+  async getModerationReports() {
+    const response = await fetch(`${API_URL}/community/reports/`, {
+      method: 'GET',
+      headers: await getHeaders(true),
+    });
+    return await handleResponse(response);
+  },
+
+  async resolveReport(reportId: number, status: string) {
+    const response = await fetch(`${API_URL}/community/reports/${reportId}/`, {
+      method: 'PATCH',
+      headers: await getHeaders(true),
+      body: JSON.stringify({ status }),
+    });
+    return await handleResponse(response);
+  },
+
+  async getMentorApplications() {
+    const response = await fetch(`${API_URL}/community/mentor-applications/`, {
+      method: 'GET',
+      headers: await getHeaders(true),
+    });
+    return await handleResponse(response);
+  },
+
+  async approveMentor(id: number, status: string) {
+    const response = await fetch(`${API_URL}/community/mentor-applications/${id}/`, {
+      method: 'PATCH',
+      headers: await getHeaders(true),
+      body: JSON.stringify({ status }),
+    });
+    return await handleResponse(response);
+  },
+
+  async updateScholarship(id: number | string, data: any) {
+    const isFormData = data instanceof FormData;
+    const headers = await getHeaders(true);
+    if (isFormData) {
+      delete headers['Content-Type'];
+    }
+
+    const response = await fetch(`${API_URL}/scholarships/${id}/`, {
+      method: 'PATCH',
+      headers: headers,
+      body: isFormData ? data : JSON.stringify(data),
+    });
+    return await handleResponse(response);
+  },
+
+  async approveScholarship(id: number | string, action: string, note = '') {
+    const response = await fetch(`${API_URL}/scholarships/${id}/approve/`, {
+      method: 'POST',
+      headers: await getHeaders(true),
+      body: JSON.stringify({ action, note }),
+    });
+    return await handleResponse(response);
+  },
+
   async logout() {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('admin_verified');
+    }
     await auth.signOut();
   }
 };

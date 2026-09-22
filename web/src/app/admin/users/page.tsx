@@ -27,8 +27,7 @@ export default function AdminUsersPage() {
   useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true);
-      // For now using mentors as a proxy since getUsers isn't in apiService yet
-      const res = await apiService.getMentors();
+      const res = await apiService.getUsers();
       if (res.ok) {
         setUsers(res.data as any[]);
       }

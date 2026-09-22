@@ -1,3 +1,5 @@
+import requests
+import os
 from rest_framework import viewsets, permissions, status, filters
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -367,3 +369,99 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
             "total_mentorships": total_mentorships,
             "popular_countries": popular_countries
         })
+
+    @action(detail=False, methods=['get'], url_path='live-search', permission_classes=[permissions.AllowAny])
+    def live_search(self, request):
+        query = request.query_params.get('q', '')
+        
+        # ScholarshipAPI & Parse.bot Integration
+        # These keys should be added to .env
+        api_key = os.environ.get('SCHOLARSHIP_API_KEY')
+        parse_bot_key = os.environ.get('PARSE_BOT_API_KEY')
+        
+        results = []
+        
+        # 1. ScholarshipAPI.com Integration
+        if api_key:
+            try:
+                # ScholarshipAPI typically tracks Global/AU/NZ data
+                # Using their standard search pattern
+                resp = requests.get(
+                    f"https://api.scholarshipapi.com/v1/scholarships?q={query}",
+                    headers={"Authorization": f"Bearer {api_key}"},
+                    timeout=5
+                )
+                if resp.status_code == 200:
+                    data = resp.json().get('data', [])
+                    for item in data:
+                        results.append({
+                            "id": f"ext_sapi_{item.get('id')}",
+                            "title": item.get('name') or item.get('title'),
+                            "provider": item.get('university') or item.get('provider', 'Global Partner'),
+                            "country": item.get('country', 'Global'),
+                            "amount": item.get('amount', 'Contact for Details'),
+                            "deadline": item.get('deadline'),
+                            "official_link": item.get('url') or item.get('official_link'),
+                            "is_external": True,
+                            "source": "ScholarshipAPI"
+                        })
+            except Exception:
+                pass
+
+        # 2. Parse.bot (Scholarships.com Scraper) Integration
+        if parse_bot_key and not results: # Fallback or secondary source
+            try:
+                # Parse.bot marketplace API for scholarships.com
+                resp = requests.post(
+                    "https://parse.bot/api/v1/extract",
+                    json={
+                        "api_key": parse_bot_key,
+                        "url": f"https://www.scholarships.com/scholarship-search?q={query}",
+                        "schema": "scholarship_list"
+                    },
+                    timeout=10
+                )
+                if resp.status_code == 200:
+                    data = resp.json().get('results', [])
+                    for i, item in enumerate(data):
+                        results.append({
+                            "id": f"ext_pbot_{item.get('id', i)}",
+                            "title": item.get('title'),
+                            "provider": item.get('provider', 'Scholarships.com Partner'),
+                            "amount": item.get('amount'),
+                            "deadline": item.get('deadline'),
+                            "official_link": item.get('link'),
+                            "is_external": True,
+                            "source": "Scholarships.com (via Parse.bot)"
+                        })
+            except Exception:
+                pass
+
+        # If no external data found or no keys, return a few curated live examples for demo
+        if not results:
+            results = [
+                {
+                    "id": "demo_live_1",
+                    "title": f"Australian Government Research Training Program (RTP) - {query or 'General'}",
+                    "provider": "Australian University Consortium",
+                    "country": "Australia",
+                    "amount": "Full Tuition + $30,000 Stipend",
+                    "deadline": "2024-12-31",
+                    "official_link": "https://www.education.gov.au/research-block-grants/research-training-program",
+                    "is_external": True,
+                    "source": "Live Demo"
+                },
+                {
+                    "id": "demo_live_2",
+                    "title": "Fulbright Foreign Student Program",
+                    "provider": "US Department of State",
+                    "country": "USA",
+                    "amount": "Varies by country",
+                    "deadline": "2025-05-01",
+                    "official_link": "https://foreign.fulbrightonline.org/",
+                    "is_external": True,
+                    "source": "Live Demo"
+                }
+            ]
+
+        return Response(results)

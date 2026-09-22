@@ -36,10 +36,14 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && (!user || !user.is_staff)) {
-      router.push('/home');
+    if (!authLoading) {
+      if (!user || !user.is_staff) {
+        router.push('/home');
+      } else if (localStorage.getItem('admin_verified') !== 'true') {
+        router.push('/admin/login');
+      }
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, router]);
 
   useEffect(() => {
     const loadStats = async () => {
@@ -52,11 +56,11 @@ export default function AdminDashboard() {
         ]);
 
         if (scholarRes.ok) {
-           const data = scholarRes.data as any[];
+           const scholarData = Array.isArray(scholarRes.data) ? scholarRes.data : (scholarRes.data as any).results || [];
            setStats({
-              total: data.length,
-              active: data.filter(s => s.is_featured).length,
-              pending: 12, // Mock for now
+              total: scholarData.length,
+              active: scholarData.filter((s: any) => s.status === 'active').length,
+              pending: scholarData.filter((s: any) => s.status === 'pending').length,
               users: 450, // Mock
               apps: (appsRes.data as any[]).length || 0
            });
@@ -65,10 +69,10 @@ export default function AdminDashboard() {
         setLoading(false);
       }
     };
-    if (user?.is_staff) loadStats();
+    if (user?.is_staff && localStorage.getItem('admin_verified') === 'true') loadStats();
   }, [user]);
 
-  if (authLoading || !user?.is_staff) return null;
+  if (authLoading || !user?.is_staff || (typeof window !== 'undefined' && localStorage.getItem('admin_verified') !== 'true')) return null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -86,12 +90,26 @@ export default function AdminDashboard() {
             </div>
 
             <div className="flex gap-4">
+              <button
+                onClick={() => router.push('/profile')}
+                className="px-6 py-3 bg-primary/10 text-primary rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary/20 transition-all flex items-center gap-3"
+              >
+                  <LayoutDashboard size={16} />
+                  Return to Profile
+              </button>
+              <button
+                onClick={() => {
+                  localStorage.removeItem('admin_verified');
+                  router.push('/profile');
+                }}
+                className="px-6 py-3 bg-red-50 text-red-500 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-100 transition-all flex items-center gap-3"
+              >
+                  <ShieldCheck size={16} />
+                  Secure Logout
+              </button>
               <button className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-3 shadow-xl shadow-slate-200">
                   <Database size={16} />
                   Backup DB
-              </button>
-              <button className="p-3 border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-500 transition-all">
-                  <Settings size={20} />
               </button>
             </div>
           </header>
@@ -100,10 +118,10 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-16">
             {[
               { label: 'Scholarships', val: stats.total, icon: GraduationCap, color: 'text-blue-600 bg-blue-50 border-blue-100' },
-              { label: 'Active Apps', val: stats.apps, icon: FileText, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
+              { label: 'Live Now', val: stats.active, icon: Activity, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
               { label: 'Total Users', val: stats.users, icon: Users, color: 'text-purple-600 bg-purple-50 border-purple-100' },
-              { label: 'Pending Review', val: stats.pending, icon: Clock, color: 'text-amber-600 bg-amber-50 border-amber-100' },
-              { label: 'Featured', val: stats.active, icon: Activity, color: 'text-red-600 bg-red-50 border-red-100' }
+              { label: 'Waiting', val: stats.pending, icon: Clock, color: 'text-amber-600 bg-amber-50 border-amber-100' },
+              { label: 'Total Apps', val: stats.apps, icon: FileText, color: 'text-blue-600 bg-blue-50 border-blue-100' }
             ].map((stat, i) => (
               <div key={i} className={`border rounded-[1.5rem] p-8 flex flex-col items-center text-center bg-white shadow-sm ${stat.color}`}>
                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 bg-white shadow-sm`}>
@@ -151,9 +169,14 @@ export default function AdminDashboard() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       {[
                         { name: 'Manage Scholarships', desc: 'Add or edit featured opportunities.', icon: GraduationCap, href: '/admin/scholarships', color: 'text-blue-600 bg-blue-50' },
-                        { name: 'User Management', desc: 'Track permissions and roles.', icon: Users, href: '/admin/users', color: 'text-purple-600 bg-purple-50' },
-                        { name: 'Broadcast', desc: 'Send push notifications.', icon: Bell, href: '/admin/broadcast', color: 'text-amber-600 bg-amber-50' },
-                        { name: 'Analytics', desc: 'System growth metrics.', icon: Activity, href: '/admin/analytics', color: 'text-emerald-600 bg-emerald-50' }
+                        { name: 'Student Applications', desc: 'Review and manage scholarship submissions.', icon: FileText, href: '/admin/applications', color: 'text-emerald-600 bg-emerald-50' },
+                        { name: 'User Directory', desc: 'Track permissions and roles.', icon: Users, href: '/admin/users', color: 'text-purple-600 bg-purple-50' },
+                        { name: 'Mentor Program', desc: 'Manage mentors and coaching requests.', icon: UserCheck, href: '/admin/mentors', color: 'text-indigo-600 bg-indigo-50' },
+                        { name: 'Push Broadcast', desc: 'Send notifications to all users.', icon: Bell, href: '/admin/broadcast', color: 'text-amber-600 bg-amber-50' },
+                        { name: 'Moderation', desc: 'Monitor community content and logs.', icon: ShieldCheck, href: '/admin/moderation', color: 'text-red-600 bg-red-50' },
+                        { name: 'Analytics', desc: 'System growth and performance metrics.', icon: Activity, href: '/admin/analytics', color: 'text-emerald-600 bg-emerald-50' },
+                        { name: 'History Logs', desc: 'View system-wide activity history.', icon: History, href: '/admin/logs', color: 'text-slate-600 bg-slate-50' },
+                        { name: 'Admin Settings', desc: 'Configure console and global variables.', icon: Settings, href: '/admin/settings', color: 'text-slate-900 bg-slate-100' }
                       ].map((mod, i) => (
                         <Link key={i} href={mod.href} className="p-8 border border-slate-100 rounded-[2rem] hover:border-primary transition-all group bg-white shadow-sm flex flex-col items-start gap-6">
                           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${mod.color}`}>

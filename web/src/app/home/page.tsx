@@ -26,7 +26,11 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-  Plus
+  Plus,
+  Bookmark,
+  Send,
+  FileText,
+  Star
 } from 'lucide-react';
 
 function StudentHome({ user, scholarships, leaderboard, loading, search, setSearch, router, initials }: any) {
@@ -38,48 +42,48 @@ function StudentHome({ user, scholarships, leaderboard, loading, search, setSear
   ];
 
   return (
-    <div className="bg-white border border-slate-200 rounded-sm p-8 md:p-12 shadow-sm">
-      <div className="flex justify-between items-center mb-10">
+    <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-8 md:p-12 shadow-sm">
+      <div className="flex justify-between items-center mb-8 md:mb-10">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Hello, {user.full_name?.split(' ')[0]}</h1>
-          <p className="text-slate-500 text-sm">Find your next scholarship opportunity today.</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 leading-tight">Hello, {user.full_name?.split(' ')[0]}</h1>
+          <p className="text-slate-500 text-xs sm:text-sm">Find your next scholarship opportunity today.</p>
         </div>
         <div className="flex items-center gap-4 lg:hidden">
-           <Link href="/profile" className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-primary font-bold text-sm">
+           <Link href="/profile" className="w-10 h-10 rounded-xl bg-gray-50 border border-slate-100 flex items-center justify-center text-primary font-bold text-sm shadow-sm">
               {initials}
            </Link>
         </div>
       </div>
 
-      <div className="mb-12 relative max-w-2xl">
+      <div className="mb-10 md:mb-12 relative max-w-2xl">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
         <input
           type="text"
           placeholder="Search for scholarships..."
-          className="w-full pl-12 pr-4 py-3.5 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm font-medium"
+          className="w-full pl-12 pr-4 py-3 sm:py-4 border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm font-medium shadow-sm"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && router.push(`/scholarships?search=${search}`)}
         />
       </div>
 
-      <div className="grid lg:grid-cols-4 gap-12">
-        <div className="lg:col-span-3 space-y-12">
+      <div className="grid lg:grid-cols-4 gap-8 md:gap-12">
+        <div className="lg:col-span-3 space-y-10 md:space-y-12">
           <section>
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Quick AI Tools</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 md:mb-6">Quick AI Tools</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
               {aiTools.map((tool) => (
                 <Link
                   key={tool.name}
                   href={tool.href}
-                  className={`border border-slate-100 rounded-lg p-6 flex items-center gap-4 hover:border-primary/30 transition-all group ${tool.color}`}
+                  className={`border border-slate-100 rounded-2xl p-4 sm:p-6 flex items-center gap-4 hover:border-primary/30 transition-all group ${tool.color}`}
                 >
-                  <div className="p-2 rounded-lg bg-white shadow-sm group-hover:scale-110 transition-transform">
+                  <div className="p-2.5 rounded-xl bg-white shadow-sm group-hover:scale-110 transition-transform">
                      <tool.icon size={20} />
                   </div>
                   <div>
                     <h4 className="font-bold text-slate-900 text-sm">{tool.name}</h4>
-                    <p className="text-[11px] opacity-70 font-medium">{tool.sub}</p>
+                    <p className="text-[10px] opacity-70 font-bold">{tool.sub}</p>
                   </div>
                 </Link>
               ))}
@@ -87,15 +91,15 @@ function StudentHome({ user, scholarships, leaderboard, loading, search, setSear
           </section>
 
           <section>
-            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Explore Countries</h3>
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 md:mb-6">Explore Countries</h3>
+            <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
               {countries.map((country) => (
                 <Link
                   key={country}
                   href={`/scholarships?country=${country}`}
-                  className="flex-shrink-0 px-5 py-2.5 border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:border-primary hover:text-primary transition-colors flex items-center gap-2 bg-white"
+                  className="flex-shrink-0 px-6 py-3 border border-slate-200 rounded-2xl text-xs font-bold text-slate-700 hover:border-teal-500 hover:text-teal-600 transition-all flex items-center gap-2 bg-white shadow-sm hover:shadow-md active:scale-95"
                 >
-                  <Globe size={14} />
+                  <Globe size={14} className="text-teal-600" />
                   {country}
                 </Link>
               ))}
@@ -104,8 +108,8 @@ function StudentHome({ user, scholarships, leaderboard, loading, search, setSear
 
           <section>
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Featured Opportunities</h3>
-              <Link href="/scholarships" className="text-primary font-bold text-xs hover:underline flex items-center gap-1">
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Featured Opportunities</h3>
+              <Link href="/scholarships" className="text-primary font-black text-[10px] uppercase tracking-widest hover:underline flex items-center gap-1">
                 View all <ArrowRight size={12} />
               </Link>
             </div>
@@ -113,40 +117,47 @@ function StudentHome({ user, scholarships, leaderboard, loading, search, setSear
             {loading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="h-28 border border-slate-100 rounded-lg animate-pulse"></div>
+                  <div key={i} className="h-28 border border-slate-100 rounded-2xl animate-pulse"></div>
                 ))}
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-5 w-full">
                 {scholarships.length > 0 ? scholarships.map((item: any) => (
                   <Link
                     key={item.id}
                     href={`/scholarships/${item.id}`}
-                    className="group border border-slate-100 rounded-lg p-6 flex justify-between items-center hover:border-primary/30 transition-all bg-slate-50/30"
+                    className="group block w-full max-w-full border border-slate-100/80 rounded-2xl p-5 sm:p-6 hover:border-teal-200 transition-all bg-slate-50/40 hover:bg-white hover:shadow-xl hover:shadow-slate-100/50 overflow-hidden shadow-sm"
                   >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                         <h4 className="font-bold text-slate-900 group-hover:text-primary transition-colors">{item.title}</h4>
-                         <span className="text-[9px] bg-red-50 text-red-500 px-1.5 py-0.5 rounded-lg font-black uppercase tracking-tighter">Hot</span>
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
+                      <div className="w-full min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                           <h4 className="font-bold text-slate-900 group-hover:text-teal-600 transition-colors text-sm sm:text-base leading-snug tracking-tight break-words">{item.title}</h4>
+                           {item.is_featured && (
+                             <span className="text-[7px] bg-red-50 text-red-500 px-1.5 py-0.5 rounded-md font-black uppercase tracking-tighter shrink-0 border border-red-100/50">Hot</span>
+                           )}
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-x-6 gap-y-2.5 text-slate-500 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest items-start sm:items-center w-full">
+                          <span className="flex items-center gap-2 max-w-full">
+                            <MapPin size={14} className="text-teal-600 shrink-0" />
+                            <span className="break-all whitespace-normal">{item.country}</span>
+                          </span>
+                          <span className="flex items-center gap-2 max-w-full">
+                            <GraduationCap size={14} className="text-teal-600 shrink-0" />
+                            <span className="break-all whitespace-normal">{item.level}</span>
+                          </span>
+                          <span className="flex items-center gap-2 text-slate-400 shrink-0">
+                            <span>Deadline: {item.deadline || 'Ongoing'}</span>
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex gap-5 text-slate-500 text-xs font-medium">
-                        <span className="flex items-center gap-1.5"><MapPin size={14} className="text-primary" /> {item.country}</span>
-                        <span className="flex items-center gap-1.5"><GraduationCap size={14} className="text-primary" /> {item.level}</span>
-                        <span className="flex items-center gap-1.5 text-slate-400 font-bold">Deadline: {item.deadline || 'Ongoing'}</span>
+                      <div className="hidden sm:flex items-center gap-4 shrink-0">
+                        <ArrowRight size={20} className="text-slate-300 group-hover:text-teal-600 group-hover:translate-x-1 transition-all" />
                       </div>
-                    </div>
-                    <div className="hidden sm:flex items-center gap-4">
-                      {item.amount && (
-                         <span className="text-xs font-bold text-slate-900 bg-white px-3 py-1.5 rounded-lg border border-slate-100">
-                           {item.amount}
-                         </span>
-                      )}
-                      <ArrowRight size={18} className="text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all" />
                     </div>
                   </Link>
                 )) : (
-                  <div className="text-center py-12 border border-slate-200 rounded-lg border-dashed bg-slate-50/30">
-                     <p className="text-slate-400 text-xs font-bold">No featured scholarships right now.</p>
+                  <div className="text-center py-16 border border-slate-200 rounded-2xl border-dashed bg-slate-50/30 w-full">
+                     <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">No featured opportunities right now.</p>
                   </div>
                 )}
               </div>
@@ -154,64 +165,64 @@ function StudentHome({ user, scholarships, leaderboard, loading, search, setSear
           </section>
         </div>
 
-        <div className="space-y-10">
-          <div className="border border-slate-200 rounded-lg p-8 relative overflow-hidden bg-slate-50/50 group">
-             <h4 className="font-bold text-lg text-slate-900 mb-2 relative z-10">Student Stories</h4>
-             <p className="text-slate-500 text-xs leading-relaxed mb-6 relative z-10 font-medium">
+        <div className="space-y-8 md:space-y-10">
+          <div className="border border-slate-200 rounded-2xl p-6 sm:p-8 relative overflow-hidden bg-slate-50/50 group">
+             <h4 className="font-bold text-base text-slate-900 mb-2 relative z-10">Student Stories</h4>
+             <p className="text-slate-500 text-[11px] leading-relaxed mb-6 relative z-10 font-medium">
                Read how fellow Bangladeshi students secured their dreams abroad.
              </p>
-             <Link href="/blog" className="inline-flex items-center gap-2 text-xs font-bold bg-slate-900 text-white px-5 py-2.5 rounded-lg hover:bg-slate-800 transition-colors relative z-10 shadow-sm">
+             <Link href="/blog" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest bg-slate-900 text-white px-5 py-2.5 rounded-xl hover:bg-slate-800 transition-colors relative z-10 shadow-sm">
                Read Now
                <ArrowRight size={14} />
              </Link>
-             <BookOpen size={80} className="absolute -bottom-4 -right-4 text-slate-100" />
+             <BookOpen size={80} className="absolute -bottom-4 -right-4 text-slate-100 opacity-50" />
           </div>
 
-          <section className="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
+          <section className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm">
             <div className="p-6 border-b border-slate-50 bg-slate-50/30">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Top Scholars</h3>
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Top Scholars</h3>
             </div>
             <div className="p-4 space-y-1">
               {loading ? (
-                [1, 2, 3].map(i => <div key={i} className="h-10 bg-slate-50 rounded-lg animate-pulse mb-2"></div>)
+                [1, 2, 3].map(i => <div key={i} className="h-10 bg-slate-50 rounded-xl animate-pulse mb-2"></div>)
               ) : (
                 leaderboard.map((item: any, index: number) => (
-                  <div key={item.id} className="flex items-center gap-3 p-3 hover:bg-slate-50 rounded-lg transition-colors">
+                  <div key={item.id} className="flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl transition-colors">
                     <span className="text-[10px] font-black text-slate-300 w-4">{index + 1}</span>
-                    <div className="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500 font-bold text-xs uppercase border border-slate-200 shadow-sm">
+                    <div className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500 font-bold text-xs uppercase border border-slate-200 shadow-sm">
                       {(item.full_name || item.username || 'A')[0]}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold text-slate-900 truncate">{item.full_name || item.username}</p>
-                      <p className="text-[10px] text-primary font-bold">{item.scholar_points || 0} PTS</p>
+                      <p className="text-[10px] text-primary font-black uppercase tracking-tighter">{item.scholar_points || 0} PTS</p>
                     </div>
                   </div>
                 ))
               )}
             </div>
-            <Link href="/community/leaderboard" className="block text-center py-4 bg-slate-50 text-[10px] font-bold text-slate-400 hover:text-primary transition-colors border-t border-slate-100 uppercase tracking-widest">
+            <Link href="/community/leaderboard" className="block text-center py-4 bg-slate-50 text-[10px] font-black text-slate-400 hover:text-primary transition-colors border-t border-slate-100 uppercase tracking-widest">
               Full Leaderboard
             </Link>
           </section>
 
-          <div className="bg-primary/5 border border-primary/10 rounded-lg p-8 text-center shadow-sm">
-             <div className="w-12 h-12 bg-primary text-white rounded-lg flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/20">
+          <div className="bg-primary/5 border border-primary/10 rounded-2xl p-8 text-center shadow-sm">
+             <div className="w-12 h-12 bg-primary text-white rounded-xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/20">
                 <Brain size={24} />
              </div>
              <h4 className="text-sm font-bold text-slate-900 mb-2">ScholarAI Match</h4>
-             <p className="text-xs text-slate-500 mb-6 leading-relaxed font-medium">
-                Tailored matches based on your academic profile.
+             <p className="text-[10px] text-slate-500 mb-6 leading-relaxed font-bold uppercase tracking-wider">
+                Tailored matches based on your profile.
              </p>
-             <Link href="/ai-tools/matchmaker" className="block w-full py-3 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary/90 transition-colors uppercase tracking-widest shadow-md">
+             <Link href="/ai-tools/matchmaker" className="block w-full py-3 bg-primary text-white text-[10px] font-black rounded-xl hover:bg-primary/90 transition-colors uppercase tracking-widest shadow-sm">
                Match Me
              </Link>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-lg p-8 text-center shadow-sm">
+          <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm">
              <Plus size={32} className="text-primary mx-auto mb-4 opacity-30" />
              <h4 className="font-bold text-sm mb-2 text-slate-900">Add Scholarship</h4>
              <p className="text-[11px] text-slate-500 mb-8 font-medium leading-relaxed">Know about an opportunity? Share it with the community.</p>
-             <Link href="/scholarships/add" className="block w-full py-3 bg-slate-900 text-white text-[10px] font-bold rounded-lg hover:bg-slate-800 transition-colors uppercase tracking-[0.2em] shadow-md">
+             <Link href="/scholarships/add" className="block w-full py-3 bg-slate-900 text-white text-[10px] font-black rounded-xl hover:bg-slate-800 transition-colors uppercase tracking-[0.2em] shadow-md">
                 Submit Now
              </Link>
           </div>
@@ -246,26 +257,26 @@ function MentorHome({ user, initials }: any) {
   }, [user]);
 
   return (
-    <div className="bg-white border border-slate-200 rounded-sm p-8 md:p-12 shadow-sm">
-      <div className="border-[3px] border-primary rounded-lg p-8 md:p-12 text-slate-900 mb-12 relative overflow-hidden bg-slate-50/30">
+    <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-8 md:p-12 shadow-sm">
+      <div className="border border-slate-200 rounded-2xl p-6 md:p-12 text-slate-900 mb-12 relative overflow-hidden bg-slate-50/30">
          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
             <div>
                <p className="text-slate-500 text-sm font-medium mb-1">Welcome back,</p>
                <h1 className="text-3xl font-bold mb-4">{user.full_name}</h1>
-               <div className="inline-flex items-center gap-2 bg-primary text-white px-5 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/10">
+               <div className="inline-flex items-center gap-2 bg-primary text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md shadow-primary/10">
                   <ShieldCheck size={14} />
                   Verified Mentor
                </div>
             </div>
             <div className="text-center">
-               <div className="w-24 h-24 rounded-lg border-4 border-primary/20 flex flex-col items-center justify-center bg-white shadow-xl">
+               <div className="w-24 h-24 rounded-2xl border-2 border-slate-100 flex flex-col items-center justify-center bg-white shadow-md">
                   <span className="text-3xl font-black text-slate-900 leading-none">{user.scholar_points || 0}</span>
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Points</span>
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-1.5">Points</span>
                </div>
             </div>
          </div>
 
-         <div className="grid grid-cols-3 gap-8 mt-12 pt-10 border-t border-slate-200 relative z-10">
+         <div className="grid grid-cols-3 gap-8 mt-12 pt-10 border-t border-slate-100 relative z-10">
             <div className="text-center">
                <p className="text-3xl font-black text-slate-900">{sessions.length}</p>
                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Sessions</p>
@@ -293,16 +304,16 @@ function MentorHome({ user, initials }: any) {
 
                {loading ? (
                   <div className="space-y-6">
-                     {[1, 2].map(i => <div key={i} className="h-32 border border-slate-100 rounded-lg animate-pulse"></div>)}
+                     {[1, 2].map(i => <div key={i} className="h-32 border border-slate-100 rounded-xl animate-pulse"></div>)}
                   </div>
                ) : sessions.length === 0 ? (
-                  <div className="text-center py-24 border border-slate-200 border-dashed rounded-lg bg-slate-50/30">
+                  <div className="text-center py-24 border border-slate-200 border-dashed rounded-xl bg-slate-50/30">
                      <p className="text-slate-400 text-sm font-bold">No mentorship requests yet.</p>
                   </div>
                ) : (
                   <div className="space-y-6">
                      {sessions.slice(0, 3).map(session => (
-                        <div key={session.id} className="border border-slate-100 rounded-lg p-8 hover:border-primary/30 transition-all bg-white shadow-sm group">
+                        <div key={session.id} className="border border-slate-100 rounded-2xl p-8 hover:border-primary/30 transition-all bg-white shadow-sm group">
                            <div className="flex justify-between items-start mb-6">
                               <h4 className="font-bold text-slate-900 text-lg">{session.topic}</h4>
                               <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-lg ${
@@ -328,7 +339,7 @@ function MentorHome({ user, initials }: any) {
          </div>
 
          <div className="space-y-10">
-            <section className="border border-slate-100 rounded-lg p-8 bg-slate-50/30">
+            <section className="border border-slate-100 rounded-2xl p-8 bg-slate-50/30">
                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-8">Community Impact</h3>
                <div className="space-y-8">
                   <div className="flex items-center gap-5">
@@ -355,7 +366,7 @@ function MentorHome({ user, initials }: any) {
                </div>
             </section>
 
-            <div className="bg-white border border-slate-200 rounded-lg p-8 text-center shadow-sm">
+            <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm">
                <Users size={32} className="text-primary mx-auto mb-4 opacity-30" />
                <h4 className="font-bold text-sm mb-2 text-slate-900">Mentor Profile</h4>
                <p className="text-[11px] text-slate-500 mb-8 font-medium leading-relaxed">Keep your university and scholarship details updated to attract more students.</p>
@@ -425,7 +436,7 @@ export default function UserHomePage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="max-w-7xl mx-auto px-6 py-10 lg:py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 lg:py-16">
         {isMentorMode && user.is_staff ? (
            <MentorHome user={user} initials={initials} />
         ) : (
@@ -442,7 +453,19 @@ export default function UserHomePage() {
         )}
       </div>
 
-      <footer className="py-12 border-t border-slate-200">
+      {/* Floating Live Support AI Button */}
+      <Link
+        href="/ai-tools/support-bot"
+        className="fixed bottom-24 lg:bottom-10 right-6 sm:right-10 z-[90] w-14 h-14 bg-orange-500 text-white rounded-2xl flex items-center justify-center shadow-2xl hover:scale-110 hover:bg-orange-600 transition-all group active:scale-95 border-2 border-orange-400/20"
+      >
+        <MessageSquare size={28} />
+        <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full animate-pulse"></div>
+        <span className="absolute right-full mr-4 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl">
+           Live AI Support
+        </span>
+      </Link>
+
+      <footer className="py-12 border-t border-slate-200 mb-20 lg:mb-0">
         <div className="max-w-7xl mx-auto px-8 flex flex-col sm:flex-row justify-between items-center gap-6">
            <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">© 2026 ScholarshipConnectBD</p>
            <div className="flex gap-10">
