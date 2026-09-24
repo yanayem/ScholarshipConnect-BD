@@ -56,12 +56,12 @@ export default function AdminUsersPage() {
               <input
                 type="text"
                 placeholder="Search by name or email..."
-                className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 text-xs font-bold"
+                className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-none outline-none focus:ring-2 focus:ring-primary/20 text-xs font-bold"
               />
            </div>
 
            <div className="flex gap-4">
-              <div className="px-5 py-2.5 bg-slate-50 border border-slate-100 rounded-xl">
+              <div className="px-5 py-2.5 bg-slate-50 border border-slate-100 rounded-none">
                  <span className="text-[10px] font-black uppercase text-slate-400 block tracking-widest">Total Members</span>
                  <span className="text-sm font-bold text-slate-900">{users.length} Active</span>
               </div>
@@ -70,19 +70,19 @@ export default function AdminUsersPage() {
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-             {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="h-48 border border-slate-100 rounded-3xl animate-pulse"></div>)}
+             {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="h-48 border border-slate-100 rounded-none animate-pulse"></div>)}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
              {users.map((u) => (
-               <div key={u.id} className="border border-slate-100 rounded-3xl p-6 hover:shadow-xl hover:shadow-slate-100/50 transition-all bg-white relative overflow-hidden group">
+               <div key={u.id} className="border border-slate-100 rounded-none p-6 hover:shadow-xl hover:shadow-slate-100/50 transition-all bg-white relative overflow-hidden group">
                   <div className="flex items-start justify-between mb-6">
-                     <div className="w-14 h-14 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center text-primary text-xl font-bold">
-                        {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover rounded-2xl" /> : u.full_name?.[0] || 'U'}
+                     <div className="w-14 h-14 bg-slate-50 border border-slate-200 rounded-none flex items-center justify-center text-primary text-xl font-bold">
+                        {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover rounded-none" /> : u.full_name?.[0] || 'U'}
                      </div>
                      <div className="flex gap-2">
-                        {u.is_pro && <div className="p-1.5 bg-amber-50 text-amber-500 rounded-lg"><Zap size={14} fill="currentColor" /></div>}
-                        {u.is_staff && <div className="p-1.5 bg-primary-light text-primary rounded-lg"><ShieldCheck size={14} /></div>}
+                        {u.is_pro && <div className="p-1.5 bg-amber-50 text-amber-500 rounded-none"><Zap size={14} fill="currentColor" /></div>}
+                        {u.is_staff && <div className="p-1.5 bg-primary-light text-primary rounded-none"><ShieldCheck size={14} /></div>}
                      </div>
                   </div>
 

@@ -79,9 +79,9 @@ export default function BroadcastAdmin() {
           Back to Console
         </Link>
 
-        <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 md:p-12 shadow-sm mb-12">
+        <div className="bg-white border border-slate-200 rounded-none p-8 md:p-12 shadow-sm mb-12">
           <div className="flex items-center gap-6 mb-12">
-            <div className="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
+            <div className="w-16 h-16 bg-amber-50 rounded-none flex items-center justify-center text-amber-600">
               <Bell size={32} />
             </div>
             <div>
@@ -95,7 +95,7 @@ export default function BroadcastAdmin() {
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Broadcast Title</label>
               <input
                 type="text"
-                className="w-full bg-slate-50 border border-slate-100 rounded-xl p-4 text-slate-900 font-medium focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                className="w-full bg-slate-50 border border-slate-100 rounded-none p-4 text-slate-900 font-medium focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                 placeholder="e.g., MEXT Scholarship is Live!"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -105,7 +105,7 @@ export default function BroadcastAdmin() {
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Message Content</label>
               <textarea
-                className="w-full bg-slate-50 border border-slate-100 rounded-xl p-4 text-slate-900 font-medium focus:ring-2 focus:ring-primary/20 outline-none transition-all h-32 resize-none"
+                className="w-full bg-slate-50 border border-slate-100 rounded-none p-4 text-slate-900 font-medium focus:ring-2 focus:ring-primary/20 outline-none transition-all h-32 resize-none"
                 placeholder="Type your announcement here..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
@@ -115,7 +115,7 @@ export default function BroadcastAdmin() {
             <button
               type="submit"
               disabled={sending}
-              className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-50"
+              className="w-full py-4 bg-primary text-white rounded-none font-black text-xs uppercase tracking-widest hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-50"
             >
               {sending ? "Sending..." : (
                 <>

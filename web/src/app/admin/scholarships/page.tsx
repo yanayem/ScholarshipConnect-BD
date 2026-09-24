@@ -57,18 +57,18 @@ export default function AdminScholarshipsPage() {
               <input
                 type="text"
                 placeholder="Search database..."
-                className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 text-xs font-bold"
+                className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-none outline-none focus:ring-2 focus:ring-primary/20 text-xs font-bold"
               />
            </div>
 
            <div className="flex gap-3 w-full md:w-auto">
-              <button className="flex-1 md:flex-none px-6 py-3 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all flex items-center justify-center gap-2">
+              <button className="flex-1 md:flex-none px-6 py-3 border border-slate-200 rounded-none text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all flex items-center justify-center gap-2">
                  <Filter size={16} />
                  Filters
               </button>
               <button
                 onClick={() => router.push('/scholarships/add')}
-                className="flex-1 md:flex-none px-6 py-3 bg-primary text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+                className="flex-1 md:flex-none px-6 py-3 bg-primary text-white rounded-none font-bold text-xs uppercase tracking-widest hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
               >
                  <Plus size={18} />
                  Add New
@@ -78,10 +78,10 @@ export default function AdminScholarshipsPage() {
 
         {loading ? (
           <div className="space-y-4">
-             {[1, 2, 3, 4, 5].map(i => <div key={i} className="h-20 border border-slate-50 rounded-2xl animate-pulse"></div>)}
+             {[1, 2, 3, 4, 5].map(i => <div key={i} className="h-20 border border-slate-50 rounded-none animate-pulse"></div>)}
           </div>
         ) : (
-          <div className="border border-slate-100 rounded-3xl overflow-hidden shadow-sm">
+          <div className="border border-slate-100 rounded-none overflow-hidden shadow-sm">
              <table className="w-full text-left">
                 <thead className="bg-slate-50 border-b border-slate-100">
                    <tr>
@@ -97,7 +97,7 @@ export default function AdminScholarshipsPage() {
                      <tr key={s.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-6 py-5">
                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-primary-light rounded-xl flex items-center justify-center text-primary font-bold text-xs">
+                              <div className="w-10 h-10 bg-primary-light rounded-none flex items-center justify-center text-primary font-bold text-xs">
                                  {s.title[0]}
                               </div>
                               <div>
@@ -110,7 +110,7 @@ export default function AdminScholarshipsPage() {
                            <span className="text-xs font-bold text-slate-600">{s.country}</span>
                         </td>
                         <td className="px-6 py-5">
-                           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-600 w-fit">
+                           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-none bg-emerald-50 text-emerald-600 w-fit">
                               <CheckCircle2 size={12} />
                               <span className="text-[10px] font-black uppercase tracking-widest">Active</span>
                            </div>

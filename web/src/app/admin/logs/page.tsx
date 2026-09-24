@@ -57,7 +57,7 @@ export default function LogsAdmin() {
 
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
             <div className="flex items-center gap-6">
-                <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-900">
+                <div className="w-16 h-16 bg-slate-100 rounded-none flex items-center justify-center text-slate-900">
                     <Terminal size={32} />
                 </div>
                 <div>
@@ -71,12 +71,12 @@ export default function LogsAdmin() {
                 <input
                     type="text"
                     placeholder="Search logs..."
-                    className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm outline-none font-medium"
+                    className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-none text-sm outline-none font-medium"
                 />
             </div>
         </header>
 
-        <div className="bg-slate-900 rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-800">
+        <div className="bg-slate-900 rounded-none overflow-hidden shadow-2xl border border-slate-800">
             <div className="p-6 border-b border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-red-500 rounded-full"></div>

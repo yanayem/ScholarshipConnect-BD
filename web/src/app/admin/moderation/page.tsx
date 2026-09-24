@@ -70,7 +70,7 @@ export default function ModerationAdmin() {
 
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
             <div className="flex items-center gap-6">
-                <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center text-red-600">
+                <div className="w-16 h-16 bg-red-50 rounded-none flex items-center justify-center text-red-600">
                     <ShieldCheck size={32} />
                 </div>
                 <div>
@@ -84,7 +84,7 @@ export default function ModerationAdmin() {
                 <input
                     type="text"
                     placeholder="Search reports..."
-                    className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium"
+                    className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-none text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium"
                 />
             </div>
         </header>
@@ -93,17 +93,17 @@ export default function ModerationAdmin() {
             {loading ? (
                 <div className="text-center py-20 text-slate-400 font-medium">Loading reports...</div>
             ) : reports.length === 0 ? (
-                <div className="bg-white border border-slate-200 rounded-[2rem] p-20 text-center shadow-sm">
+                <div className="bg-white border border-slate-200 rounded-none p-20 text-center shadow-sm">
                     <CheckCircle2 size={48} className="text-emerald-500 mx-auto mb-6" />
                     <h3 className="text-xl font-bold text-slate-900 mb-2">System is Clean</h3>
                     <p className="text-slate-500 font-medium">No pending reports for review.</p>
                 </div>
             ) : reports.map((report) => (
-                <div key={report.id} className="bg-white border border-slate-200 rounded-[2rem] p-8 shadow-sm hover:border-red-100 transition-all group">
+                <div key={report.id} className="bg-white border border-slate-200 rounded-none p-8 shadow-sm hover:border-red-100 transition-all group">
                     <div className="flex flex-col md:flex-row gap-8">
                         <div className="flex-1 space-y-6">
                             <div className="flex items-center gap-4">
-                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                <span className={`px-4 py-1.5 rounded-none text-[10px] font-black uppercase tracking-widest ${
                                     report.status === 'pending' ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-400'
                                 }`}>
                                     {report.status}
@@ -122,7 +122,7 @@ export default function ModerationAdmin() {
                                     </div>
                                 </div>
 
-                                <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
+                                <div className="bg-slate-50 rounded-none p-6 border border-slate-100">
                                     <div className="flex items-center gap-3 mb-3">
                                         <MessageSquare size={14} className="text-slate-400" />
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Reported Content</p>
@@ -133,7 +133,7 @@ export default function ModerationAdmin() {
 
                             <div className="flex items-center gap-8 pt-4 border-t border-slate-50">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400">
+                                    <div className="w-8 h-8 bg-slate-100 rounded-none flex items-center justify-center text-slate-400">
                                         <User size={16} />
                                     </div>
                                     <div>
@@ -142,7 +142,7 @@ export default function ModerationAdmin() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400">
+                                    <div className="w-8 h-8 bg-slate-100 rounded-none flex items-center justify-center text-slate-400">
                                         <User size={16} />
                                     </div>
                                     <div>
@@ -156,17 +156,17 @@ export default function ModerationAdmin() {
                         <div className="flex md:flex-col gap-3 shrink-0">
                             <button
                                 onClick={() => handleResolve(report.id, 'resolved')}
-                                className="flex-1 md:w-40 py-4 bg-emerald-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-200"
+                                className="flex-1 md:w-40 py-4 bg-emerald-500 text-white rounded-none font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-200"
                             >
                                 Dismiss / OK
                             </button>
                             <button
                                 onClick={() => handleResolve(report.id, 'deleted')}
-                                className="flex-1 md:w-40 py-4 bg-red-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-red-200"
+                                className="flex-1 md:w-40 py-4 bg-red-500 text-white rounded-none font-black text-[10px] uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-red-200"
                             >
                                 Take Action
                             </button>
-                            <button className="flex-1 md:w-40 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg shadow-slate-200">
+                            <button className="flex-1 md:w-40 py-4 bg-slate-900 text-white rounded-none font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg shadow-slate-200">
                                 View Profile
                             </button>
                         </div>

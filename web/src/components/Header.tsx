@@ -28,7 +28,11 @@ import {
   Info,
   Lock,
   ArrowRight,
-  Trophy
+  Trophy,
+  LayoutDashboard,
+  UserCheck,
+  Radio,
+  Activity
 } from 'lucide-react';
 
 export default function Header() {
@@ -52,7 +56,99 @@ export default function Header() {
     { name: 'Community', href: '/community', icon: Users },
   ];
 
-  const currentNav = (isMentorMode && user?.is_mentor && user?.is_staff) ? mentorNav : studentNav;
+  const adminNav = [
+    { name: 'Console', href: '/admin', icon: LayoutDashboard },
+    { name: 'Scholarships', href: '/admin/scholarships', icon: GraduationCap },
+    { name: 'Applications', href: '/admin/applications', icon: FileText },
+    { name: 'Users', href: '/admin/users', icon: Users },
+    { name: 'Mentors', href: '/admin/mentors', icon: UserCheck },
+  ];
+
+  const adminSubNav = [
+    { name: 'Console', href: '/admin', icon: LayoutDashboard },
+    { name: 'Scholarships', href: '/admin/scholarships', icon: GraduationCap },
+    { name: 'Applications', href: '/admin/applications', icon: FileText },
+    { name: 'Users', href: '/admin/users', icon: Users },
+    { name: 'Mentors', href: '/admin/mentors', icon: UserCheck },
+    { name: 'Broadcast', href: '/admin/broadcast', icon: Radio },
+    { name: 'Moderation', href: '/admin/moderation', icon: ShieldCheck },
+    { name: 'Analytics', href: '/admin/analytics', icon: Activity },
+    { name: 'Logs', href: '/admin/logs', icon: History },
+    { name: 'Settings', href: '/admin/settings', icon: Settings },
+  ];
+
+  const isAdminPath = pathname.startsWith('/admin');
+  const currentNav = (isMentorMode && user?.is_mentor && user?.is_staff)
+    ? mentorNav
+    : studentNav;
+
+  if (isAdminPath && user?.is_staff) {
+    return (
+      <header className="bg-white sticky top-0 z-50 border-b border-slate-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Admin Header Top Bar */}
+          <div className="flex justify-between items-center h-16 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <Link href="/admin" className="flex items-center gap-2.5">
+                <div className="w-9 h-9 bg-slate-900 text-white rounded-none flex items-center justify-center font-black text-base shadow-md">
+                  S
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm sm:text-base font-black tracking-tight text-slate-900 leading-none">
+                    ScholarshipConnect<span className="text-primary">BD</span>
+                  </span>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 mt-1 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Admin Console
+                  </span>
+                </div>
+              </Link>
+            </div>
+
+            <div className="flex items-center gap-3 sm:gap-4">
+              <Link
+                href="/home"
+                className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-1.5 rounded-none text-xs font-bold transition-all border border-slate-200 shadow-sm"
+              >
+                <ArrowRight size={14} className="rotate-180 text-slate-500" />
+                <span className="hidden sm:inline">Exit to Main App</span>
+                <span className="sm:hidden">Exit</span>
+              </Link>
+
+              <Link href="/profile" className="flex items-center gap-2 pl-2 border-l border-slate-100">
+                <div className="w-8 h-8 bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-700 overflow-hidden rounded-none">
+                  {(user.avatar || (user as any).avatar_url) ? (
+                    <img src={user.avatar || (user as any).avatar_url} className="w-full h-full object-cover rounded-none" alt="" />
+                  ) : user.full_name?.charAt(0) || 'A'}
+                </div>
+              </Link>
+            </div>
+          </div>
+
+          {/* Admin Navigation Links */}
+          <div className="flex items-center gap-1.5 py-2.5 overflow-x-auto scrollbar-hide">
+            {adminSubNav.map((sub) => {
+              const isSubActive = sub.href === '/admin' ? pathname === '/admin' : pathname.startsWith(sub.href);
+              return (
+                <Link
+                  key={sub.href}
+                  href={sub.href}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold transition-all whitespace-nowrap rounded-none ${
+                    isSubActive
+                      ? 'bg-slate-900 text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
+                >
+                  <sub.icon size={15} />
+                  <span>{sub.name}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <>
@@ -61,7 +157,7 @@ export default function Header() {
           <div className="flex justify-between items-center h-16">
             {/* Logo & Search Bar */}
             <div className="flex items-center gap-3 flex-1 max-w-md mr-4">
-              <Link href={user ? "/home" : "/"} className="flex items-center gap-2 shrink-0">
+              <Link href={isAdminPath ? "/admin" : (user ? "/home" : "/")} className="flex items-center gap-2 shrink-0">
                 <div className="w-9 h-9 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
                   <img src="/logo.png" className="w-full h-full object-cover" alt="ScholarshipConnectBD Logo" onError={(e) => {
                     // Fallback to text if image not found yet
@@ -72,9 +168,14 @@ export default function Header() {
                   <div style={{ display: 'none' }} className="w-full h-full bg-primary flex items-center justify-center text-white font-bold">S</div>
                 </div>
                 <span className="text-base font-black text-slate-900 tracking-tight hidden md:block">ScholarshipConnect<span className="text-primary">BD</span></span>
+                {isAdminPath && (
+                  <span className="bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border border-slate-700 ml-1">
+                    Admin
+                  </span>
+                )}
               </Link>
 
-              {user && (
+              {!isAdminPath && user && (
                 <div className="hidden sm:block relative w-full max-w-[280px]">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                     <Search size={16} />
@@ -88,29 +189,41 @@ export default function Header() {
               )}
             </div>
 
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center h-full gap-1">
-              {user && currentNav.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`h-full flex flex-col items-center justify-center px-4 relative min-w-[85px] transition-all border-b-2 ${
-                      isActive
-                        ? 'border-primary text-primary font-semibold'
-                        : 'border-transparent text-slate-400 hover:text-slate-700'
-                    }`}
-                  >
-                    <item.icon size={20} strokeWidth={isActive ? 2.2 : 1.8} />
-                    <span className="text-[11px] mt-1 font-medium tracking-wide">{item.name}</span>
-                  </Link>
-                );
-              })}
-            </div>
+            {/* Desktop Navigation - Hidden in Admin Panel */}
+            {!isAdminPath && (
+              <div className="hidden lg:flex items-center h-full gap-1">
+                {user && currentNav.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`h-full flex flex-col items-center justify-center px-4 relative min-w-[85px] transition-all border-b-2 ${
+                        isActive
+                          ? 'border-primary text-primary font-semibold'
+                          : 'border-transparent text-slate-400 hover:text-slate-700'
+                      }`}
+                    >
+                      <item.icon size={20} strokeWidth={isActive ? 2.2 : 1.8} />
+                      <span className="text-[11px] mt-1 font-medium tracking-wide">{item.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
 
             {/* User Actions & Mobile Hamburger */}
             <div className="flex items-center gap-2 sm:gap-4">
+              {isAdminPath && (
+                <Link
+                  href="/home"
+                  className="hidden sm:flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
+                >
+                  <ArrowRight size={14} className="rotate-180" />
+                  Exit Admin
+                </Link>
+              )}
+
               {user && (
                 <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -128,7 +241,7 @@ export default function Header() {
                      <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></div>
                   </Link>
 
-                  {user.is_mentor && user.is_staff && (
+                  {!isAdminPath && user.is_mentor && user.is_staff && (
                     <button
                       onClick={toggleMentorMode}
                       className="hidden sm:block text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-primary transition-colors border-l border-slate-100 pl-4"
@@ -154,6 +267,43 @@ export default function Header() {
             </div>
           </div>
         </nav>
+
+        {isAdminPath && user?.is_staff && (
+          <div className="bg-slate-900 text-white text-xs border-t border-slate-800 px-4 sm:px-6 py-2.5">
+            <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2 shrink-0 pr-3 sm:pr-4 border-r border-slate-800">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="font-black text-[10px] tracking-widest uppercase text-slate-300">Admin Portal</span>
+              </div>
+              <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto scrollbar-hide py-0.5">
+                {adminSubNav.map((sub) => {
+                  const isSubActive = sub.href === '/admin' ? pathname === '/admin' : pathname.startsWith(sub.href);
+                  return (
+                    <Link
+                      key={sub.href}
+                      href={sub.href}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap ${
+                        isSubActive
+                          ? 'bg-primary text-white shadow-md shadow-primary/20'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      }`}
+                    >
+                      <sub.icon size={14} />
+                      <span>{sub.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+              <Link
+                href="/home"
+                className="hidden md:flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors shrink-0 pl-4 border-l border-slate-800"
+              >
+                <ArrowRight size={12} className="rotate-180" />
+                User App
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Apps Dropdown Menu (LinkedIn Style Profile Sidebar) */}
         {mobileMenuOpen && user && (
@@ -235,8 +385,8 @@ export default function Header() {
         )}
       </header>
 
-      {/* Bottom Navigation Bar - Fixed at the very bottom, always visible on mobile */}
-      {user && (
+      {/* Bottom Navigation Bar - Fixed at the very bottom, always visible on mobile for students */}
+      {!isAdminPath && user && (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-100 z-[100] px-2 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.05)] flex justify-around items-center h-20">
           {currentNav.map((item) => {
             const isActive = pathname === item.href;

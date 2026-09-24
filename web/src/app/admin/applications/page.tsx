@@ -60,7 +60,7 @@ export default function ApplicationsAdmin() {
 
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
             <div className="flex items-center gap-6">
-                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+                <div className="w-16 h-16 bg-blue-50 rounded-none flex items-center justify-center text-blue-600">
                     <FileText size={32} />
                 </div>
                 <div>
@@ -75,16 +75,16 @@ export default function ApplicationsAdmin() {
                     <input
                         type="text"
                         placeholder="Search student or scholarship..."
-                        className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm outline-none font-medium"
+                        className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-none text-sm outline-none font-medium"
                     />
                 </div>
-                <button className="p-3 border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-500">
+                <button className="p-3 border border-slate-200 rounded-none hover:bg-slate-50 text-slate-500">
                     <Filter size={20} />
                 </button>
             </div>
         </header>
 
-        <div className="bg-white border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-sm">
+        <div className="bg-white border border-slate-200 rounded-none overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                     <thead>
@@ -105,7 +105,7 @@ export default function ApplicationsAdmin() {
                             <tr key={app.id} className="hover:bg-slate-50 transition-colors">
                                 <td className="p-6">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-primary-light rounded-lg flex items-center justify-center text-primary font-bold shadow-sm">
+                                        <div className="w-10 h-10 bg-primary-light rounded-none flex items-center justify-center text-primary font-bold shadow-sm">
                                             {app.user_name?.[0] || 'U'}
                                         </div>
                                         <div>
@@ -118,7 +118,7 @@ export default function ApplicationsAdmin() {
                                     <p className="font-bold text-slate-700 text-sm max-w-[250px] truncate">{app.scholarship_title}</p>
                                 </td>
                                 <td className="p-6">
-                                    <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                    <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-none text-[10px] font-black uppercase tracking-widest ${
                                         app.status === 'submitted' ? 'bg-blue-50 text-blue-600' :
                                         app.status === 'approved' ? 'bg-emerald-50 text-emerald-600' :
                                         app.status === 'rejected' ? 'bg-red-50 text-red-600' : 'bg-slate-50 text-slate-400'
