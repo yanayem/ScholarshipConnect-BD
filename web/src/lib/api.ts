@@ -39,8 +39,18 @@ const getHeaders = async (includeToken = true) => {
   if (includeToken) {
     const user = auth.currentUser;
     if (user) {
-      const token = await user.getIdToken();
-      headers['Authorization'] = `Bearer ${token}`;
+      try {
+        const token = await user.getIdToken();
+        headers['Authorization'] = `Bearer ${token}`;
+      } catch (err) {
+        console.warn('[API] Token fetch error, retrying fresh token:', err);
+        try {
+          const freshToken = await user.getIdToken(true);
+          headers['Authorization'] = `Bearer ${freshToken}`;
+        } catch (e) {
+          console.error('[API] Auth token error:', e);
+        }
+      }
     }
   }
 
@@ -60,6 +70,14 @@ export const apiService = {
   // --- Auth & Profile ---
   async getProfile() {
     const response = await fetch(`${API_URL}/accounts/profile/`, {
+      method: 'GET',
+      headers: await getHeaders(true),
+    });
+    return await handleResponse(response);
+  },
+
+  async getAutocomplete(type: string, q = '') {
+    const response = await fetch(`${API_URL}/accounts/autocomplete/?type=${type}&q=${encodeURIComponent(q)}`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
@@ -246,6 +264,15 @@ export const apiService = {
 
   async aiWriteSOP(scholarshipId: number) {
     const response = await fetch(`${API_URL}/ai/write-sop/`, {
+      method: 'POST',
+      headers: await getHeaders(true),
+      body: JSON.stringify({ scholarship_id: scholarshipId }),
+    });
+    return await handleResponse(response);
+  },
+
+  async aiCheckEligibility(scholarshipId: number) {
+    const response = await fetch(`${API_URL}/ai/check-eligibility/`, {
       method: 'POST',
       headers: await getHeaders(true),
       body: JSON.stringify({ scholarship_id: scholarshipId }),

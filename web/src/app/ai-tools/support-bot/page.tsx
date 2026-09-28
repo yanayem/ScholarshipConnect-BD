@@ -84,7 +84,11 @@ export default function SupportBotPage() {
     setInputText('');
     setLoading(true);
 
-    const history = messages.slice(-6).map(m => m.text);
+    // Filter out error messages from context history so previous failures don't ruin context
+    const history = messages
+        .filter(m => m.text && !m.text.includes('temporarily') && !m.text.includes('Connection Error') && !m.text.includes('refreshing') && !m.text.includes('experiencing high demand'))
+        .slice(-6)
+        .map(m => m.text);
 
     try {
         const res = await apiService.aiLiveSupport(userMsgText, history);
@@ -96,7 +100,7 @@ export default function SupportBotPage() {
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             }]);
         } else {
-            const errorText = res.data?.error || res.data?.message || 'The AI service is temporarily unavailable. Please check your Backend API keys.';
+            const errorText = res.data?.error || res.data?.message || 'ScholarAI is currently busy. Please try asking again in a moment.';
             setMessages(prev => [...prev, {
                 id: Date.now().toString(),
                 text: errorText,
@@ -107,7 +111,7 @@ export default function SupportBotPage() {
     } catch (err) {
         setMessages(prev => [...prev, {
             id: Date.now().toString(),
-            text: 'Connection Error: Could not reach the backend server. Please ensure Django is running.',
+            text: 'Connection Error: Could not reach the server. Please check your internet connection.',
             isUser: false
         }]);
     } finally {

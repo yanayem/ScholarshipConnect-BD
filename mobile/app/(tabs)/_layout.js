@@ -76,46 +76,7 @@ export default function TabLayout() {
       }}
     >
 
-      {/* 1. Scholarships (Student Only) */}
-      <Tabs.Screen
-        name="scholarships/index"
-        options={{
-          title: 'Scholarships',
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons name="school" size={24} color={color} />
-          ),
-          headerTitle: 'Scholarships',
-          href: isMentorMode ? null : undefined,
-        }}
-      />
-
-      {/* 2. Calendar (Student Only) */}
-      <Tabs.Screen
-        name="calendar"
-        options={{
-          title: 'Calendar',
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons name="event" size={24} color={color} />
-          ),
-          headerTitle: 'Deadline Calendar',
-          href: isMentorMode ? null : undefined,
-        }}
-      />
-
-      {/* 3. Sessions (Mentor Only) */}
-      <Tabs.Screen
-        name="sessions"
-        options={{
-          title: 'Sessions',
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons name="event-available" size={24} color={color} />
-          ),
-          headerShown: false,
-          href: isMentorMode ? undefined : null,
-        }}
-      />
-
-      {/* 4. Home / Dashboard (Center for BOTH modes) */}
+      {/* 1. Home / Dashboard */}
       <Tabs.Screen
         name="index"
         options={{
@@ -133,20 +94,67 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 5. Applications (Student Only) */}
+      {/* 2. Scholarships */}
       <Tabs.Screen
-        name="applications"
+        name="scholarships/index"
         options={{
-          title: 'Application',
+          title: 'Scholarships',
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="bookmark" size={24} color={color} />
+            <MaterialIcons name="school" size={24} color={color} />
           ),
-          headerTitle: 'My Applications',
-          href: isMentorMode ? null : undefined,
+          headerTitle: 'Scholarships',
         }}
       />
 
-      {/* 6. Community (Shared) */}
+      {/* 3. Calendar */}
+      <Tabs.Screen
+        name="calendar"
+        options={{
+          title: 'Calendar',
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="event" size={24} color={color} />
+          ),
+          headerTitle: 'Deadline Calendar',
+        }}
+      />
+
+      {/* 4. My Applications / My Scholarship */}
+      <Tabs.Screen
+        name="applications"
+        options={{
+          title: 'My Scholarship',
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="bookmark" size={24} color={color} />
+          ),
+          headerTitle: 'My Scholarships',
+        }}
+      />
+
+      {/* 5. Profile */}
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="person" size={24} color={color} />
+          ),
+          headerShown: false,
+        }}
+      />
+
+      {/* ── COMMENTED OUT OTHER FEATURES ──────────────────────────────
+      <Tabs.Screen
+        name="sessions"
+        options={{
+          title: 'Sessions',
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="event-available" size={24} color={color} />
+          ),
+          headerShown: false,
+          href: isMentorMode ? undefined : null,
+        }}
+      />
+
       <Tabs.Screen
         name="community"
         options={{
@@ -158,7 +166,6 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 7. Inbox (Mentor Only in Bottom Nav) */}
       <Tabs.Screen
         name="inbox"
         options={{
@@ -170,19 +177,7 @@ export default function TabLayout() {
           href: isMentorMode ? undefined : null,
         }}
       />
-
-      {/* 8. Profile (Mentor Only - Position 5 for Mentor) */}
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons name="person" size={24} color={color} />
-          ),
-          headerShown: false,
-          href: isMentorMode ? undefined : null,
-        }}
-      />
+      ────────────────────────────────────────────────────────────── */}
 
       {/* Hidden Technical Tabs and Nested Routes */}
       <Tabs.Screen
@@ -205,6 +200,24 @@ export default function TabLayout() {
 
       <Tabs.Screen
         name="eligibility"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="sessions"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="community"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="inbox"
         options={{
           href: null,
         }}

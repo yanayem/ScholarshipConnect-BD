@@ -189,7 +189,8 @@ export default function Header() {
               )}
             </div>
 
-            {/* Desktop Navigation - Hidden in Admin Panel */}
+            {/* COMMENTED OUT FOR FUTURE USE: Desktop Navigation Bar */}
+            {/*
             {!isAdminPath && (
               <div className="hidden lg:flex items-center h-full gap-1">
                 {user && currentNav.map((item) => {
@@ -211,6 +212,7 @@ export default function Header() {
                 })}
               </div>
             )}
+            */}
 
             {/* User Actions & Mobile Hamburger */}
             <div className="flex items-center gap-2 sm:gap-4">
@@ -224,6 +226,7 @@ export default function Header() {
                 </Link>
               )}
 
+              {/* COMMENTED OUT FOR FUTURE USE: Grid Menu Button
               {user && (
                 <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -233,6 +236,7 @@ export default function Header() {
                   <Grid size={22} strokeWidth={1.8} />
                 </button>
               )}
+              */}
 
               {!loading && user ? (
                 <>
@@ -305,7 +309,7 @@ export default function Header() {
           </div>
         )}
 
-        {/* Apps Dropdown Menu (LinkedIn Style Profile Sidebar) */}
+        {/* COMMENTED OUT FOR FUTURE USE: Apps Dropdown Menu
         {mobileMenuOpen && user && (
           <div className="absolute top-16 right-4 sm:right-8 w-[300px] bg-white border border-slate-200 rounded-2xl shadow-2xl z-[60] overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
@@ -359,33 +363,26 @@ export default function Header() {
               })}
             </div>
 
-            <div className="p-2 bg-slate-50 border-t border-slate-100 flex gap-2">
-              {user.is_mentor && (
+            {user.is_mentor && (
+              <div className="p-2 bg-slate-50 border-t border-slate-100 flex gap-2">
                 <button
                   onClick={() => {
                      toggleMentorMode();
                      setMobileMenuOpen(false);
                   }}
-                  className="flex-1 py-2 bg-white border border-slate-200 rounded-xl text-[9px] font-black uppercase tracking-wider text-slate-700 hover:bg-slate-100 transition-all"
+                  className="w-full py-2 bg-white border border-slate-200 rounded-xl text-[9px] font-black uppercase tracking-wider text-slate-700 hover:bg-slate-100 transition-all"
                 >
                   {isMentorMode ? 'Student' : 'Mentor'} Mode
                 </button>
-              )}
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  window.location.href = '/';
-                }}
-                className="flex-1 py-2 bg-red-50 text-red-500 rounded-xl text-[9px] font-black uppercase tracking-wider hover:bg-red-100 transition-all"
-              >
-                Log Out
-              </button>
-            </div>
+              </div>
+            )}
           </div>
         )}
+        */}
       </header>
 
-      {/* Bottom Navigation Bar - Fixed at the very bottom, always visible on mobile for students */}
+      {/* COMMENTED OUT FOR FUTURE USE: Bottom Navigation Bar */}
+      {/*
       {!isAdminPath && user && (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-100 z-[100] px-2 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.05)] flex justify-around items-center h-20">
           {currentNav.map((item) => {
@@ -420,6 +417,7 @@ export default function Header() {
           })}
         </div>
       )}
+      */}
     </>
   );
 }

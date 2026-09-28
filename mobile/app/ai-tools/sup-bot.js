@@ -31,8 +31,11 @@ export default function SupportBotScreen() {
         setInputText('');
         setLoading(true);
 
-        // Prepare history for context (last 6 messages)
-        const history = messages.slice(-6).map(m => m.text);
+        // Prepare history for context (last 6 valid messages)
+        const history = messages
+            .filter(m => m.text && !m.text.includes('trouble connecting') && !m.text.includes('unavailable') && !m.text.includes('experiencing high demand'))
+            .slice(-6)
+            .map(m => m.text);
 
         const res = await apiService.aiLiveSupport(userMessage.text, history);
 

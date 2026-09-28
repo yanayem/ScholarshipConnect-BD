@@ -130,7 +130,7 @@ function StudentHome({ user, featured, loading, leaderboard, activeCountries, al
           </View>
         </View>
 
-        {/* Success Stories Preview */}
+        {/* Success Stories Preview (Commented out)
         <View style={styles.blogBanner}>
           <View style={{ flex: 1 }}>
             <Text style={styles.blogBannerTitle}>Success Stories</Text>
@@ -145,6 +145,7 @@ function StudentHome({ user, featured, loading, leaderboard, activeCountries, al
           </View>
           <MaterialIcons name="auto-stories" size={60} color="rgba(255,255,255,0.2)" />
         </View>
+        */}
 
         {/* Explore by Country */}
         <Text style={styles.sectionTitle}>Explore by Country</Text>
@@ -163,7 +164,7 @@ function StudentHome({ user, featured, loading, leaderboard, activeCountries, al
             ))}
         </ScrollView>
 
-        {/* AI Smart Tools */}
+        {/* AI Smart Tools (Commented out)
         <Text style={styles.sectionTitle}>AI Smart Tools</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.aiToolsRow}>
           <TouchableOpacity
@@ -193,6 +194,7 @@ function StudentHome({ user, featured, loading, leaderboard, activeCountries, al
             <Text style={styles.aiCardSub}>Store Safely</Text>
           </TouchableOpacity>
         </ScrollView>
+        */}
 
         {/* Featured Scholarships */}
         <Text style={styles.sectionTitle}>Featured Scholarships</Text>
@@ -240,7 +242,7 @@ function StudentHome({ user, featured, loading, leaderboard, activeCountries, al
           <Text style={{ textAlign: 'center', color: theme.colors.textSecondary, marginTop: 10 }}>No featured scholarships available.</Text>
         )}
 
-        {/* Top Contributors / Leaderboard */}
+        {/* Top Contributors / Leaderboard (Commented out)
         <Text style={styles.sectionTitle}>Top Scholars</Text>
         <View style={styles.leaderboardCard}>
             {leaderboard.length > 0 ? (
@@ -267,6 +269,7 @@ function StudentHome({ user, featured, loading, leaderboard, activeCountries, al
                 <Text style={styles.viewFullText}>View Full Leaderboard</Text>
             </TouchableOpacity>
         </View>
+        */}
 
         <View style={{ height: 40 }} />
       </ScrollView>
