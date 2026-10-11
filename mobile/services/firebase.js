@@ -124,8 +124,7 @@ export const firebaseAuth = {
         if (!auth) throw new Error('Firebase Auth not initialized');
 
         if (!isNative) {
-            // Web/Expo Go fallback - Note: signInWithPopup is NOT supported in standard React Native
-            // It will throw "undefined is not a function" if called in some RN environments.
+            // Web/Expo Go fallback
             try {
                 const authWeb = require('firebase/auth');
                 // Support both direct exports and .default for better compatibility
@@ -136,10 +135,13 @@ export const firebaseAuth = {
                     const result = await signInWithPopup(auth, new GoogleAuthProvider());
                     return result.user;
                 } else {
-                    throw new Error('Google Sign-In (Popup) is not supported in Expo Go. Please use a Native Development Build (npx expo run:android) or Email/Password login.');
+                    const errorMsg = Platform.OS === 'web'
+                        ? 'Google Sign-In popup failed on Web. Check Firebase authorized domains.'
+                        : 'Google Sign-In popup is not supported in Expo Go on mobile. Please use Email/Password login or Web.';
+                    throw new Error(errorMsg);
                 }
             } catch (error) {
-                console.warn('[FIREBASE] Google Web Fallback Info:', error.message);
+                console.error('[FIREBASE] Google Web Auth Error:', error.message);
                 throw error;
             }
         } else {
@@ -266,6 +268,26 @@ export const firebaseAuth = {
             console.error('[FIREBASE] Password Reset Error:', error.message);
             throw error;
         }
+    },
+
+    async fetchSignInMethods(email) {
+        if (!auth) initializeFirebase();
+        if (!auth || !email) return [];
+        try {
+            if (isNative) {
+                if (typeof auth.fetchSignInMethodsForEmail === 'function') {
+                    return await auth.fetchSignInMethodsForEmail(email.trim());
+                }
+            } else {
+                const { fetchSignInMethodsForEmail } = require('firebase/auth');
+                if (typeof fetchSignInMethodsForEmail === 'function') {
+                    return await fetchSignInMethodsForEmail(auth, email.trim());
+                }
+            }
+        } catch (error) {
+            console.warn('[FIREBASE] fetchSignInMethods error:', error.message);
+        }
+        return [];
     },
 
     async waitForUser() {

@@ -16,7 +16,7 @@ class FirebaseAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         auth_header = request.META.get('HTTP_AUTHORIZATION')
         if not auth_header:
-            print("[FIREBASE AUTH] No Authorization header found.")
+            # Unauthenticated guest request - proceed as Anonymous User silently
             return None
 
         parts = auth_header.split()

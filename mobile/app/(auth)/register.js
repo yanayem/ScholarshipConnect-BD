@@ -73,7 +73,18 @@ export default function RegisterScreen() {
     } catch (error) {
       console.error('Registration Error:', error);
       let errorMsg = error.message || 'Could not create account.';
-      if (error.code === 'auth/email-already-in-use') errorMsg = 'That email is already in use!';
+      if (error.code === 'auth/email-already-in-use') {
+        try {
+          const methods = await firebaseAuth.fetchSignInMethods(email.trim());
+          if (methods && methods.includes('google.com')) {
+            errorMsg = 'This email is already registered using Google Sign-In. Please log in with Google.';
+          } else {
+            errorMsg = 'That email is already in use!';
+          }
+        } catch (e) {
+          errorMsg = 'That email is already in use!';
+        }
+      }
       showToast(errorMsg, 'error');
     } finally {
       setLoading(false);
@@ -181,6 +192,8 @@ export default function RegisterScreen() {
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showPassword}
+                rightIcon={showPassword ? "visibility" : "visibility-off"}
+                onRightIconPress={() => setShowPassword(!showPassword)}
                 returnKeyType="done"
                 onSubmitEditing={handleRegister}
               />

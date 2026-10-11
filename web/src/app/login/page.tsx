@@ -3,26 +3,65 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, fetchSignInMethodsForEmail } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { Lock, Mail, ArrowRight, Loader2, Sparkles, GraduationCap } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Loader2, Sparkles, GraduationCap, Eye, EyeOff, AlertCircle, AlertTriangle, CheckCircle2, X } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' | 'warning' } | null>(null);
   const router = useRouter();
+
+  const showToast = (message: string, type: 'error' | 'success' | 'warning' = 'error') => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast(null);
+    }, 4000);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+
+    const cleanEmail = email.trim().toLowerCase();
+
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push('/home');
+      await signInWithEmailAndPassword(auth, cleanEmail, password);
+      showToast('Logged in successfully!', 'success');
+      setTimeout(() => {
+        router.push('/home');
+      }, 800);
     } catch (err: any) {
-      setError(err.message || 'Failed to login. Please check your credentials.');
+      console.error('[WEB LOGIN ERROR]', err);
+      let userFriendlyMsg = 'Failed to login. Please check your credentials.';
+
+      // Check if user was registered via Google Sign-In
+      try {
+        const methods = await fetchSignInMethodsForEmail(auth, cleanEmail);
+        if (methods && methods.includes('google.com') && !methods.includes('password')) {
+          userFriendlyMsg = 'This account was created using Google Sign-In. Please click the "Google" button below to log in.';
+          showToast(userFriendlyMsg, 'warning');
+          setLoading(false);
+          return;
+        }
+      } catch (checkErr) {
+        console.warn('[WEB LOGIN] Provider check skipped:', checkErr);
+      }
+
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+        userFriendlyMsg = 'Incorrect email or password. Please check your credentials.';
+      } else if (err.code === 'auth/too-many-requests') {
+        userFriendlyMsg = 'Too many failed login attempts. Please wait a few minutes or reset your password.';
+      } else if (err.code === 'auth/network-request-failed') {
+        userFriendlyMsg = 'Network error. Please check your internet connection.';
+      } else {
+        userFriendlyMsg = err.message ? err.message.replace(/^Firebase:\s*/i, '').replace(/\s*\(auth\/[^\)]+\)\.?/i, '') : 'Login failed.';
+      }
+
+      showToast(userFriendlyMsg, 'error');
     } finally {
       setLoading(false);
     }
@@ -32,14 +71,49 @@ export default function LoginPage() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      router.push('/home');
+      showToast('Logged in with Google!', 'success');
+      setTimeout(() => {
+        router.push('/home');
+      }, 800);
     } catch (err: any) {
-      setError(err.message || 'Google login failed.');
+      showToast(err.message || 'Google login failed.', 'error');
     }
   };
 
   return (
-    <div className="min-h-screen flex bg-white">
+    <div className="min-h-screen flex bg-white relative">
+      {/* Floating Popup Toast */}
+      {toast && (
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-3.5 px-5 py-4 rounded-2xl shadow-2xl border transition-all duration-300 animate-in fade-in slide-in-from-top-4 bg-white/95 backdrop-blur-md max-w-md w-[90vw] sm:w-auto border-slate-100">
+          {toast.type === 'error' && (
+            <div className="w-9 h-9 rounded-xl bg-red-50 text-red-600 flex items-center justify-center flex-shrink-0">
+              <AlertCircle size={20} />
+            </div>
+          )}
+          {toast.type === 'warning' && (
+            <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle size={20} />
+            </div>
+          )}
+          {toast.type === 'success' && (
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
+              <CheckCircle2 size={20} />
+            </div>
+          )}
+
+          <div className="flex-1 pr-2">
+            <p className="text-xs font-bold text-slate-800 leading-relaxed">{toast.message}</p>
+          </div>
+
+          <button
+            onClick={() => setToast(null)}
+            className="text-slate-400 hover:text-slate-600 p-1 rounded-lg transition-colors flex-shrink-0"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       {/* Left Side: Illustration - Now White */}
       <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 relative overflow-hidden border-r border-slate-100 bg-slate-50/30">
         <div className="absolute top-0 left-0 w-64 h-64 bg-primary/5 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
@@ -85,13 +159,6 @@ export default function LoginPage() {
             <p className="text-slate-500 mt-2 font-medium text-sm sm:text-base">Enter your details to access your account.</p>
           </div>
 
-          {error && (
-            <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-[10px] font-black uppercase tracking-widest mb-6 border border-red-100 flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-red-600 rounded-full"></div>
-              {error}
-            </div>
-          )}
-
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
@@ -116,13 +183,21 @@ export default function LoginPage() {
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   placeholder="••••••••"
-                  className="w-full pl-12 pr-4 py-4 bg-white border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm font-medium"
+                  className="w-full pl-12 pr-12 py-4 bg-white border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm font-medium"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
 

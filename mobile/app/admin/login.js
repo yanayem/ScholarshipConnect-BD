@@ -44,11 +44,18 @@ export default function AdminSecurityLogin() {
         showToast('Access Granted! Welcome Admin.', 'success');
         router.replace('/admin');
       } else {
-        const errorMsg = response.data.detail || 'Invalid admin credentials.';
+        console.error('============ [ADMIN LOGIN ERROR] ============');
+        console.error('Status:', response.status);
+        console.error('Response Data:', response.data);
+        console.error('=============================================');
+        const errorMsg = response.data?.detail || response.data?.error || 'Invalid admin credentials.';
         showToast(errorMsg, 'error');
       }
     } catch (error) {
-      console.error(error);
+      console.error('========== [ADMIN LOGIN EXCEPTION] ==========');
+      console.error('Error Message:', error.message || error);
+      if (error.stack) console.error('Stack:', error.stack);
+      console.error('=============================================');
       showToast('Could not verify admin status. Check your connection.', 'error');
     } finally {
       setLoading(false);

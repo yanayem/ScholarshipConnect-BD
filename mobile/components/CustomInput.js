@@ -1,11 +1,11 @@
 /**
  * CUSTOM INPUT COMPONENT: Reusable styled text input.
- * - Supports labels, left icons, and right interactive icons (e.g., password toggle).
- * - Handles focus states and error styling.
+ * - Supports labels, left icons, and right interactive icons (e.g., password toggle eye icon).
+ * - Handles focus states, password visibility toggle, and error styling.
  * - Connected to: theme.js, React Native TextInput.
  */
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Animated, Platform } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { theme } from '../theme';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -16,10 +16,17 @@ const CustomInput = ({
   secureTextEntry,
   rightIcon,
   onRightIconPress,
+  isPassword,
   innerRef,
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(false);
+  const [showPasswordInternal, setShowPasswordInternal] = useState(false);
+
+  // If isPassword prop is true, automatically manage password toggle state
+  const isSecure = isPassword ? !showPasswordInternal : secureTextEntry;
+  const computedRightIcon = isPassword ? (showPasswordInternal ? "visibility" : "visibility-off") : rightIcon;
+  const computedOnRightIconPress = isPassword ? () => setShowPasswordInternal(!showPasswordInternal) : onRightIconPress;
 
   return (
     <View style={styles.container}>
@@ -53,20 +60,25 @@ const CustomInput = ({
           style={[styles.input, props.multiline && { textAlignVertical: 'top' }]}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          secureTextEntry={secureTextEntry}
+          secureTextEntry={isSecure}
           placeholderTextColor={theme.colors.placeholder}
           underlineColorAndroid="transparent"
           {...props}
         />
 
-        {rightIcon && (
-          <MaterialIcons
-            name={rightIcon}
-            size={20}
-            color={theme.colors.placeholder}
-            onPress={onRightIconPress}
-            style={styles.rightIcon}
-          />
+        {computedRightIcon && (
+          <TouchableOpacity
+            onPress={computedOnRightIconPress}
+            activeOpacity={0.7}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            style={styles.rightIconWrapper}
+          >
+            <MaterialIcons
+              name={computedRightIcon}
+              size={22}
+              color={isFocused ? theme.colors.primary : theme.colors.placeholder}
+            />
+          </TouchableOpacity>
         )}
       </View>
 
@@ -96,7 +108,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderWidth: 1,
     borderColor: 'transparent',
-    // Removed shadows
   },
   inputWrapperFocused: {
     borderColor: theme.colors.primary,
@@ -120,8 +131,11 @@ const styles = StyleSheet.create({
       }
     })
   },
-  rightIcon: {
-    marginLeft: 10,
+  rightIconWrapper: {
+    paddingLeft: 8,
+    paddingRight: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   errorText: {
     fontSize: 11,

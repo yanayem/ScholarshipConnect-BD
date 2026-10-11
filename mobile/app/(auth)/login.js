@@ -104,19 +104,37 @@ export default function LoginScreen() {
             router.replace('/(tabs)');
         }, 500);
       } else {
-        console.log('[LOGIN] Backend Verification Failed:', profile.data);
+        console.error('[LOGIN] Backend Verification Failed:', profile.data);
         const errorMsg = profile.data?.error || profile.data?.details || 'Backend server rejected the session.';
         throw new Error(errorMsg);
       }
     } catch (error) {
-      console.log('[LOGIN ERROR]:', error);
+      console.error('================ [LOGIN ERROR] ================');
+      console.error('Error Code:', error.code || 'N/A');
+      console.error('Error Message:', error.message || error);
+      if (error.stack) console.error('Stack:', error.stack);
+      console.error('==============================================');
+
       let errorMsg = 'Login failed.';
+
+      // Check if this email was registered using Google Sign-In
+      try {
+        const methods = await firebaseAuth.fetchSignInMethods(cleanEmail);
+        if (methods && methods.includes('google.com') && !methods.includes('password')) {
+          errorMsg = 'This account was created with Google Sign-In. Please tap "Continue with Google" below.';
+          showToast(errorMsg, 'warning');
+          setLoading(false);
+          return;
+        }
+      } catch (checkErr) {
+        console.warn('[LOGIN] Provider check skipped:', checkErr.message);
+      }
 
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         errorMsg = 'Incorrect email or password.';
       } else if (error.code === 'auth/network-request-failed') {
         errorMsg = 'Firebase network error. Check your internet.';
-      } else if (error.message.includes('Network request failed')) {
+      } else if (error.message && error.message.includes('Network request failed')) {
         errorMsg = 'Cannot reach the Django server. Is it running?';
       } else {
         errorMsg = error.message || 'An unexpected error occurred.';
@@ -129,8 +147,8 @@ export default function LoginScreen() {
   };
 
   const handleGoogleLogin = async () => {
-    if (isExpoGo) {
-      showToast('Google Sign-In requires a Native Development Build. Please use Email/Password in Expo Go.', 'info');
+    if (isExpoGo && Platform.OS !== 'web') {
+      showToast('Google Sign-In on mobile Expo Go requires a Native Development Build. Please use Email/Password.', 'info');
       return;
     }
 
@@ -160,10 +178,16 @@ export default function LoginScreen() {
         showToast('Logged in with Google!', 'success');
         setTimeout(() => router.replace('/(tabs)'), 500);
       } else {
+        console.error('[GOOGLE LOGIN] Backend verification failed:', profile.data);
         throw new Error(profile.data?.error || 'Backend verification failed.');
       }
     } catch (error) {
-      console.log('[GOOGLE LOGIN ERROR]:', error);
+      console.error('============ [GOOGLE LOGIN ERROR] ============');
+      console.error('Error Code:', error.code || 'N/A');
+      console.error('Error Message:', error.message || error);
+      if (error.stack) console.error('Stack:', error.stack);
+      console.error('==============================================');
+
       let msg = error.message || 'Google Sign-In failed.';
 
       if (error.code === 'auth/popup-closed-by-user') {
