@@ -220,8 +220,19 @@ export default function ProfilePage() {
 
             <div className="flex-1 text-center md:text-left space-y-4">
                <div className="space-y-1">
-                  <h1 className="text-4xl font-bold text-slate-900 tracking-tight">{user.full_name}</h1>
-                  <p className="text-slate-500 font-medium text-sm tracking-widest">{user.email}</p>
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4">
+                     <div>
+                        <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">{user.full_name}</h1>
+                        <p className="text-slate-500 font-medium text-sm tracking-widest mt-1">{user.email}</p>
+                     </div>
+                     <Link
+                       href="/profile/edit"
+                       className="inline-flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-primary/90 transition-all shrink-0"
+                     >
+                        <Edit3 size={16} />
+                        <span>Edit Profile</span>
+                     </Link>
+                  </div>
                   <p className="text-slate-500 text-base mt-4 max-w-2xl leading-relaxed font-medium">{u.bio || "Passionate scholar looking for global education opportunities and mentorship."}</p>
                </div>
             </div>
