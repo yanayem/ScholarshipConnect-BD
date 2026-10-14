@@ -20,8 +20,11 @@ import {
   HelpCircle,
   AlertTriangle,
   Award,
-  Bookmark,
-  CheckCircle2
+  CheckCircle2,
+  ArrowLeft,
+  Settings as SettingsIcon,
+  Sliders,
+  Users
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -33,6 +36,7 @@ export default function SettingsPage() {
   const { user, refreshProfile, loading: authLoading } = useAuth();
   const router = useRouter();
 
+  const [activeTab, setActiveTab] = useState<'account' | 'preferences' | 'mentorship' | 'support'>('account');
   const [darkMode, setDarkMode] = useState(false);
   const [emailNotifs, setEmailNotifs] = useState(true);
   const [newsletter, setNewsletter] = useState(false);
@@ -102,13 +106,20 @@ export default function SettingsPage() {
     </div>
   );
 
+  const tabs = [
+    { id: 'account', label: 'Account & Security', icon: User },
+    { id: 'preferences', label: 'Preferences & Notifications', icon: Sliders },
+    { id: 'mentorship', label: 'Mentorship & Community', icon: Users },
+    { id: 'support', label: 'Support & Legal', icon: HelpCircle },
+  ] as const;
+
   return (
-    <div className="min-h-screen bg-slate-50/50">
+    <div className="min-h-screen bg-background">
       <Header />
 
-      {/* Toast Banner */}
+      {/* Toast Notification */}
       {toastMsg && (
-        <div className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl shadow-xl text-white text-xs font-bold transition-all animate-bounce ${
+        <div className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl shadow-xl text-white text-xs font-bold transition-all ${
           toastMsg.type === 'success' ? 'bg-emerald-600' : toastMsg.type === 'error' ? 'bg-red-600' : 'bg-slate-900'
         }`}>
           <CheckCircle2 size={18} />
@@ -116,358 +127,380 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <main className="max-w-4xl mx-auto px-6 py-12">
-        <header className="mb-12">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Settings</h1>
-          <p className="text-slate-500 text-sm font-medium">Manage your account preferences and security.</p>
-        </header>
-
-        {/* Premium Banner */}
-        <div
-          onClick={() => router.push('/upgrade-pro')}
-          className="mb-12 bg-slate-900 rounded-[32px] p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 cursor-pointer hover:shadow-2xl hover:shadow-primary/20 transition-all border border-white/10 group"
+      <main className="max-w-6xl mx-auto px-6 py-8">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors mb-6 font-bold text-xs uppercase tracking-wider"
         >
-          <div className="flex items-center gap-6">
-            <div className="w-16 h-16 bg-primary/20 rounded-3xl flex items-center justify-center text-primary border border-primary/20 group-hover:scale-110 transition-transform">
-              <Zap size={32} className="fill-current" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold mb-1">{user.is_pro ? 'You are a Pro Member' : 'Upgrade to ScholarConnect Pro'}</h2>
-              <p className="text-white/60 text-sm font-medium">
-                {user.is_pro
-                  ? 'Accessing all premium features and AI tools'
-                  : `Use ${user.scholar_points || 0}/200 points to unlock lifetime access`}
-              </p>
-            </div>
+          <ArrowLeft size={16} />
+          Back
+        </button>
+
+        {/* Page Header */}
+        <div className="flex items-center justify-between mb-8 pb-6 border-b border-slate-200">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
+              <SettingsIcon className="text-primary" size={26} />
+              Settings
+            </h1>
+            <p className="text-slate-500 text-xs font-medium mt-1">Manage your account credentials, notifications, and preferences.</p>
           </div>
-          <button className="bg-white text-slate-900 px-8 py-3 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all">
-            {user.is_pro ? 'Manage' : 'Upgrade Now'}
+
+          <button
+            onClick={() => router.push('/upgrade-pro')}
+            className="hidden sm:flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-primary transition-all shadow-sm"
+          >
+            <Zap size={16} className="text-amber-400 fill-current" />
+            <span>{user.is_pro ? 'Pro Active' : 'Upgrade Pro'}</span>
           </button>
         </div>
 
-        <div className="space-y-12">
-           {/* Account Section */}
-           <section>
-              <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Account & Security</h3>
-              <div className="bg-white border border-slate-100 rounded-[32px] overflow-hidden divide-y divide-slate-50 shadow-sm">
-                 <div onClick={() => router.push('/profile/edit')} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
-                    <div className="flex items-center gap-4">
-                       <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center">
+        {/* Single Page 2-Column Layout */}
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Left Navigation Sidebar */}
+          <aside className="w-full md:w-64 shrink-0">
+            <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm space-y-1">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all text-left ${
+                    activeTab === tab.id
+                      ? 'bg-primary text-white shadow-md'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-primary'
+                  }`}
+                >
+                  <tab.icon size={18} />
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+
+              {user.is_staff && (
+                <button
+                  onClick={() => router.push('/admin')}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold text-purple-700 hover:bg-purple-50 transition-all text-left mt-2 border border-purple-100"
+                >
+                  <Shield size={18} />
+                  <span>Admin Console</span>
+                </button>
+              )}
+
+              <div className="pt-3 mt-3 border-t border-slate-100">
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold text-red-500 hover:bg-red-50 transition-all text-left"
+                >
+                  <LogOut size={18} />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          </aside>
+
+          {/* Right Main Content Panel */}
+          <section className="flex-1">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
+              {/* Tab 1: Account & Security */}
+              {activeTab === 'account' && (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-base font-bold text-slate-900 mb-1">Account & Security</h2>
+                    <p className="text-slate-400 text-xs font-medium">Manage your profile information and authentication credentials.</p>
+                  </div>
+
+                  <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden">
+                    <div
+                      onClick={() => router.push('/profile/edit')}
+                      className="flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 transition-all cursor-pointer"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
                           <User size={20} />
-                       </div>
-                       <div>
+                        </div>
+                        <div>
                           <p className="text-sm font-bold text-slate-900">Personal Details</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Email, phone, and academic scores</p>
-                       </div>
+                          <p className="text-xs text-slate-400 font-medium">{user.email}</p>
+                        </div>
+                      </div>
+                      <ChevronRight size={18} className="text-slate-400" />
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-[10px] font-bold text-slate-400">{user.email}</span>
-                      <ChevronRight size={18} className="text-slate-300" />
-                    </div>
-                 </div>
 
-                 <div onClick={handlePasswordReset} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
-                    <div className="flex items-center gap-4">
-                       <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center">
+                    <div
+                      onClick={handlePasswordReset}
+                      className="flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 transition-all cursor-pointer"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
                           <Lock size={20} />
-                       </div>
-                       <div>
+                        </div>
+                        <div>
                           <p className="text-sm font-bold text-slate-900">Security Password</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Send password reset email link</p>
-                       </div>
+                          <p className="text-xs text-slate-400 font-medium">Click to send password reset link to your email</p>
+                        </div>
+                      </div>
+                      <ChevronRight size={18} className="text-slate-400" />
                     </div>
-                    <ChevronRight size={18} className="text-slate-300" />
-                 </div>
 
-                 <div className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
-                    <div className="flex items-center gap-4">
-                       <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center">
+                    <div className="flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 transition-all">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100">
                           <Smartphone size={20} />
-                       </div>
-                       <div>
-                          <p className="text-sm font-bold text-slate-900">Linked Accounts</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Firebase & Social Auth</p>
-                       </div>
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">Linked Authentication</p>
+                          <p className="text-xs text-slate-400 font-medium">Firebase Token Authentication</p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full font-bold border border-emerald-100 uppercase">Verified</span>
                     </div>
-                    <span className="text-[10px] bg-slate-100 px-3 py-1 rounded-full font-bold text-slate-500 uppercase">Verified</span>
-                 </div>
-              </div>
-           </section>
 
-           {/* Subscription */}
-           <section>
-              <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Subscription & Billing</h3>
-              <div className="bg-white border border-slate-100 rounded-[32px] overflow-hidden divide-y divide-slate-50 shadow-sm">
-                 <div onClick={() => router.push('/upgrade-pro')} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
-                    <div className="flex items-center gap-4">
-                       <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center">
+                    <div
+                      onClick={() => router.push('/upgrade-pro')}
+                      className="flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 transition-all cursor-pointer"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
                           <CreditCard size={20} />
-                       </div>
-                       <div>
-                          <p className="text-sm font-bold text-slate-900">Pro Subscription</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{user.is_pro ? 'Pro Active' : 'Free Tier'}</p>
-                       </div>
-                    </div>
-                    <ChevronRight size={18} className="text-slate-300" />
-                 </div>
-              </div>
-           </section>
-
-           {/* Academic & Tools */}
-           <section>
-              <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Academic & Tools</h3>
-              <div className="bg-white border border-slate-100 rounded-[32px] overflow-hidden divide-y divide-slate-50 shadow-sm">
-                 <div onClick={() => router.push('/ai-tools/matchmaker')} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
-                    <div className="flex items-center gap-4">
-                       <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center">
-                          <Zap size={20} />
-                       </div>
-                       <div>
-                          <p className="text-sm font-bold text-slate-900">AI Matchmaker</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Configure matching preferences</p>
-                       </div>
-                    </div>
-                    <ChevronRight size={18} className="text-slate-300" />
-                 </div>
-
-                 <div onClick={() => router.push('/profile/applications')} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
-                    <div className="flex items-center gap-4">
-                       <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center">
-                          <Bookmark size={20} />
-                       </div>
-                       <div>
-                          <p className="text-sm font-bold text-slate-900">Application Tracker</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Monitor your submission status</p>
-                       </div>
-                    </div>
-                    <ChevronRight size={18} className="text-slate-300" />
-                 </div>
-              </div>
-           </section>
-
-           {/* Notifications */}
-           <section>
-              <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Notifications</h3>
-              <div className="bg-white border border-slate-100 rounded-[32px] overflow-hidden divide-y divide-slate-50 shadow-sm">
-                 <div className="flex items-center justify-between p-6">
-                    <div className="flex items-center gap-4">
-                       <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                          <Bell size={20} />
-                       </div>
-                       <div>
-                          <p className="text-sm font-bold text-slate-900">Email Notifications</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Scholarship alerts & news</p>
-                       </div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setEmailNotifs(!emailNotifs);
-                        showToast(`Email notifications ${!emailNotifs ? 'enabled' : 'disabled'}`);
-                      }}
-                      className={`w-12 h-6 rounded-full relative transition-all ${emailNotifs ? 'bg-primary' : 'bg-slate-200'}`}
-                    >
-                       <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${emailNotifs ? 'right-1' : 'left-1'}`}></div>
-                    </button>
-                 </div>
-
-                 <div className="flex items-center justify-between p-6">
-                    <div className="flex items-center gap-4">
-                       <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center">
-                          <Mail size={20} />
-                       </div>
-                       <div>
-                          <p className="text-sm font-bold text-slate-900">Newsletter</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Weekly digest of opportunities</p>
-                       </div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setNewsletter(!newsletter);
-                        showToast(`Newsletter subscription ${!newsletter ? 'activated' : 'paused'}`);
-                      }}
-                      className={`w-12 h-6 rounded-full relative transition-all ${newsletter ? 'bg-primary' : 'bg-slate-200'}`}
-                    >
-                       <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${newsletter ? 'right-1' : 'left-1'}`}></div>
-                    </button>
-                 </div>
-              </div>
-           </section>
-
-           {/* App Preferences */}
-           <section>
-              <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">App Preferences</h3>
-              <div className="bg-white border border-slate-100 rounded-[32px] overflow-hidden divide-y divide-slate-50 shadow-sm">
-                 <div className="flex items-center justify-between p-6">
-                    <div className="flex items-center gap-4">
-                       <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
-                          <Moon size={20} />
-                       </div>
-                       <div>
-                          <p className="text-sm font-bold text-slate-900">Dark Mode</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Toggle appearance theme</p>
-                       </div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setDarkMode(!darkMode);
-                        showToast(`Dark mode ${!darkMode ? 'enabled' : 'disabled'}`);
-                      }}
-                      className={`w-12 h-6 rounded-full relative transition-all ${darkMode ? 'bg-primary' : 'bg-slate-200'}`}
-                    >
-                       <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${darkMode ? 'right-1' : 'left-1'}`}></div>
-                    </button>
-                 </div>
-
-                 <div className="flex items-center justify-between p-6">
-                    <div className="flex items-center gap-4">
-                       <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center">
-                          <Globe size={20} />
-                       </div>
-                       <div>
-                          <p className="text-sm font-bold text-slate-900">Language</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Bengali / English</p>
-                       </div>
-                    </div>
-                    <select
-                      value={selectedLang}
-                      onChange={(e) => {
-                        setSelectedLang(e.target.value);
-                        showToast(`Language set to ${e.target.value}`);
-                      }}
-                      className="text-[10px] font-bold bg-slate-50 border-none outline-none px-3 py-1.5 rounded-lg uppercase tracking-widest cursor-pointer"
-                    >
-                       <option value="English">English</option>
-                       <option value="Bengali">Bengali</option>
-                    </select>
-                 </div>
-              </div>
-           </section>
-
-           {/* Mentorship & Community */}
-           <section>
-              <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Mentorship & Community</h3>
-              <div className="bg-white border border-slate-100 rounded-[32px] overflow-hidden divide-y divide-slate-50 shadow-sm">
-                 <div className="flex items-center justify-between p-6">
-                    <div className="flex items-center gap-4">
-                       <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center">
-                          <Award size={20} />
-                       </div>
-                       <div>
-                          <p className="text-sm font-bold text-slate-900">Become a Mentor</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Help others with their journey</p>
-                       </div>
-                    </div>
-                    <button
-                      disabled={updating}
-                      onClick={() => toggleMentorStatus(!user.is_mentor)}
-                      className={`w-12 h-6 rounded-full relative transition-all ${user.is_mentor ? 'bg-primary' : 'bg-slate-200'} ${updating ? 'opacity-50' : ''}`}
-                    >
-                       <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${user.is_mentor ? 'right-1' : 'left-1'}`}></div>
-                    </button>
-                 </div>
-
-                 {user.is_mentor && (
-                   <div onClick={() => router.push('/profile/edit')} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
-                      <div className="flex items-center gap-4">
-                         <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center">
-                            <Info size={20} />
-                         </div>
-                         <div>
-                            <p className="text-sm font-bold text-slate-900">Mentorship Bio & Expertise</p>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Setup your mentor profile</p>
-                         </div>
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">Pro Membership</p>
+                          <p className="text-xs text-slate-400 font-medium">{user.is_pro ? 'Scholar Pro active' : 'Free plan — Upgrade with ScholarPoints'}</p>
+                        </div>
                       </div>
-                      <ChevronRight size={18} className="text-slate-300" />
-                   </div>
-                 )}
-              </div>
-           </section>
-
-           {/* Support & Legal */}
-           <section>
-              <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Support & Legal</h3>
-              <div className="bg-white border border-slate-100 rounded-[32px] overflow-hidden divide-y divide-slate-50 shadow-sm">
-                 <a href="/manual" className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
-                    <div className="flex items-center gap-4">
-                       <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center">
-                          <HelpCircle size={20} />
-                       </div>
-                       <div>
-                          <p className="text-sm font-bold text-slate-900">User Manual</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">How to use the platform</p>
-                       </div>
+                      <ChevronRight size={18} className="text-slate-400" />
                     </div>
-                    <ExternalLink size={16} className="text-slate-300" />
-                 </a>
-
-                 <div onClick={() => router.push('/privacy')} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
-                    <div className="flex items-center gap-4">
-                       <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center">
-                          <Shield size={20} />
-                       </div>
-                       <div>
-                          <p className="text-sm font-bold text-slate-900">Privacy Policy</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">How we handle your data</p>
-                       </div>
-                    </div>
-                    <ChevronRight size={18} className="text-slate-300" />
-                 </div>
-
-                 <div onClick={handleReportBug} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
-                    <div className="flex items-center gap-4">
-                       <div className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center">
-                          <AlertTriangle size={20} />
-                       </div>
-                       <div>
-                          <p className="text-sm font-bold text-slate-900">Report a Bug</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Help us improve</p>
-                       </div>
-                    </div>
-                    <ChevronRight size={18} className="text-slate-300" />
-                 </div>
-              </div>
-           </section>
-
-           {/* Admin Dashboard */}
-           {user.is_staff && (
-             <section>
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Admin Dashboard</h3>
-                <div className="bg-white border border-slate-100 rounded-[32px] overflow-hidden divide-y divide-slate-50 shadow-sm">
-                   <div onClick={() => router.push('/admin')} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
-                      <div className="flex items-center gap-4">
-                         <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
-                            <Shield size={20} />
-                         </div>
-                         <div>
-                            <p className="text-sm font-bold text-slate-900">Scholarship & User Management</p>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Review & verify submissions</p>
-                         </div>
-                      </div>
-                      <ChevronRight size={18} className="text-slate-300" />
-                   </div>
+                  </div>
                 </div>
-             </section>
-           )}
+              )}
 
-           {/* Danger Zone */}
-           <section className="pt-6 border-t border-slate-100">
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center gap-4 p-8 border border-red-100 bg-red-50/30 rounded-[32px] text-red-600 hover:bg-red-50 transition-all group"
-              >
-                 <div className="w-12 h-12 rounded-2xl bg-red-100 flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform">
-                    <LogOut size={24} />
-                 </div>
-                 <div className="text-left">
-                    <p className="text-sm font-black uppercase tracking-widest">Sign Out</p>
-                    <p className="text-[10px] font-bold opacity-70">Exit your session securely</p>
-                 </div>
-              </button>
-           </section>
+              {/* Tab 2: Preferences & Notifications */}
+              {activeTab === 'preferences' && (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-base font-bold text-slate-900 mb-1">Preferences & Notifications</h2>
+                    <p className="text-slate-400 text-xs font-medium">Customize notifications and regional settings.</p>
+                  </div>
+
+                  <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden">
+                    <div className="flex items-center justify-between p-4 sm:p-5">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
+                          <Bell size={20} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">Email Notifications</p>
+                          <p className="text-xs text-slate-400 font-medium">Receive scholarship updates and match alerts</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setEmailNotifs(!emailNotifs);
+                          showToast(`Email notifications ${!emailNotifs ? 'enabled' : 'disabled'}`);
+                        }}
+                        className={`w-12 h-6 rounded-full relative transition-all ${emailNotifs ? 'bg-primary' : 'bg-slate-200'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${emailNotifs ? 'right-1' : 'left-1'}`}></div>
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 sm:p-5">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+                          <Mail size={20} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">Weekly Newsletter</p>
+                          <p className="text-xs text-slate-400 font-medium">Top global scholarship recommendations</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setNewsletter(!newsletter);
+                          showToast(`Newsletter ${!newsletter ? 'activated' : 'paused'}`);
+                        }}
+                        className={`w-12 h-6 rounded-full relative transition-all ${newsletter ? 'bg-primary' : 'bg-slate-200'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${newsletter ? 'right-1' : 'left-1'}`}></div>
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 sm:p-5">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 border border-slate-200">
+                          <Moon size={20} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">Dark Theme Mode</p>
+                          <p className="text-xs text-slate-400 font-medium">Toggle interface theme appearance</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setDarkMode(!darkMode);
+                          showToast(`Dark mode ${!darkMode ? 'enabled' : 'disabled'}`);
+                        }}
+                        className={`w-12 h-6 rounded-full relative transition-all ${darkMode ? 'bg-primary' : 'bg-slate-200'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${darkMode ? 'right-1' : 'left-1'}`}></div>
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 sm:p-5">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center shrink-0 border border-slate-200">
+                          <Globe size={20} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">Language</p>
+                          <p className="text-xs text-slate-400 font-medium">Select your preferred display language</p>
+                        </div>
+                      </div>
+                      <select
+                        value={selectedLang}
+                        onChange={(e) => {
+                          setSelectedLang(e.target.value);
+                          showToast(`Language set to ${e.target.value}`);
+                        }}
+                        className="text-xs font-bold bg-slate-50 border border-slate-200 text-slate-700 px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer outline-none focus:border-primary"
+                      >
+                        <option value="English">English</option>
+                        <option value="Bengali">Bengali</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tab 3: Mentorship & Community */}
+              {activeTab === 'mentorship' && (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-base font-bold text-slate-900 mb-1">Mentorship & Community</h2>
+                    <p className="text-slate-400 text-xs font-medium">Manage your mentor profile and community role.</p>
+                  </div>
+
+                  <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden">
+                    <div className="flex items-center justify-between p-4 sm:p-5">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+                          <Award size={20} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">Become a Mentor</p>
+                          <p className="text-xs text-slate-400 font-medium">Guide fellow applicants with SOPs and scholarships</p>
+                        </div>
+                      </div>
+                      <button
+                        disabled={updating}
+                        onClick={() => toggleMentorStatus(!user.is_mentor)}
+                        className={`w-12 h-6 rounded-full relative transition-all ${user.is_mentor ? 'bg-primary' : 'bg-slate-200'} ${updating ? 'opacity-50' : ''}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${user.is_mentor ? 'right-1' : 'left-1'}`}></div>
+                      </button>
+                    </div>
+
+                    {user.is_mentor && (
+                      <div
+                        onClick={() => router.push('/profile/edit')}
+                        className="flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 transition-all cursor-pointer"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+                            <Info size={20} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-slate-900">Mentorship Expertise & Bio</p>
+                            <p className="text-xs text-slate-400 font-medium">Configure your university, expertise, and target countries</p>
+                          </div>
+                        </div>
+                        <ChevronRight size={18} className="text-slate-400" />
+                      </div>
+                    )}
+
+                    <div
+                      onClick={() => router.push('/community')}
+                      className="flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 transition-all cursor-pointer"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100">
+                          <Users size={20} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">Community Discussions</p>
+                          <p className="text-xs text-slate-400 font-medium">View your posts, discussions, and answers</p>
+                        </div>
+                      </div>
+                      <ChevronRight size={18} className="text-slate-400" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tab 4: Support & Legal */}
+              {activeTab === 'support' && (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-base font-bold text-slate-900 mb-1">Support & Legal</h2>
+                    <p className="text-slate-400 text-xs font-medium">Access system documentation, terms, and bug report tool.</p>
+                  </div>
+
+                  <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden">
+                    <a
+                      href="/manual"
+                      className="flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 transition-all cursor-pointer"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center shrink-0 border border-slate-200">
+                          <HelpCircle size={20} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">User Manual</p>
+                          <p className="text-xs text-slate-400 font-medium">Detailed guide on using ScholarshipConnect BD features</p>
+                        </div>
+                      </div>
+                      <ExternalLink size={16} className="text-slate-400" />
+                    </a>
+
+                    <div
+                      onClick={() => router.push('/privacy')}
+                      className="flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 transition-all cursor-pointer"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center shrink-0 border border-slate-200">
+                          <Shield size={20} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">Privacy Policy</p>
+                          <p className="text-xs text-slate-400 font-medium">Learn how your document vault and data are secured</p>
+                        </div>
+                      </div>
+                      <ChevronRight size={18} className="text-slate-400" />
+                    </div>
+
+                    <div
+                      onClick={handleReportBug}
+                      className="flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 transition-all cursor-pointer"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0 border border-red-100">
+                          <AlertTriangle size={20} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">Report a Bug</p>
+                          <p className="text-xs text-slate-400 font-medium">Submit an issue directly to the platform developers</p>
+                        </div>
+                      </div>
+                      <ChevronRight size={18} className="text-slate-400" />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
         </div>
 
-        <div className="mt-12 text-center">
-           <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">ScholarshipConnect BD — Version 1.2.0</p>
+        <div className="mt-8 text-center border-t border-slate-200 pt-6">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">ScholarshipConnect BD — Version 1.2.0 (Stable)</p>
         </div>
       </main>
     </div>
