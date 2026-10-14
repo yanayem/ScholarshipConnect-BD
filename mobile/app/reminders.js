@@ -17,14 +17,20 @@ export default function RemindersScreen() {
       try {
         const res = await apiService.getNotifications();
         if (res.ok) {
-          const formatted = res.data.map(n => ({
-            id: n.id.toString(),
-            title: n.title,
-            deadline: new Date(n.created_at).toLocaleDateString(), // using created_at as a proxy if no deadline
-            daysLeft: 0, // Mocked for now since backend doesn't have daysLeft directly
-            message: n.message,
-            isRead: n.is_read
-          }));
+          const formatted = res.data.map(n => {
+            const created = new Date(n.created_at);
+            const now = new Date();
+            const diffTime = Math.abs(now - created);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return {
+              id: n.id.toString(),
+              title: n.title,
+              deadline: created.toLocaleDateString(),
+              daysLeft: diffDays,
+              message: n.message,
+              isRead: n.is_read
+            };
+          });
           setNotifications(formatted);
           
           // Initializing switch state

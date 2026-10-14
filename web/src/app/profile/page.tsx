@@ -40,7 +40,7 @@ export default function ProfilePage() {
   const { user, loading: authLoading } = useAuth();
   const { isMentorMode, toggleMentorMode } = useMentorMode();
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({ saved: 0, applied: 0, documents: 3 });
+  const [stats, setStats] = useState({ saved: 0, applied: 0, documents: 0 });
   const router = useRouter();
   const pathname = usePathname();
 
@@ -63,15 +63,16 @@ export default function ProfilePage() {
   useEffect(() => {
     const loadStats = async () => {
       try {
-        const [savedRes, appsRes] = await Promise.all([
+        const [savedRes, appsRes, docsRes] = await Promise.all([
           apiService.getScholarships('filter=saved'),
-          apiService.getScholarships('filter=applied')
+          apiService.getScholarships('filter=applied'),
+          apiService.getDocuments()
         ]);
 
         setStats({
           saved: (savedRes.data as any)?.length || 0,
           applied: (appsRes.data as any)?.length || 0,
-          documents: 3
+          documents: (docsRes.data as any)?.length || 0
         });
       } catch (e) {
         console.error("Failed to load stats", e);

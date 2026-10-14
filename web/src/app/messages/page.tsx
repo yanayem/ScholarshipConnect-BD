@@ -60,20 +60,31 @@ export default function MessagesPage() {
   ];
 
   useEffect(() => {
-    // Premium Mock Conversations
-    setConversations([
-      { id: 1, name: 'Yeasin Arafat Nayem', lastMsg: 'I have checked your SOP. Looks excellent!', time: '10:45 AM', avatar: 'YN', online: true, role: 'Team Leader / Mentor', unreadCount: 1 },
-      { id: 2, name: 'S.M. Azman Sikder', lastMsg: 'Did you submit the MEXT application forms?', time: 'Yesterday', avatar: 'AS', online: false, role: 'Backend Expert' },
-      { id: 3, name: 'Jahid Tanvir', lastMsg: 'Please attend the sync session tomorrow at BUBT.', time: 'Monday', avatar: 'JT', online: true, role: 'Lecturer & Supervisor' },
-    ]);
+    const loadConversations = async () => {
+      try {
+        const res = await apiService.getMentors();
+        if (res.ok && Array.isArray(res.data) && res.data.length > 0) {
+          const fetched: ChatSession[] = res.data.map((m: any) => ({
+            id: m.id,
+            name: m.full_name || m.username || 'Mentor',
+            lastMsg: 'Connect with mentor for application support',
+            time: 'Active',
+            avatar: (m.full_name || m.username || 'M').substring(0, 2).toUpperCase(),
+            online: true,
+            role: m.university ? `${m.university} Mentor` : 'Scholarship Mentor'
+          }));
+          setConversations(fetched);
+          setSelectedChat(fetched[0]);
+        } else {
+          setConversations([]);
+        }
+      } catch (err) {
+        console.error('Failed to load contacts', err);
+        setConversations([]);
+      }
+    };
 
-    // Initial Messages for Selected Chat
-    setMessages([
-      { id: 1, senderId: 2, text: "Hello! Welcome to the premium chat suite.", time: "10:30 AM", isRead: true, reactions: ['👍'] },
-      { id: 2, senderId: 1, text: "Hi! I saw your recent application for the MEXT scholarship. Do you need any help with the research plan?", time: "10:32 AM", isRead: true, reactions: [] },
-      { id: 3, senderId: 999, text: "Yes, that would be great! I'm struggling with the field of study section.", time: "10:35 AM", isRead: true, reactions: ['💡'] },
-      { id: 4, senderId: 1, text: "Don't worry. I have a sample plan that worked for me. I'll send it over right now.", time: "10:45 AM", isRead: false, reactions: [] },
-    ]);
+    loadConversations();
   }, []);
 
   useEffect(() => {
@@ -85,7 +96,7 @@ export default function MessagesPage() {
 
     const newMsg: Message = {
       id: Date.now(),
-      senderId: 999, // Current User Id Mock
+      senderId: (user as any)?.id || 1,
       text: message,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       isRead: false,
