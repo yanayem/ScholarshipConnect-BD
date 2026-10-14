@@ -57,75 +57,95 @@ const getHeaders = async (includeToken = true) => {
   return headers;
 };
 
+const safeFetch = async (url: string, options: RequestInit) => {
+  try {
+    const response = await fetch(url, options);
+    return await handleResponse(response);
+  } catch (err: any) {
+    // If local dev server is unreachable, attempt fallback to production API
+    if (url.includes('127.0.0.1:8000') || url.includes('localhost:8000')) {
+      const fallbackUrl = url.replace(/http:\/\/(127\.0\.0\.1|localhost):8000\/api/, 'https://scholarshipconnectbd.onrender.com/api');
+      try {
+        console.warn(`[API] Local backend unreachable at ${url}. Falling back to production API (${fallbackUrl})...`);
+        const fallbackResponse = await fetch(fallbackUrl, options);
+        return await handleResponse(fallbackResponse);
+      } catch (fallbackErr: any) {
+        console.error('[API] Fallback request failed:', fallbackErr);
+      }
+    }
+    console.error(`[API] Network error fetching ${url}:`, err?.message || err);
+    return {
+      ok: false,
+      status: 0,
+      data: {
+        error: 'Network Error',
+        message: 'Unable to connect to backend server. Please check if local backend is running or check internet connection.'
+      }
+    };
+  }
+};
+
 export const apiService = {
   // --- System ---
   async getHealth() {
-    const response = await fetch(`${API_URL}/health/`, {
+    return await safeFetch(`${API_URL}/health/`, {
       method: 'GET',
       headers: await getHeaders(false),
     });
-    return await handleResponse(response);
   },
 
   // --- Auth & Profile ---
   async getProfile() {
-    const response = await fetch(`${API_URL}/accounts/profile/`, {
+    return await safeFetch(`${API_URL}/accounts/profile/`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   async getAutocomplete(type: string, q = '') {
-    const response = await fetch(`${API_URL}/accounts/autocomplete/?type=${type}&q=${encodeURIComponent(q)}`, {
+    return await safeFetch(`${API_URL}/accounts/autocomplete/?type=${type}&q=${encodeURIComponent(q)}`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   async updateProfile(profileData: any) {
-    const response = await fetch(`${API_URL}/accounts/profile/`, {
+    return await safeFetch(`${API_URL}/accounts/profile/`, {
       method: 'PATCH',
       headers: await getHeaders(true),
       body: JSON.stringify(profileData),
     });
-    return await handleResponse(response);
   },
 
   // --- Scholarships ---
   async getScholarships(params = '') {
     const url = `${API_URL}/scholarships/${params ? '?' + params : ''}`;
-    const response = await fetch(url, {
+    return await safeFetch(url, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   async getScholarshipDetail(id: number | string) {
-    const response = await fetch(`${API_URL}/scholarships/${id}/`, {
+    return await safeFetch(`${API_URL}/scholarships/${id}/`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   async saveScholarship(scholarshipId: number) {
-    const response = await fetch(`${API_URL}/applications/saved/`, {
+    return await safeFetch(`${API_URL}/applications/saved/`, {
       method: 'POST',
       headers: await getHeaders(true),
       body: JSON.stringify({ scholarship: scholarshipId }),
     });
-    return await handleResponse(response);
   },
 
   async unsaveScholarship(saveId: number) {
-    const response = await fetch(`${API_URL}/applications/saved/${saveId}/`, {
+    return await safeFetch(`${API_URL}/applications/saved/${saveId}/`, {
       method: 'DELETE',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   async addScholarship(formData: FormData) {
@@ -136,250 +156,221 @@ export const apiService = {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${API_URL}/scholarships/`, {
+    return await safeFetch(`${API_URL}/scholarships/`, {
       method: 'POST',
       headers,
       body: formData,
     });
-    return await handleResponse(response);
   },
 
   // --- Community ---
   async getDiscussions(params = '') {
-    const response = await fetch(`${API_URL}/community/${params ? '?' + params : ''}`, {
+    return await safeFetch(`${API_URL}/community/${params ? '?' + params : ''}`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   async getMentors() {
-    const response = await fetch(`${API_URL}/community/mentors/`, {
+    return await safeFetch(`${API_URL}/community/mentors/`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   async getLeaderboard() {
-    const response = await fetch(`${API_URL}/community/leaderboard/`, {
+    return await safeFetch(`${API_URL}/community/leaderboard/`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   // --- Blog ---
   async getBlogPosts(type = '') {
-    const response = await fetch(`${API_URL}/blog/${type ? '?type=' + type : ''}`, {
+    return await safeFetch(`${API_URL}/blog/${type ? '?type=' + type : ''}`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   // --- AI Assistant ---
   async getScholarshipMatches() {
-    const response = await fetch(`${API_URL}/ai/matchmaker/`, {
+    return await safeFetch(`${API_URL}/ai/matchmaker/`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   async getApplications() {
-    const response = await fetch(`${API_URL}/applications/`, {
+    return await safeFetch(`${API_URL}/applications/`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   async getSavedScholarships() {
-    const response = await fetch(`${API_URL}/applications/saved/`, {
+    return await safeFetch(`${API_URL}/applications/saved/`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   async searchLiveScholarships(query: string = '') {
-    const response = await fetch(`${API_URL}/scholarships/live-search/${query ? '?q=' + query : ''}`, {
+    return await safeFetch(`${API_URL}/scholarships/live-search/${query ? '?q=' + query : ''}`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   async applyForScholarship(applicationData: any) {
-    const response = await fetch(`${API_URL}/applications/apply/`, {
+    return await safeFetch(`${API_URL}/applications/apply/`, {
       method: 'POST',
       headers: await getHeaders(true),
       body: JSON.stringify(applicationData),
     });
-    return await handleResponse(response);
   },
 
   async upgradeWithPoints() {
-    const response = await fetch(`${API_URL}/accounts/upgrade-pro/`, {
+    return await safeFetch(`${API_URL}/accounts/upgrade-pro/`, {
       method: 'POST',
       headers: await getHeaders(true),
       body: JSON.stringify({ method: 'points' }),
     });
-    return await handleResponse(response);
   },
 
   async getNotifications() {
-    const response = await fetch(`${API_URL}/accounts/notifications/`, {
+    return await safeFetch(`${API_URL}/accounts/notifications/`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   async getMentorships() {
-    const response = await fetch(`${API_URL}/community/mentorships/`, {
+    return await safeFetch(`${API_URL}/community/mentorships/`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   async getDocuments() {
-    const response = await fetch(`${API_URL}/applications/documents/`, {
+    return await safeFetch(`${API_URL}/applications/documents/`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   async updateMentorshipStatus(id: number, status: string) {
-    const response = await fetch(`${API_URL}/community/mentorships/${id}/`, {
+    return await safeFetch(`${API_URL}/community/mentorships/${id}/`, {
       method: 'PATCH',
       headers: await getHeaders(true),
       body: JSON.stringify({ status }),
     });
-    return await handleResponse(response);
   },
 
   async aiWriteSOP(scholarshipId: number) {
-    const response = await fetch(`${API_URL}/ai/write-sop/`, {
+    return await safeFetch(`${API_URL}/ai/write-sop/`, {
       method: 'POST',
       headers: await getHeaders(true),
       body: JSON.stringify({ scholarship_id: scholarshipId }),
     });
-    return await handleResponse(response);
   },
 
   async aiCheckEligibility(scholarshipId: number) {
-    const response = await fetch(`${API_URL}/ai/check-eligibility/`, {
+    return await safeFetch(`${API_URL}/ai/check-eligibility/`, {
       method: 'POST',
       headers: await getHeaders(true),
       body: JSON.stringify({ scholarship_id: scholarshipId }),
     });
-    return await handleResponse(response);
   },
 
   async aiLiveSupport(message: string, history: string[] = []) {
-    const response = await fetch(`${API_URL}/ai/live-support/`, {
+    return await safeFetch(`${API_URL}/ai/live-support/`, {
       method: 'POST',
       headers: await getHeaders(true),
       body: JSON.stringify({ message, history }),
     });
-    return await handleResponse(response);
   },
 
   async getAIChatHistory() {
-    const response = await fetch(`${API_URL}/ai/chat-history/`, {
+    return await safeFetch(`${API_URL}/ai/chat-history/`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   // --- Admin ---
   async adminLogin(username: string, password: string) {
-    const response = await fetch(`${API_URL}/accounts/admin-login/`, {
+    return await safeFetch(`${API_URL}/accounts/admin-login/`, {
       method: 'POST',
       headers: await getHeaders(true),
       body: JSON.stringify({ username, password }),
     });
-    return await handleResponse(response);
   },
 
   async getUsers(params = '') {
-    const response = await fetch(`${API_URL}/accounts/users/${params ? '?' + params : ''}`, {
+    return await safeFetch(`${API_URL}/accounts/users/${params ? '?' + params : ''}`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   async getAdminStats() {
-    const response = await fetch(`${API_URL}/scholarships/admin-stats/`, {
+    return await safeFetch(`${API_URL}/scholarships/admin-stats/`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   async getAdminLogs() {
-    const response = await fetch(`${API_URL}/accounts/admin/logs/`, {
+    return await safeFetch(`${API_URL}/accounts/admin/logs/`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   async getAdminBroadcasts() {
-    const response = await fetch(`${API_URL}/notifications/broadcast/`, {
+    return await safeFetch(`${API_URL}/notifications/broadcast/`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   async sendBroadcast(title: string, message: string) {
-    const response = await fetch(`${API_URL}/notifications/broadcast/`, {
+    return await safeFetch(`${API_URL}/notifications/broadcast/`, {
       method: 'POST',
       headers: await getHeaders(true),
       body: JSON.stringify({ title, message }),
     });
-    return await handleResponse(response);
   },
 
   async getModerationReports() {
-    const response = await fetch(`${API_URL}/community/reports/`, {
+    return await safeFetch(`${API_URL}/community/reports/`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   async resolveReport(reportId: number, status: string) {
-    const response = await fetch(`${API_URL}/community/reports/${reportId}/`, {
+    return await safeFetch(`${API_URL}/community/reports/${reportId}/`, {
       method: 'PATCH',
       headers: await getHeaders(true),
       body: JSON.stringify({ status }),
     });
-    return await handleResponse(response);
   },
 
   async getMentorApplications() {
-    const response = await fetch(`${API_URL}/community/mentor-applications/`, {
+    return await safeFetch(`${API_URL}/community/mentor-applications/`, {
       method: 'GET',
       headers: await getHeaders(true),
     });
-    return await handleResponse(response);
   },
 
   async approveMentor(id: number, status: string) {
-    const response = await fetch(`${API_URL}/community/mentor-applications/${id}/`, {
+    return await safeFetch(`${API_URL}/community/mentor-applications/${id}/`, {
       method: 'PATCH',
       headers: await getHeaders(true),
       body: JSON.stringify({ status }),
     });
-    return await handleResponse(response);
   },
 
   async updateScholarship(id: number | string, data: any) {
@@ -389,21 +380,19 @@ export const apiService = {
       delete headers['Content-Type'];
     }
 
-    const response = await fetch(`${API_URL}/scholarships/${id}/`, {
+    return await safeFetch(`${API_URL}/scholarships/${id}/`, {
       method: 'PATCH',
       headers: headers,
       body: isFormData ? data : JSON.stringify(data),
     });
-    return await handleResponse(response);
   },
 
   async approveScholarship(id: number | string, action: string, note = '') {
-    const response = await fetch(`${API_URL}/scholarships/${id}/approve/`, {
+    return await safeFetch(`${API_URL}/scholarships/${id}/approve/`, {
       method: 'POST',
       headers: await getHeaders(true),
       body: JSON.stringify({ action, note }),
     });
-    return await handleResponse(response);
   },
 
   async logout() {

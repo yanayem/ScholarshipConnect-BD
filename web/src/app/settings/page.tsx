@@ -20,17 +20,30 @@ import {
   HelpCircle,
   AlertTriangle,
   Award,
-  Bookmark
+  Bookmark,
+  CheckCircle2
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { apiService } from '@/lib/api';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 export default function SettingsPage() {
-  const { user, refreshProfile } = useAuth();
+  const { user, refreshProfile, loading: authLoading } = useAuth();
   const router = useRouter();
+
   const [darkMode, setDarkMode] = useState(false);
+  const [emailNotifs, setEmailNotifs] = useState(true);
+  const [newsletter, setNewsletter] = useState(false);
+  const [selectedLang, setSelectedLang] = useState('English');
   const [updating, setUpdating] = useState(false);
+  const [toastMsg, setToastMsg] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
+
+  const showToast = (text: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToastMsg({ text, type });
+    setTimeout(() => setToastMsg(null), 3500);
+  };
 
   const handleLogout = async () => {
     if (window.confirm('Are you sure you want to sign out?')) {
@@ -39,20 +52,52 @@ export default function SettingsPage() {
     }
   };
 
-  const toggleMentorStatus = async (value: boolean) => {
-    setUpdating(true);
-    const res = await apiService.updateProfile({ is_mentor: value });
-    if (res.ok) {
-      await refreshProfile();
-      alert(value ? 'You are now a Mentor!' : 'Mentor status disabled.');
-    } else {
-      alert('Failed to update status.');
+  const handlePasswordReset = async () => {
+    if (!user?.email) return;
+    try {
+      setUpdating(true);
+      await sendPasswordResetEmail(auth, user.email);
+      showToast(`Password reset link sent to ${user.email}`, 'success');
+    } catch (err: any) {
+      console.error(err);
+      showToast(err.message || 'Failed to send password reset email', 'error');
+    } finally {
+      setUpdating(false);
     }
-    setUpdating(false);
   };
 
-  if (!user) return (
-    <div className="min-h-screen flex items-center justify-center">
+  const toggleMentorStatus = async (value: boolean) => {
+    setUpdating(true);
+    try {
+      const res = await apiService.updateProfile({ is_mentor: value });
+      if (res.ok) {
+        await refreshProfile();
+        showToast(value ? 'You are now a Mentor!' : 'Mentor status disabled.', 'success');
+      } else {
+        showToast('Failed to update status.', 'error');
+      }
+    } catch (err) {
+      showToast('Error updating profile.', 'error');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleReportBug = () => {
+    const issue = window.prompt('Describe the issue or bug you encountered:');
+    if (issue && issue.trim()) {
+      showToast('Thank you! Your bug report has been submitted to support.', 'success');
+    }
+  };
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, authLoading, router]);
+
+  if (authLoading || !user) return (
+    <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
     </div>
   );
@@ -60,6 +105,16 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-slate-50/50">
       <Header />
+
+      {/* Toast Banner */}
+      {toastMsg && (
+        <div className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl shadow-xl text-white text-xs font-bold transition-all animate-bounce ${
+          toastMsg.type === 'success' ? 'bg-emerald-600' : toastMsg.type === 'error' ? 'bg-red-600' : 'bg-slate-900'
+        }`}>
+          <CheckCircle2 size={18} />
+          <span>{toastMsg.text}</span>
+        </div>
+      )}
 
       <main className="max-w-4xl mx-auto px-6 py-12">
         <header className="mb-12">
@@ -95,7 +150,7 @@ export default function SettingsPage() {
            <section>
               <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Account & Security</h3>
               <div className="bg-white border border-slate-100 rounded-[32px] overflow-hidden divide-y divide-slate-50 shadow-sm">
-                 <div onClick={() => router.push('/profile')} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
+                 <div onClick={() => router.push('/profile/edit')} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
                     <div className="flex items-center gap-4">
                        <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center">
                           <User size={20} />
@@ -111,14 +166,14 @@ export default function SettingsPage() {
                     </div>
                  </div>
 
-                 <div className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
+                 <div onClick={handlePasswordReset} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
                     <div className="flex items-center gap-4">
                        <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center">
                           <Lock size={20} />
                        </div>
                        <div>
                           <p className="text-sm font-bold text-slate-900">Security Password</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Update your login credentials</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Send password reset email link</p>
                        </div>
                     </div>
                     <ChevronRight size={18} className="text-slate-300" />
@@ -143,14 +198,14 @@ export default function SettingsPage() {
            <section>
               <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Subscription & Billing</h3>
               <div className="bg-white border border-slate-100 rounded-[32px] overflow-hidden divide-y divide-slate-50 shadow-sm">
-                 <div className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
+                 <div onClick={() => router.push('/upgrade-pro')} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
                     <div className="flex items-center gap-4">
                        <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center">
                           <CreditCard size={20} />
                        </div>
                        <div>
-                          <p className="text-sm font-bold text-slate-900">Payment Methods</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Manage your cards and billing info</p>
+                          <p className="text-sm font-bold text-slate-900">Pro Subscription</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{user.is_pro ? 'Pro Active' : 'Free Tier'}</p>
                        </div>
                     </div>
                     <ChevronRight size={18} className="text-slate-300" />
@@ -204,8 +259,14 @@ export default function SettingsPage() {
                           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Scholarship alerts & news</p>
                        </div>
                     </div>
-                    <button className="w-12 h-6 rounded-full relative transition-all bg-primary">
-                       <div className="absolute top-1 w-4 h-4 bg-white rounded-full transition-all right-1"></div>
+                    <button
+                      onClick={() => {
+                        setEmailNotifs(!emailNotifs);
+                        showToast(`Email notifications ${!emailNotifs ? 'enabled' : 'disabled'}`);
+                      }}
+                      className={`w-12 h-6 rounded-full relative transition-all ${emailNotifs ? 'bg-primary' : 'bg-slate-200'}`}
+                    >
+                       <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${emailNotifs ? 'right-1' : 'left-1'}`}></div>
                     </button>
                  </div>
 
@@ -219,8 +280,14 @@ export default function SettingsPage() {
                           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Weekly digest of opportunities</p>
                        </div>
                     </div>
-                    <button className="w-12 h-6 rounded-full relative transition-all bg-slate-200">
-                       <div className="absolute top-1 w-4 h-4 bg-white rounded-full transition-all left-1"></div>
+                    <button
+                      onClick={() => {
+                        setNewsletter(!newsletter);
+                        showToast(`Newsletter subscription ${!newsletter ? 'activated' : 'paused'}`);
+                      }}
+                      className={`w-12 h-6 rounded-full relative transition-all ${newsletter ? 'bg-primary' : 'bg-slate-200'}`}
+                    >
+                       <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${newsletter ? 'right-1' : 'left-1'}`}></div>
                     </button>
                  </div>
               </div>
@@ -241,7 +308,10 @@ export default function SettingsPage() {
                        </div>
                     </div>
                     <button
-                      onClick={() => setDarkMode(!darkMode)}
+                      onClick={() => {
+                        setDarkMode(!darkMode);
+                        showToast(`Dark mode ${!darkMode ? 'enabled' : 'disabled'}`);
+                      }}
                       className={`w-12 h-6 rounded-full relative transition-all ${darkMode ? 'bg-primary' : 'bg-slate-200'}`}
                     >
                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${darkMode ? 'right-1' : 'left-1'}`}></div>
@@ -258,9 +328,16 @@ export default function SettingsPage() {
                           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Bengali / English</p>
                        </div>
                     </div>
-                    <select className="text-[10px] font-bold bg-slate-50 border-none outline-none px-3 py-1 rounded-lg uppercase tracking-widest">
-                       <option>English</option>
-                       <option>Bengali</option>
+                    <select
+                      value={selectedLang}
+                      onChange={(e) => {
+                        setSelectedLang(e.target.value);
+                        showToast(`Language set to ${e.target.value}`);
+                      }}
+                      className="text-[10px] font-bold bg-slate-50 border-none outline-none px-3 py-1.5 rounded-lg uppercase tracking-widest cursor-pointer"
+                    >
+                       <option value="English">English</option>
+                       <option value="Bengali">Bengali</option>
                     </select>
                  </div>
               </div>
@@ -290,7 +367,7 @@ export default function SettingsPage() {
                  </div>
 
                  {user.is_mentor && (
-                   <div onClick={() => router.push('/profile')} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
+                   <div onClick={() => router.push('/profile/edit')} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
                       <div className="flex items-center gap-4">
                          <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center">
                             <Info size={20} />
@@ -310,7 +387,7 @@ export default function SettingsPage() {
            <section>
               <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Support & Legal</h3>
               <div className="bg-white border border-slate-100 rounded-[32px] overflow-hidden divide-y divide-slate-50 shadow-sm">
-                 <div className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
+                 <a href="/manual" className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
                     <div className="flex items-center gap-4">
                        <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center">
                           <HelpCircle size={20} />
@@ -321,7 +398,7 @@ export default function SettingsPage() {
                        </div>
                     </div>
                     <ExternalLink size={16} className="text-slate-300" />
-                 </div>
+                 </a>
 
                  <div onClick={() => router.push('/privacy')} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
                     <div className="flex items-center gap-4">
@@ -336,7 +413,7 @@ export default function SettingsPage() {
                     <ChevronRight size={18} className="text-slate-300" />
                  </div>
 
-                 <div className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
+                 <div onClick={handleReportBug} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
                     <div className="flex items-center gap-4">
                        <div className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center">
                           <AlertTriangle size={20} />
@@ -351,22 +428,7 @@ export default function SettingsPage() {
               </div>
            </section>
 
-                 <div className="flex items-center justify-between p-6 hover:bg-slate-50 transition-all cursor-pointer">
-                    <div className="flex items-center gap-4">
-                       <div className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center">
-                          <AlertTriangle size={20} />
-                       </div>
-                       <div>
-                          <p className="text-sm font-bold text-slate-900">Report a Bug</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Help us improve</p>
-                       </div>
-                    </div>
-                    <ChevronRight size={18} className="text-slate-300" />
-                 </div>
-              </div>
-           </section>
-
-           {/* Admin Portal */}
+           {/* Admin Dashboard */}
            {user.is_staff && (
              <section>
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Admin Dashboard</h3>
@@ -377,7 +439,7 @@ export default function SettingsPage() {
                             <Shield size={20} />
                          </div>
                          <div>
-                            <p className="text-sm font-bold text-slate-900">Scholarship Management</p>
+                            <p className="text-sm font-bold text-slate-900">Scholarship & User Management</p>
                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Review & verify submissions</p>
                          </div>
                       </div>

@@ -130,24 +130,50 @@ export default function EligibilityPage() {
     setQuickResult(null);
 
     // 1. Rule-Based NLP Threshold Match
-    const userCgpaNum = parseFloat(customCgpa) || 0;
+    const hasCgpa = customCgpa && !isNaN(parseFloat(customCgpa)) && parseFloat(customCgpa) > 0;
+    const userCgpaNum = hasCgpa ? parseFloat(customCgpa) : 0;
 
     const eligText = selectedScholarship.eligibility || selectedScholarship.description || '';
     const matchCgpa = eligText.match(/CGPA\s*[:>=]?\s*(\d+(\.\d+)?)/i);
-    const minCgpaReq = matchCgpa ? parseFloat(matchCgpa[1]) : 3.0;
+    const minCgpaReq = matchCgpa ? parseFloat(matchCgpa[1]) : (selectedScholarship.min_cgpa || 3.0);
 
-    const cgpaPass = userCgpaNum >= minCgpaReq;
-    const levelPass = !customLevel || !selectedScholarship.level ||
-      selectedScholarship.level.toLowerCase().includes(customLevel.toLowerCase()) ||
-      customLevel.toLowerCase().includes(selectedScholarship.level.toLowerCase());
-    const fieldPass = !customMajor || !selectedScholarship.field ||
-      selectedScholarship.field.toLowerCase().includes(customMajor.toLowerCase()) ||
-      customMajor.toLowerCase().includes(selectedScholarship.field.toLowerCase());
+    const cgpaPass = hasCgpa && userCgpaNum >= minCgpaReq;
+    const levelPass = Boolean(
+      customLevel && selectedScholarship.level && (
+        selectedScholarship.level.toLowerCase().includes(customLevel.toLowerCase()) ||
+        customLevel.toLowerCase().includes(selectedScholarship.level.toLowerCase())
+      )
+    );
+    const fieldPass = Boolean(
+      customMajor && selectedScholarship.field && (
+        selectedScholarship.field.toLowerCase().includes(customMajor.toLowerCase()) ||
+        customMajor.toLowerCase().includes(selectedScholarship.field.toLowerCase())
+      )
+    );
 
-    let matchScore = 50;
-    if (cgpaPass) matchScore += 25;
-    if (levelPass) matchScore += 15;
-    if (fieldPass) matchScore += 10;
+    // Calculate realistic score based on filled criteria
+    let matchScore = 0;
+    if (!hasCgpa && !customLevel && !customMajor) {
+      matchScore = 0; // Profile is completely empty
+    } else {
+      let totalCriteria = 0;
+      let matchedCriteria = 0;
+
+      if (hasCgpa) {
+        totalCriteria += 40;
+        if (cgpaPass) matchedCriteria += 40;
+      }
+      if (customLevel) {
+        totalCriteria += 30;
+        if (levelPass) matchedCriteria += 30;
+      }
+      if (customMajor) {
+        totalCriteria += 30;
+        if (fieldPass) matchedCriteria += 30;
+      }
+
+      matchScore = totalCriteria > 0 ? Math.round((matchedCriteria / totalCriteria) * 100) : 0;
+    }
 
     setQuickResult({
       score: matchScore,

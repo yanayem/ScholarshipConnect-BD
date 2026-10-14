@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useMentorMode } from '@/context/MentorModeContext';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Users,
   GraduationCap,
@@ -39,20 +39,21 @@ export default function Header() {
   const { user, loading } = useAuth();
   const { isMentorMode, toggleMentorMode } = useMentorMode();
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const studentNav = [
+    { name: 'Home', href: '/home', icon: HomeIcon },
     { name: 'Scholarships', href: '/scholarships', icon: GraduationCap },
     { name: 'Deadlines', href: '/calendar', icon: Calendar },
-    { name: 'Home', href: '/home', icon: HomeIcon },
-    { name: 'Application', href: '/profile/applications', icon: Bookmark },
+    { name: 'Applications', href: '/profile/applications', icon: Bookmark },
     { name: 'Community', href: '/community', icon: MessageSquare },
   ];
 
   const mentorNav = [
+    { name: 'Home', href: '/home', icon: HomeIcon },
     { name: 'Sessions', href: '/mentorship/sessions', icon: Briefcase },
     { name: 'Messages', href: '/messages', icon: MessageSquare },
-    { name: 'Home', href: '/home', icon: HomeIcon },
     { name: 'Community', href: '/community', icon: Users },
   ];
 
@@ -189,30 +190,28 @@ export default function Header() {
               )}
             </div>
 
-            {/* COMMENTED OUT FOR FUTURE USE: Desktop Navigation Bar */}
-            {/*
+            {/* Desktop Navigation Bar */}
             {!isAdminPath && (
-              <div className="hidden lg:flex items-center h-full gap-1">
+              <div className="hidden md:flex items-center gap-1.5 lg:gap-3 mx-2">
                 {user && currentNav.map((item) => {
                   const isActive = pathname === item.href;
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`h-full flex flex-col items-center justify-center px-4 relative min-w-[85px] transition-all border-b-2 ${
+                      className={`flex items-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all relative ${
                         isActive
-                          ? 'border-primary text-primary font-semibold'
-                          : 'border-transparent text-slate-400 hover:text-slate-700'
+                          ? 'text-primary bg-primary/10 shadow-sm'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                       }`}
                     >
-                      <item.icon size={20} strokeWidth={isActive ? 2.2 : 1.8} />
-                      <span className="text-[11px] mt-1 font-medium tracking-wide">{item.name}</span>
+                      <item.icon size={16} className={isActive ? 'text-primary' : 'text-slate-400'} />
+                      <span>{item.name}</span>
                     </Link>
                   );
                 })}
               </div>
             )}
-            */}
 
             {/* User Actions & Mobile Hamburger */}
             <div className="flex items-center gap-2 sm:gap-4">
@@ -244,15 +243,6 @@ export default function Header() {
                      <Bell size={20} />
                      <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></div>
                   </Link>
-
-                  {!isAdminPath && user.is_mentor && user.is_staff && (
-                    <button
-                      onClick={toggleMentorMode}
-                      className="hidden sm:block text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-primary transition-colors border-l border-slate-100 pl-4"
-                    >
-                       {isMentorMode ? 'Student Mode' : 'Mentor Mode'}
-                    </button>
-                  )}
 
                   <Link href="/profile" className="flex items-center gap-2 border-l border-slate-100 pl-2 sm:pl-4">
                     <div className="w-9 h-9 bg-gray-50 border border-black/5 rounded-xl flex items-center justify-center text-primary text-sm font-bold hover:shadow-md transition-all overflow-hidden">
@@ -381,10 +371,9 @@ export default function Header() {
         */}
       </header>
 
-      {/* COMMENTED OUT FOR FUTURE USE: Bottom Navigation Bar */}
-      {/*
+      {/* Bottom Navigation Bar for Mobile */}
       {!isAdminPath && user && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-100 z-[100] px-2 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.05)] flex justify-around items-center h-20">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-100 z-[100] px-2 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.05)] flex justify-around items-center h-20">
           {currentNav.map((item) => {
             const isActive = pathname === item.href;
             const isCenterHome = item.name === 'Home';
@@ -417,7 +406,6 @@ export default function Header() {
           })}
         </div>
       )}
-      */}
     </>
   );
 }

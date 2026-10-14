@@ -177,12 +177,22 @@ class AIMatchmakerView(APIView):
             profile, _ = Profile.objects.get_or_create(user=request.user)
             is_pro = profile.is_currently_pro
             
+            target_countries = [c.strip().lower() for c in (profile.target_countries or "").split(',') if c.strip() and c.strip().lower() != 'none']
+            pref_fields = [f.strip().lower() for f in f"{profile.major_course or ''}, {profile.research_interests or ''}".split(',') if f.strip() and f.strip().lower() != 'none']
+            
+            has_profile = bool(profile.cgpa or target_countries or pref_fields or (profile.academic_level and profile.academic_level.lower() != 'none'))
+            
+            if not has_profile:
+                return Response({
+                    'recommendations': [],
+                    'profile_summary': "Your profile is incomplete. Please update your profile (CGPA, Major, Target Countries) in Edit Profile for accurate AI matches.",
+                    'is_profile_incomplete': True,
+                    'is_pro_results': is_pro,
+                    'total_found': 0
+                })
+
             scholarships = Scholarship.objects.filter(status='active')
-            
             recommendations = []
-            
-            target_countries = [c.strip().lower() for c in (profile.target_countries or "").split(',') if c.strip()]
-            pref_fields = [f.strip().lower() for f in f"{profile.major_course}, {profile.research_interests}".split(',') if f.strip()]
             
             for s in scholarships:
                 score = 0

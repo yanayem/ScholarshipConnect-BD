@@ -215,10 +215,38 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
         user = request.user
         profile, _ = Profile.objects.get_or_create(user=user)
         
+        target_countries = [c.strip().lower() for c in (profile.target_countries or "").split(',') if c.strip() and c.strip().lower() != 'none']
+        pref_fields = [f.strip().lower() for f in f"{profile.major_course or ''}, {profile.research_interests or ''}".split(',') if f.strip() and f.strip().lower() != 'none']
+        
+        has_profile_data = bool(profile.cgpa or target_countries or pref_fields or (profile.academic_level and profile.academic_level.lower() != 'none'))
+        
+        if not has_profile_data:
+            return Response({
+                "profile_summary": {
+                    "cgpa": profile.cgpa,
+                    "countries": profile.target_countries,
+                    "major": profile.major_course,
+                    "interests": profile.research_interests
+                },
+                "is_profile_incomplete": True,
+                "message": "Your profile is empty. Please complete your profile details in Edit Profile to get AI scholarship matches.",
+                "recommendations": []
+            })
+
         scholarships = Scholarship.objects.filter(status='active', deadline__gte=timezone.now().date())
         results = []
         
-        profile_text = f"{profile.target_countries} {profile.major_course} {profile.research_interests} {profile.bio} {profile.skills} {profile.academic_level}".lower()
+        profile_parts = [
+            str(p).strip() for p in [
+                profile.target_countries,
+                profile.major_course,
+                profile.research_interests,
+                profile.bio,
+                profile.skills,
+                profile.academic_level
+            ] if p and str(p).strip() and str(p).strip().lower() != 'none'
+        ]
+        profile_text = " ".join(profile_parts).lower()
         
         scholarship_texts = []
         valid_scholarships = []
@@ -231,16 +259,15 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
                 else:
                     continue
             else:
-                base_score += 20
+                if profile.cgpa:
+                    base_score += 20
                 
-            if profile.target_countries and s.country:
-                targets = [c.strip().lower() for c in str(profile.target_countries).split(',') if c.strip()]
-                if s.country.lower() in targets:
+            if target_countries and s.country:
+                if s.country.lower() in target_countries:
                     base_score += 20
             
-            if (profile.major_course or profile.research_interests) and s.field:
-                preferred = [f.strip().lower() for f in f"{profile.major_course}, {profile.research_interests}".split(',') if f.strip()]
-                if s.field.lower() in preferred:
+            if pref_fields and s.field:
+                if s.field.lower() in pref_fields:
                     base_score += 20
             
             if profile.academic_level and s.level:
@@ -260,13 +287,13 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
                 nlp_score = int(cosine_sims[idx] * 50)
                 results.append({
                     "scholarship": ScholarshipSerializer(s).data,
-                    "match_score": base_score + nlp_score
+                    "match_score": min(base_score + nlp_score, 100)
                 })
         else:
             for s, base_score in valid_scholarships:
                 results.append({
                     "scholarship": ScholarshipSerializer(s).data,
-                    "match_score": base_score
+                    "match_score": min(base_score, 100)
                 })
         
         results = sorted(results, key=lambda x: x['match_score'], reverse=True)

@@ -166,7 +166,7 @@ export default function ProfilePage() {
                    { name: 'History & Activity', icon: History, href: '/profile/activity' },
                    { name: 'Find Mentors', icon: Users, href: '/mentorship' },
                    { name: 'Notifications', icon: Bell, href: '/notifications' },
-                   { name: 'Account Settings', icon: Settings, href: '/profile/settings' },
+                   { name: 'Account Settings', icon: Settings, href: '/settings' },
                    { name: 'Privacy Policy', icon: Lock, href: '/privacy' },
                  ].map((item) => (
                    <Link

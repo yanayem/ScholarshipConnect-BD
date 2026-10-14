@@ -437,7 +437,7 @@ export default function UserHomePage() {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 lg:py-16">
-        {isMentorMode && user.is_staff ? (
+        {isMentorMode && (user.is_mentor || user.is_staff) ? (
            <MentorHome user={user} initials={initials} />
         ) : (
            <StudentHome

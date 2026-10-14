@@ -16,7 +16,7 @@ export function MentorModeProvider({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     const savedMode = localStorage.getItem('mentorMode');
-    if (savedMode === 'true' && user?.is_staff) { // or user.is_mentor if that field exists
+    if (savedMode === 'true' && (user?.is_mentor || user?.is_staff)) {
       setIsMentorMode(true);
     }
   }, [user]);
