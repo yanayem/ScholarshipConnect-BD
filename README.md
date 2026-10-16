@@ -175,25 +175,27 @@ The platform offers a premium tier that users can unlock via two methods:
 ## Technology Stack
 
 ### Frontend (Mobile & Web)
-- **Core**: React Native & Expo (SDK 56) with **Expo Web** support.
-- **Web Runtime**: `react-native-web` & `react-dom` (Vercel optimized).
-- **Navigation**: **Expo Router** (Refined with stable history management for Admin tabs)
-- **Authentication**: **Hybrid Firebase SDK** (Native for Android/iOS + JS SDK for Web).
-- **Styling**: Native StyleSheet with a **Dual-Layer Theme Engine** (Global + Page-Specific professional CSS).
-- **Animations**: **React Native Reanimated** for premium fluid transitions.
+- **Mobile App**: React Native & Expo (SDK 56).
+- **Web Portal (Next.js)**: Full-featured modern web application built with **Next.js 16 (App Router)**, **React 19**, and **Tailwind CSS v4** (`/web`).
+- **Web Hosting**: Optimized for Vercel and standard Node.js environments.
+- **Navigation**: Expo Router (Mobile) & Next.js App Router (Web).
+- **Authentication**: **Firebase Authentication** (Firebase Web JS SDK & Mobile React Native Firebase).
+- **Styling**: Native StyleSheet with a **Dual-Layer Theme Engine** on mobile; Tailwind CSS & Lucide Icons on Next.js web.
+- **Animations**: **React Native Reanimated** for mobile fluid transitions.
 - **UI Components**:
-  - `expo-web-browser`: Secure and integrated web browsing within the app.
-  - `react-native-calendars`: For scholarship deadline tracking.
-  - `@expo/vector-icons`: Material, Ionicons, and FontAwesome5 integration.
+  - `expo-web-browser`: Secure and integrated web browsing within the mobile app.
+  - `react-native-calendars`: For scholarship deadline tracking on mobile.
+  - `@expo/vector-icons` & `lucide-react`: Iconography across mobile and web.
   - `expo-image-picker`: Reliable document capture and profile photo uploads.
-- **Persistence**: **AsyncStorage** (Cross-platform local storage).
+- **Persistence**: **AsyncStorage** (Mobile) and **localStorage / cookies** (Web).
 
-### Backend (API & Data)
+### Backend (API & AI)
 - **Framework**: **Django 3.2** (Robust & Scalable Python Framework).
-- **Architecture**: **RESTful API** powered by Django REST Framework (DRF).
+- **Architecture**: **RESTful API** powered by Django REST Framework (DRF) with OpenAPI/Swagger (`drf-spectacular`).
 - **Database**: **MongoDB Atlas** (NoSQL Cloud Database for flexible data schemas).
 - **Database Connector**: **Djongo** (Seamlessly maps Django ORM to MongoDB).
-- **Auth Verification**: Custom middleware to verify **Firebase ID Tokens**.
+- **Auth Verification**: Custom middleware verifying **Firebase ID Tokens** (`FirebaseAuthentication`).
+- **AI Multi-Provider Engine**: Resilient LLM fallback chain supporting **xAI (Grok)**, **Groq**, **Google Gemini**, and **Pollinations AI** with automatic API key rotation and model failover.
 
 ---
 
@@ -261,13 +263,28 @@ ScholarshipConnectBD/
 │   ├── constants/                # App Config, Brand Colors, and Shared Strings
 │   ├── theme.js                  # Centralized Dual-Layer Theme Engine
 │   └── package.json              # Project Dependencies & Scripts
+├── web/                          # Web Portal (Next.js 16 + React 19 + Tailwind CSS)
+│   ├── src/app/                  # App Router Pages & Layouts
+│   │   ├── admin/                # Web Admin Dashboard & Management
+│   │   ├── ai-tools/             # Web AI Matchmaker, SOP, CV Review
+│   │   ├── community/            # Web Discussion & Forum
+│   │   ├── mentorship/           # Web Mentorship Discovery & Booking
+│   │   ├── messages/             # Web Real-time Chat
+│   │   ├── profile/              # Web Profile Management & Edit
+│   │   ├── scholarships/         # Web Scholarship Discovery & Details
+│   │   ├── upgrade-pro/          # Web Pro Subscription & Payments
+│   │   └── ...                   # Auth, Settings, Blog, Calendar
+│   ├── src/components/           # Reusable Web UI Components
+│   ├── src/context/              # Auth & Global Context Providers
+│   ├── src/lib/                  # API Client & Firebase Web SDK
+│   └── package.json              # Web Dependencies & Scripts
 ├── backend/                      # Backend (Django REST Framework)
 │   ├── core/                     # Project Settings & Firebase Auth Middleware
 │   ├── accounts/                 # User Profiles, ScholarPoints & Mentorship logic
 │   ├── scholarships/             # Scholarship Database & Verification Logic
 │   ├── community/                # Discussions, Polls, Stories & Chat API
 │   ├── applications/             # Application Tracking & Document Vault
-│   ├── ai_assistant/             # LLM Integration (Groq/Gemini) & Usage Logs
+│   ├── ai_assistant/             # LLM Integration (xAI Grok/Groq/Gemini) & Usage Logs
 │   ├── payments/                 # SSLCommerz Integration for Pro Tier
 │   ├── blog/                     # Success Stories & Educational Content
 │   ├── notifications/            # Push Notifications & System Broadcasts
@@ -290,7 +307,7 @@ ScholarshipConnectBD/
 ## Getting Started
 
 ### 1. Unified Development Command
-For the best experience, run both the backend and frontend together:
+For the best experience, run both the backend and mobile frontend together:
 ```bash
 cd mobile
 npm run dev
@@ -304,7 +321,15 @@ npm install
 npx expo start
 ```
 
-### 2. Backend Setup
+### 3. Frontend (Web Portal - Next.js) Setup
+```bash
+cd web
+npm install
+npm run dev
+```
+*Web portal will be accessible at: [http://localhost:3000](http://localhost:3000)*
+
+### 4. Backend Setup
 ```bash
 cd backend
 python -m venv venv
@@ -315,7 +340,7 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-### 3. Deployment (Mobile Standalone)
+### 5. Deployment (Mobile Standalone)
 To build a standalone APK for production:
 ```bash
 cd mobile
