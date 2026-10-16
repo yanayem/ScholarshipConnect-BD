@@ -130,21 +130,21 @@ export default function EligibilityPage() {
     setQuickResult(null);
 
     // 1. Rule-Based NLP Threshold Match
-    const hasCgpa = customCgpa && !isNaN(parseFloat(customCgpa)) && parseFloat(customCgpa) > 0;
+    const hasCgpa = Boolean(customCgpa && !isNaN(parseFloat(customCgpa)) && parseFloat(customCgpa) > 0);
     const userCgpaNum = hasCgpa ? parseFloat(customCgpa) : 0;
 
     const eligText = selectedScholarship.eligibility || selectedScholarship.description || '';
     const matchCgpa = eligText.match(/CGPA\s*[:>=]?\s*(\d+(\.\d+)?)/i);
     const minCgpaReq = matchCgpa ? parseFloat(matchCgpa[1]) : (selectedScholarship.min_cgpa || 3.0);
 
-    const cgpaPass = hasCgpa && userCgpaNum >= minCgpaReq;
-    const levelPass = Boolean(
+    const cgpaPass: boolean = Boolean(hasCgpa && userCgpaNum >= minCgpaReq);
+    const levelPass: boolean = Boolean(
       customLevel && selectedScholarship.level && (
         selectedScholarship.level.toLowerCase().includes(customLevel.toLowerCase()) ||
         customLevel.toLowerCase().includes(selectedScholarship.level.toLowerCase())
       )
     );
-    const fieldPass = Boolean(
+    const fieldPass: boolean = Boolean(
       customMajor && selectedScholarship.field && (
         selectedScholarship.field.toLowerCase().includes(customMajor.toLowerCase()) ||
         customMajor.toLowerCase().includes(selectedScholarship.field.toLowerCase())
@@ -177,9 +177,9 @@ export default function EligibilityPage() {
 
     setQuickResult({
       score: matchScore,
-      cgpaPass,
-      levelPass,
-      fieldPass,
+      cgpaPass: Boolean(cgpaPass),
+      levelPass: Boolean(levelPass),
+      fieldPass: Boolean(fieldPass),
       minCgpaReq
     });
 
@@ -393,21 +393,7 @@ export default function EligibilityPage() {
 
           {/* Right Column: Analysis Results Display */}
           <div className="lg:col-span-2">
-            {!quickResult && !checking ? (
-              <div className="bg-white border border-slate-200 rounded-3xl p-10 text-center flex flex-col items-center justify-center min-h-[420px] shadow-sm">
-                <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 border border-emerald-100">
-                  <ShieldCheck size={36} />
-                </div>
-                <h2 className="text-lg font-bold text-slate-900 mb-2">Ready to Verify Eligibility</h2>
-                <p className="text-slate-500 text-xs sm:text-sm max-w-md font-medium leading-relaxed mb-6">
-                  Select a major from the database dropdown, pick a target scholarship, and click &ldquo;Run NLP Analysis&rdquo; to evaluate your profile parameters.
-                </p>
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-xl text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                  <Cpu size={12} className="text-emerald-600" />
-                  Powered by ScholarConnect NLP Match Engine
-                </div>
-              </div>
-            ) : checking ? (
+            {checking ? (
               <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center flex flex-col items-center justify-center min-h-[420px] shadow-sm space-y-6">
                 <div className="relative">
                   <div className="w-20 h-20 rounded-full border-4 border-emerald-100 border-t-emerald-600 animate-spin flex items-center justify-center"></div>
@@ -418,7 +404,7 @@ export default function EligibilityPage() {
                   <p className="text-slate-400 text-xs font-medium">Matching CGPA threshold, level equivalence, and field token alignment...</p>
                 </div>
               </div>
-            ) : (
+            ) : quickResult ? (
               <div className="space-y-6">
 
                 {/* Score Header Card */}
@@ -515,6 +501,20 @@ export default function EligibilityPage() {
                   </button>
                 </div>
 
+              </div>
+            ) : (
+              <div className="bg-white border border-slate-200 rounded-3xl p-10 text-center flex flex-col items-center justify-center min-h-[420px] shadow-sm">
+                <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 border border-emerald-100">
+                  <ShieldCheck size={36} />
+                </div>
+                <h2 className="text-lg font-bold text-slate-900 mb-2">Ready to Verify Eligibility</h2>
+                <p className="text-slate-500 text-xs sm:text-sm max-w-md font-medium leading-relaxed mb-6">
+                  Select a major from the database dropdown, pick a target scholarship, and click &ldquo;Run NLP Analysis&rdquo; to evaluate your profile parameters.
+                </p>
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-xl text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                  <Cpu size={12} className="text-emerald-600" />
+                  Powered by ScholarConnect NLP Match Engine
+                </div>
               </div>
             )}
           </div>

@@ -112,7 +112,11 @@ export default function EditProfileScreen() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await apiService.updateProfile(form);
+      const payload = { ...form };
+      if (payload.date_of_birth && payload.date_of_birth.trim() === '') {
+        payload.date_of_birth = null;
+      }
+      const res = await apiService.updateProfile(payload);
       if (res && res.ok) {
         showToast('Profile updated successfully', 'success');
         setTimeout(() => {
@@ -123,7 +127,16 @@ export default function EditProfileScreen() {
           }
         }, 1000);
       } else {
-        showToast(res.data?.error || 'Failed to update profile', 'error');
+        let errStr = res.data?.error || res.data?.message;
+        if (!errStr && res.data && typeof res.data === 'object') {
+          const firstKey = Object.keys(res.data)[0];
+          if (firstKey) {
+            const val = res.data[firstKey];
+            const detail = Array.isArray(val) ? val[0] : val;
+            errStr = `${firstKey.replace(/_/g, ' ')}: ${detail}`;
+          }
+        }
+        showToast(errStr || 'Failed to update profile', 'error');
       }
     } catch (error) {
       showToast('Connection failed', 'error');

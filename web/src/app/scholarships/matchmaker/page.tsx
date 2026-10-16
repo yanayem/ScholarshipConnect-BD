@@ -40,7 +40,8 @@ export default function MatchmakerPage() {
 
         if (profileRes.ok) setUser(profileRes.data);
         if (res.ok && res.data) {
-          setRecommendations(res.data as unknown as Recommendation[]);
+          const recs = (res.data as any).recommendations || (Array.isArray(res.data) ? res.data : []);
+          setRecommendations(recs as Recommendation[]);
         }
       } catch (e) {
         console.error('[MATCHMAKER] Error:', e);

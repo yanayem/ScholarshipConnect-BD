@@ -6,6 +6,67 @@ from typing import Optional, List
 
 logger = logging.getLogger(__name__)
 
+def _call_xai(prompt: str) -> Optional[str]:
+    """
+    Calls xAI (Grok) API via REST completions endpoint with key rotation and model fallbacks.
+    """
+    raw_keys = [
+        os.getenv("XAI_API_KEY"),
+        os.getenv("XAI_API_KEY_2"),
+        os.getenv("XAI_GROK_API_KEY"),
+    ]
+    valid_keys = [k.strip() for k in raw_keys if k and k.strip()]
+    if not valid_keys:
+        return None
+
+    xai_models = [
+        "grok-2-latest",
+        "grok-beta",
+        "grok-2-1212",
+    ]
+
+    for idx, key in enumerate(valid_keys):
+        for model in xai_models:
+            try:
+                url = "https://api.x.ai/v1/chat/completions"
+                headers = {
+                    "Authorization": f"Bearer {key}",
+                    "Content-Type": "application/json"
+                }
+                payload = {
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": "You are ScholarAI, an expert scholarship consultant for Bangladeshi students. Be encouraging, precise, and concise."
+                        },
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ],
+                    "model": model,
+                    "temperature": 0.6,
+                    "max_tokens": 2048
+                }
+                res = requests.post(url, json=payload, headers=headers, timeout=15)
+                if res.status_code == 200:
+                    data = res.json()
+                    choices = data.get("choices", [])
+                    if choices:
+                        content = choices[0].get("message", {}).get("content")
+                        if content:
+                            logger.info(f"[xAI Grok] Key {idx+1} success with model {model}")
+                            return content
+                elif res.status_code in [429, 403, 401]:
+                    logger.warning(f"[xAI Grok] Key {idx+1} status {res.status_code}. Trying next key/model.")
+                    break
+            except Exception as e:
+                logger.warning(f"[xAI Grok] Key {idx+1} model {model} error: {e}")
+                continue
+
+    return None
+
+
 def _call_groq(prompt: str) -> Optional[str]:
     """
     Calls Groq Chat Completions API with key rotation and model fallbacks.
@@ -195,17 +256,22 @@ def _call_pollinations(prompt: str) -> Optional[str]:
 class AIService:
     @classmethod
     def _call_ai(cls, prompt: str) -> str:
-        # Step 1: Groq AI (Multi-key + Multi-model)
+        # Step 1: xAI Grok (if XAI_API_KEY / XAI_GROK_API_KEY configured)
+        result = _call_xai(prompt)
+        if result:
+            return re.sub(r'<think>.*?</think>', '', result, flags=re.DOTALL).strip()
+
+        # Step 2: Groq AI (Multi-key + Multi-model)
         result = _call_groq(prompt)
         if result:
             return re.sub(r'<think>.*?</think>', '', result, flags=re.DOTALL).strip()
 
-        # Step 2: Gemini AI (Multi-key + Multi-model + REST)
+        # Step 3: Gemini AI (Multi-key + Multi-model + REST)
         result = _call_gemini(prompt)
         if result:
             return re.sub(r'<think>.*?</think>', '', result, flags=re.DOTALL).strip()
 
-        # Step 3: Public Free Fallback (Pollinations AI - No Key Needed)
+        # Step 4: Public Free Fallback (Pollinations AI - No Key Needed)
         result = _call_pollinations(prompt)
         if result:
             return re.sub(r'<think>.*?</think>', '', result, flags=re.DOTALL).strip()

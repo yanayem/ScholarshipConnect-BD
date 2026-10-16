@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { apiService } from '@/lib/api';
 import { Scholarship } from '@/types';
-import { Calendar, Briefcase, Heart, ArrowLeft, Globe, ShieldCheck, Brain, DollarSign, GraduationCap, Link as LinkIcon, Mail } from 'lucide-react';
+import { Calendar, Briefcase, Heart, ArrowLeft, Globe, ShieldCheck, Brain, DollarSign, GraduationCap, Link as LinkIcon, Mail, Share2 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
@@ -419,9 +419,9 @@ export default function ScholarshipDetail() {
                    </button>
                    <button
                      onClick={handleShare}
-                     className="w-full py-4 rounded-lg font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 border bg-slate-50 text-slate-400 border-slate-100"
+                     className="w-full py-4 rounded-lg font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 border bg-slate-50 text-slate-700 hover:text-primary hover:border-primary/30 transition-colors border-slate-100"
                    >
-                     <Globe size={18} />
+                     <Share2 size={18} />
                      Share Scholarship
                    </button>
                  </div>

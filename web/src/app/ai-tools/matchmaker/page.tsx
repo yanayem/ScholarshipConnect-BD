@@ -33,7 +33,7 @@ export default function MatchmakerPage() {
       const res = await apiService.getScholarshipMatches();
       if (res.ok && res.data) {
         // Fix: API returns { recommendations: [], profile_summary: ... }
-        const recommendations = (res.data as any).recommendations || [];
+        const recommendations = (res.data as any).recommendations || (Array.isArray(res.data) ? res.data : []);
         setMatches(recommendations);
       }
     } catch (error) {

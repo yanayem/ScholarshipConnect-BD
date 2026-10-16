@@ -212,91 +212,12 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='matchmaker', permission_classes=[permissions.IsAuthenticated])
     def matchmaker(self, request):
-        user = request.user
-        profile, _ = Profile.objects.get_or_create(user=user)
-        
-        target_countries = [c.strip().lower() for c in (profile.target_countries or "").split(',') if c.strip() and c.strip().lower() != 'none']
-        pref_fields = [f.strip().lower() for f in f"{profile.major_course or ''}, {profile.research_interests or ''}".split(',') if f.strip() and f.strip().lower() != 'none']
-        
-        has_profile_data = bool(profile.cgpa or target_countries or pref_fields or (profile.academic_level and profile.academic_level.lower() != 'none'))
-        
-        if not has_profile_data:
-            return Response({
-                "profile_summary": {
-                    "cgpa": profile.cgpa,
-                    "countries": profile.target_countries,
-                    "major": profile.major_course,
-                    "interests": profile.research_interests
-                },
-                "is_profile_incomplete": True,
-                "message": "Your profile is empty. Please complete your profile details in Edit Profile to get AI scholarship matches.",
-                "recommendations": []
-            })
+        from ai_assistant.views import calculate_hybrid_scholarship_matches
+        profile, _ = Profile.objects.get_or_create(user=request.user)
+        is_pro = profile.is_currently_pro
+        limit = 20 if is_pro else 12
+        recommendations = calculate_hybrid_scholarship_matches(profile, request, limit=limit)
 
-        scholarships = Scholarship.objects.filter(status='active', deadline__gte=timezone.now().date())
-        results = []
-        
-        profile_parts = [
-            str(p).strip() for p in [
-                profile.target_countries,
-                profile.major_course,
-                profile.research_interests,
-                profile.bio,
-                profile.skills,
-                profile.academic_level
-            ] if p and str(p).strip() and str(p).strip().lower() != 'none'
-        ]
-        profile_text = " ".join(profile_parts).lower()
-        
-        scholarship_texts = []
-        valid_scholarships = []
-        
-        for s in scholarships:
-            base_score = 0
-            if s.min_cgpa:
-                if profile.cgpa and profile.cgpa >= s.min_cgpa:
-                    base_score += 40
-                else:
-                    continue
-            else:
-                if profile.cgpa:
-                    base_score += 20
-                
-            if target_countries and s.country:
-                if s.country.lower() in target_countries:
-                    base_score += 20
-            
-            if pref_fields and s.field:
-                if s.field.lower() in pref_fields:
-                    base_score += 20
-            
-            if profile.academic_level and s.level:
-                if profile.academic_level.lower() in s.level.lower():
-                    base_score += 10
-                    
-            valid_scholarships.append((s, base_score))
-            s_text = f"{s.title} {s.country} {s.field} {s.level} {s.description} {s.eligibility}".lower()
-            scholarship_texts.append(s_text)
-            
-        if SKLEARN_AVAILABLE and valid_scholarships and profile_text.strip():
-            vectorizer = TfidfVectorizer(stop_words='english')
-            tfidf_matrix = vectorizer.fit_transform([profile_text] + scholarship_texts)
-            cosine_sims = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:]).flatten()
-            
-            for idx, (s, base_score) in enumerate(valid_scholarships):
-                nlp_score = int(cosine_sims[idx] * 50)
-                results.append({
-                    "scholarship": ScholarshipSerializer(s).data,
-                    "match_score": min(base_score + nlp_score, 100)
-                })
-        else:
-            for s, base_score in valid_scholarships:
-                results.append({
-                    "scholarship": ScholarshipSerializer(s).data,
-                    "match_score": min(base_score, 100)
-                })
-        
-        results = sorted(results, key=lambda x: x['match_score'], reverse=True)
         return Response({
             "profile_summary": {
                 "cgpa": profile.cgpa,
@@ -304,7 +225,9 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
                 "major": profile.major_course,
                 "interests": profile.research_interests
             },
-            "recommendations": results[:10]
+            "is_pro_results": is_pro,
+            "total_found": len(recommendations),
+            "recommendations": recommendations
         })
 
     @action(detail=False, methods=['get'], url_path='autocomplete', permission_classes=[permissions.AllowAny])

@@ -1,3 +1,4 @@
+from datetime import datetime, date as datetime_date
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.db.models import Avg
@@ -15,10 +16,11 @@ class ProfileSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
     reviews_count = serializers.SerializerMethodField()
 
-    # Use CharField for academic scores to gracefully handle empty strings from frontend
+    # Use CharField for academic scores & dates to gracefully handle empty strings / custom formats from frontend
     cgpa = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     ielts_score = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     gre_score = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    date_of_birth = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
     class Meta:
         model = Profile
@@ -87,9 +89,35 @@ class ProfileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("GRE score must be a valid integer.")
 
     def validate_date_of_birth(self, value):
-        if value == "" or value is None:
+        if value is None or str(value).strip() == "":
             return None
-        return value
+
+        if isinstance(value, datetime_date):
+            return value
+
+        val_str = str(value).strip()
+
+        # Split ISO timestamp if present
+        if 'T' in val_str:
+            val_str = val_str.split('T')[0]
+
+        formats = [
+            '%Y-%m-%d',
+            '%d/%m/%Y',
+            '%d-%m-%Y',
+            '%Y/%m/%d',
+            '%m/%d/%Y',
+            '%b %d, %Y',
+            '%B %d, %Y',
+        ]
+        for fmt in formats:
+            try:
+                dt = datetime.strptime(val_str, fmt)
+                return dt.date()
+            except ValueError:
+                pass
+
+        raise serializers.ValidationError("Date has wrong format. Use YYYY-MM-DD (e.g. 2000-01-31).")
 
     def update(self, instance, validated_data):
         # Handle nested User data (email, username) mapped via source='user.xxx'

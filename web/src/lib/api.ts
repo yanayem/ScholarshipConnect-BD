@@ -117,6 +117,13 @@ export const apiService = {
     });
   },
 
+  async aiGenerateBio() {
+    return await safeFetch(`${API_URL}/ai/generate-bio/`, {
+      method: 'POST',
+      headers: await getHeaders(true),
+    });
+  },
+
   // --- Scholarships ---
   async getScholarships(params = '') {
     const url = `${API_URL}/scholarships/${params ? '?' + params : ''}`;

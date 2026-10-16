@@ -95,7 +95,7 @@ export default function UpgradeProPage() {
                 <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-8">Choose your plan</h2>
 
                 {/* Option 1: ScholarPoints */}
-                <div className={`border-[3px] rounded-lg p-10 transition-all relative overflow-hidden bg-slate-50/50 ${((user as any).scholar_points || 0) >= 200 ? 'border-primary' : 'border-slate-100 opacity-60'}`}>
+                <div className={`border-[3px] rounded-lg p-10 transition-all relative overflow-hidden bg-white ${((user as any).scholar_points || 0) >= 200 ? 'border-primary' : 'border-slate-200'}`}>
                    <div className="relative z-10 flex justify-between items-start">
                       <div className="space-y-6">
                          <div>

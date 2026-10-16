@@ -75,7 +75,7 @@ export default function UpgradeProScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
         <LinearGradient
-          colors={['#1B262C', '#0F172A']}
+          colors={[theme.colors.primary, theme.colors.primaryDark]}
           style={styles.header}
         >
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
   },
   disabledCard: {
     backgroundColor: '#FAFAFA',
-    opacity: 0.7
+    borderColor: theme.colors.border,
   },
   cashCard: {
     backgroundColor: theme.colors.primary,
