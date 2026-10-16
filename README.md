@@ -295,6 +295,7 @@ ScholarshipConnectBD/
 │   ├── manage.py                 # Django Management CLI
 │   └── .env                      # Secure Credentials (DB URI, Firebase Keys)
 ├── DOCUMENTATION.md              # Complete User Manual & Technical Guide
+├── SMART_MATCHMAKER.md           # Smart Matchmaker Architecture, Scoring Breakdown & Flowchart
 ├── AI_MATCHMAKER.md              # AI Algorithm & NLP Technical Deep-dive
 ├── erdigram.md                   # Entity-Relationship Diagram (Database)
 ├── AGENTS.md                     # Developer Guide & Migration Notes

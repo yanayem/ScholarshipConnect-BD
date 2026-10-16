@@ -233,15 +233,32 @@ A deep dive into how a student moves from a discovered scholarship to a complete
 ## AI Assistant Guide
 The platform integrates advanced AI capabilities to assist students in their application journey.
 
-### SOP Writing & Review
-1.  **Generate SOP**: Navigate to a scholarship detail page and tap **"AI SOP Assistant"**. The system will use your profile data and the scholarship's requirements to draft a tailored Statement of Purpose.
-2.  **Review SOP**: Paste your existing SOP into the **AI Review Tool**. It will analyze:
+### 1. Smart Scholarship Matchmaker (Hybrid Recommendation Engine)
+The Matchmaker calculates personalized compatibility scores ($0\% - 100\%$) for each active scholarship using a 5-pillar scoring algorithm:
+- **CGPA Match (25 pts)**: Evaluates student CGPA against minimum requirements with a 0.3 grade-cushion.
+- **Country Alignment (25 pts)**: Matches preferred destination countries, recognizing aliases (e.g. USA, UK, Germany) and global awards.
+- **Field & Major (25 pts)**: Evaluates discipline, major, and student skills against scholarship subject areas.
+- **Academic Level (15 pts)**: Matches degree requirements (Bachelors, Masters, PhD).
+- **Semantic NLP (15 pts)**: Employs `scikit-learn` `TfidfVectorizer` and Cosine Similarity to compare candidate bios, research interests, and achievements directly against scholarship descriptions.
+- **Tier Differentiation**: Standard users receive the Top 12 matches; **ScholarConnect Pro** users receive the Top 20 matches.
+- *Detailed reference: See [SMART_MATCHMAKER.md](./SMART_MATCHMAKER.md) and [AI_MATCHMAKER.md](./AI_MATCHMAKER.md).*
+
+### 2. SOP Writing & Review
+1.  **Generate SOP**: Navigate to a scholarship detail page and tap **"AI SOP Assistant"**. The system uses profile data and scholarship requirements to draft a tailored Statement of Purpose.
+2.  **Review SOP**: Paste an existing SOP into the **AI Review Tool** to analyze:
     - Academic Tone
     - Grammar & Clarity
     - Alignment with Scholarship Goals
 
-### CV Improvement
-- Upload your CV text to get instant suggestions on how to improve your academic formatting and highlight relevant achievements for international reviewers.
+### 3. CV Improvement
+- Upload or paste CV text to get instant suggestions for academic formatting and international reviewer appeal.
+
+### 4. Multi-Provider AI Fallback Engine
+The backend (`backend/ai_assistant/services.py`) ensures 99.9% uptime using a self-healing fallback chain:
+1. **xAI (Grok)**: High-speed, nuanced reasoning (Primary when configured).
+2. **Groq**: Ultra-low-latency LLaMA models with automated API key rotation.
+3. **Google Gemini**: Gemini 2.0 / Flash API models with REST fallback.
+4. **Pollinations AI**: Keyless open fallback ensuring continuous availability.
 
 ---
 

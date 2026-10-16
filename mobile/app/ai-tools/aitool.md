@@ -54,15 +54,17 @@ ScholarshipConnectBD অ্যাপে কৃত্রিম বুদ্ধি
 *   `apiService.aiReviewCV(text)`
 *   `apiService.aiLiveSupport(message, history)`
 
-### AI Engine & Model (এআই ইঞ্জিন)
-আমাদের অ্যাপের এআই সিস্টেম এখন আরও শক্তিশালী এবং লেটেস্ট প্রযুক্তিতে আপগ্রেড করা হয়েছে।
-*   **Engine:** `google-genai` SDK (Official Python Library).
-*   **Model:** **Gemini 2.0 Flash** (সবচেয়ে আধুনিক এবং দ্রুতগতির মডেল)।
+### AI Engine & Multi-Provider Architecture (এআই ইঞ্জিন)
+আমাদের অ্যাপের এআই সিস্টেম একাধিক প্রোভাইডারের ফেইলওভার ও চেইনিং প্রক্রিয়ায় কাজ করে:
+*   **Primary Engine:** **xAI (Grok)** এবং **Groq** (LLaMA মডেল ভিত্তিক হাই-স্পিড ইনফারেন্স)।
+*   **Google Gemini:** **Gemini 2.0 Flash / Pro** (REST API এবং ক্লাউড এসডিকে)।
+*   **Free Fallback:** **Pollinations AI** (ওপেন এআই ফলব্যাক, যা কোনো কি ব্যর্থ হলেও নিরবচ্ছিন্ন সার্ভিস দেয়)।
 *   **Backend Path:** `backend/ai_assistant/services.py`.
 *   **Key Features:**
-    *   **Google Search Integration:** এআই এখন উত্তর দেওয়ার সময় সরাসরি ইন্টারনেট থেকে লেটেস্ট স্কলারশিপ এবং ডাটা সার্চ করতে পারে।
-    *   **Optimized Config:** Temperature: 1.0 এবং Top_P: 0.95 ব্যবহার করা হয়েছে যাতে উত্তরগুলো আরও ক্রিয়েটিভ এবং প্রাসঙ্গিক হয়।
-*   **Fallback:** যদি API Key সেট করা না থাকে, তবে সিস্টেম অটোমেটিক `_mock_response` ব্যবহার করবে।
+    *   **Auto API Key Rotation:** একাধিক কি ও মডেল অটো-সুইচ হয়।
+    *   **Smart Scholarship Matchmaker:** TF-IDF এবং Cosine Similarity-র সাহায্যে প্রোফাইলের সাথে স্কলারশিপের স্মার্ট ম্যাচিং (বিস্তারিত দেখুন [SMART_MATCHMAKER.md](../../../SMART_MATCHMAKER.md))।
+    *   **Optimized Config:** Temperature: 0.6 - 1.0 ব্যবহার করা হয়েছে যাতে উত্তরগুলো প্রাসঙ্গিক ও সঠিক হয়।
+*   **Fallback:** যদি সমস্ত অনলাইন API ব্যর্থ হয়, তবে সিস্টেম অটোমেটিক ব্যাকআপ রেসপন্স প্রদান করে।
 
 ### Styling Tokens
 এই পেজগুলোতে আমাদের থিম ফাইল (`theme.js`) থেকে নিচের টোকেনগুলো ব্যবহার করা হয়েছে:

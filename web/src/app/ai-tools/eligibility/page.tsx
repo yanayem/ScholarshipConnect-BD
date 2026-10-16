@@ -130,14 +130,14 @@ export default function EligibilityPage() {
     setQuickResult(null);
 
     // 1. Rule-Based NLP Threshold Match
-    const hasCgpa = Boolean(customCgpa && !isNaN(parseFloat(customCgpa)) && parseFloat(customCgpa) > 0);
+    const hasCgpa: boolean = Boolean(customCgpa && !isNaN(parseFloat(customCgpa)) && parseFloat(customCgpa) > 0);
     const userCgpaNum = hasCgpa ? parseFloat(customCgpa) : 0;
 
     const eligText = selectedScholarship.eligibility || selectedScholarship.description || '';
     const matchCgpa = eligText.match(/CGPA\s*[:>=]?\s*(\d+(\.\d+)?)/i);
     const minCgpaReq = matchCgpa ? parseFloat(matchCgpa[1]) : (selectedScholarship.min_cgpa || 3.0);
 
-    const cgpaPass: boolean = Boolean(hasCgpa && userCgpaNum >= minCgpaReq);
+    const cgpaPass: boolean = hasCgpa && userCgpaNum >= minCgpaReq;
     const levelPass: boolean = Boolean(
       customLevel && selectedScholarship.level && (
         selectedScholarship.level.toLowerCase().includes(customLevel.toLowerCase()) ||
@@ -177,9 +177,9 @@ export default function EligibilityPage() {
 
     setQuickResult({
       score: matchScore,
-      cgpaPass: Boolean(cgpaPass),
-      levelPass: Boolean(levelPass),
-      fieldPass: Boolean(fieldPass),
+      cgpaPass,
+      levelPass,
+      fieldPass,
       minCgpaReq
     });
 

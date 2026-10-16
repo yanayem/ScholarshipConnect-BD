@@ -21,12 +21,13 @@ This web platform mirrors the mobile experience with a specialized **Premium War
     - **Pro Upgrade**: Unlock unlimited AI usage via ScholarPoints or SSLCommerz payment.
 
 ## 🛠️ Tech Stack
-- **Framework**: [Next.js 15+](https://nextjs.org/) (App Router)
+- **Framework**: [Next.js 16 (App Router)](https://nextjs.org/) & [React 19](https://react.dev/)
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
 - **Icons**: [Lucide React](https://lucide.dev/)
 - **Auth**: [Firebase Authentication](https://firebase.google.com/)
-- **API**: Custom Django REST Backend (Deployed on Render)
+- **AI Recommendation**: Hybrid Vector Space Matchmaker (See [SMART_MATCHMAKER.md](../SMART_MATCHMAKER.md))
+- **API**: Custom Django REST Backend (Deployed on Render / Local)
 - **Deployment**: [Vercel](https://vercel.com/)
 
 ## 📦 Getting Started

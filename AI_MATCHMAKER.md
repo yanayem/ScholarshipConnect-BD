@@ -70,38 +70,55 @@ $\text{Similarity} = \cos(\theta) = \frac{\vec{A} \cdot \vec{B}}{\|\vec{A}\| \|\
 ---
 
 ## The Hybrid Scoring Workflow
-We use a 3-step pipeline to calculate the final match percentage.
+We use an advanced 5-dimensional scoring model combining rule-based heuristics and vector-space NLP. For the comprehensive workflow and mathematical diagrams, see [SMART_MATCHMAKER.md](./SMART_MATCHMAKER.md).
 
-### Step 1: Pre-Filtering (Hard Logic)
-First, we apply "Hard Rules" using Python `if/else` logic:
-- **CGPA Match**: If your CGPA < Requirement, the scholarship is removed.
-- **Academic Level**: We check if you are looking for "Masters" and the scholarship is for "Masters".
+### Scoring Matrix & Points Distribution (Total 100 Points)
 
-### Step 2: Semantic Matching (NLP Logic)
-We combine your **Bio + Skills + Preferred Fields** into one long string. We do the same for the scholarship's **Description + Eligibility**.
-- We run the **TF-IDF + Cosine** logic described above.
-- This produces a score between 0.0 and 1.0.
-- We multiply this by **50** to give it weight.
+1. **CGPA Scoring (Up to 25 pts)**:
+   - **User CGPA $\ge$ Scholarship Min CGPA**: +25 points
+   - **User CGPA within 0.3 gap**: +15 points
+   - **User CGPA below gap**: +5 points
+   - **No minimum requirement specified**: +20 points (or +15 if user CGPA is blank)
+   - **User CGPA is unspecified**: +12 points
 
-### Step 3: Weighted Sum (The Final Score)
-We add points based on structured data matches:
-- **Country Match**: +20 points.
-- **Field Match**: +20 points.
-- **NLP Score**: Up to 50 points.
-- **Academic Level Match**: +10 points.
+2. **Country & Region Alignment (Up to 25 pts)**:
+   - **Global / Worldwide / International**: +25 points
+   - **Target country matched (with canonical aliases like USA/US/America, UK/Britain, Germany/Deutschland)**: +25 points
+   - **Target countries specified but no match**: +8 points
+   - **Unspecified target countries**: +15 points
 
-**Final Rank = Base Points + NLP Points.**
+3. **Field / Major & Skills Alignment (Up to 25 pts)**:
+   - **General / Multidisciplinary / Open / STEM**: +22 points
+   - **Field / Major / Research interests match in title, description, or eligibility**: +25 points
+   - **User skills match in title, description, or eligibility**: +25 points
+   - **Field specified but no match found**: +10 points
+   - **No field or skills specified**: +15 points
+
+4. **Academic Level Match (Up to 15 pts)**:
+   - **Open to all levels**: +15 points
+   - **Level matched with aliases (Bachelors/Undergrad, Masters/Postgrad, PhD/Doctorate)**: +15 points
+   - **Level mismatch**: +6 points
+   - **Unspecified level**: +10 points
+
+5. **NLP Cosine Similarity Semantic Bonus (Up to 15 pts)**:
+   - **TF-IDF + Cosine Similarity**: Angle between full user profile vector (major, department, research, skills, bio, achievements) and full scholarship corpus.
+   - Points = $\text{int}(\text{CosineSim} \times 15)$
+
+$$\text{Final Score} = \min(100, \max(15, \text{CGPA} + \text{Country} + \text{Field} + \text{Level} + \text{NLP}))$$
 
 ---
 
 ## Step-by-Step Backend Process
-This is exactly what happens when you click "Match" in the app:
+This is exactly what happens when you click "Match" in the app or web portal:
 
-1.  **Collect Data**: The system fetches your profile and all active scholarships from MongoDB.
-2.  **Clean Text**: All text is converted to lowercase to ensure "Engineering" and "engineering" are seen as the same word.
-3.  **Vectorize**: `TfidfVectorizer` creates a map of all unique words across the entire database.
-4.  **Calculate Similarity**: Your "Profile Arrow" is compared against every "Scholarship Arrow" in one high-speed calculation.
-5.  **Sort & Slice**: The results are sorted from highest to lowest score, and the Top 10 are sent to your mobile screen.
+1. **Collect Data**: The system fetches your profile and all active scholarships from MongoDB Atlas.
+2. **Clean Text**: Stop words are removed, and text is normalized to lowercase.
+3. **Vectorize**: `TfidfVectorizer` creates a numerical vocabulary space across profile and scholarship descriptions.
+4. **Calculate Similarity**: Cosine similarity computes semantic alignment between the student profile and each scholarship.
+5. **Score & Blend**: Base heuristic points (CGPA, Country, Field, Level) are added to the NLP semantic score.
+6. **Tier-Aware Response**: 
+   - Free users receive the **Top 12** ranked matches.
+   - **ScholarConnect Pro** members receive the **Top 20** ranked matches.
 
 ---
 
@@ -110,22 +127,23 @@ This is exactly what happens when you click "Match" in the app:
 If you need to modify or update the algorithm, here are the key files:
 
 ### 1. Backend (Logic)
-- **View Layer**: `backend/ai_assistant/views.py` → Look for `class AIMatchmakerView`. This is where the scoring logic lives.
-- **URL Routing**: `backend/ai_assistant/urls.py` → Mapped to `/api/ai/matchmaker/`.
+- **View Layer**: [backend/ai_assistant/views.py](file:///d:/ScholarshipConnect-BD/backend/ai_assistant/views.py) → Look for `calculate_hybrid_scholarship_matches` and `class AIMatchmakerView`.
+- **URL Routing**: [backend/ai_assistant/urls.py](file:///d:/ScholarshipConnect-BD/backend/ai_assistant/urls.py) → Mapped to `/api/ai/matchmaker/`.
 - **Data Models**:
-    - `backend/accounts/models.py` → `Profile` (User's bio, skills, CGPA).
-    - `backend/scholarships/models.py` → `Scholarship` (Requirements, description).
+    - [backend/accounts/models.py](file:///d:/ScholarshipConnect-BD/backend/accounts/models.py) → `Profile` (User's bio, skills, CGPA, target countries).
+    - [backend/scholarships/models.py](file:///d:/ScholarshipConnect-BD/backend/scholarships/models.py) → `Scholarship` (Requirements, description, eligibility).
 
-### 2. Frontend (UI)
-- **Screen**: `mobile/app/scholarships/matchmaker.js` → This page displays the results to the user.
-- **Service**: `mobile/services/api.js` → `getScholarshipMatches()` handles the API communication.
+### 2. Frontend (Mobile & Web)
+- **Mobile Screen**: [mobile/app/scholarships/matchmaker.js](file:///d:/ScholarshipConnect-BD/mobile/app/scholarships/matchmaker.js)
+- **Web Pages**: [web/src/app/scholarships/matchmaker/page.tsx](file:///d:/ScholarshipConnect-BD/web/src/app/scholarships/matchmaker/page.tsx) and [web/src/app/ai-tools/matchmaker/page.tsx](file:///d:/ScholarshipConnect-BD/web/src/app/ai-tools/matchmaker/page.tsx)
+- **API Services**: `mobile/services/api.js` and `web/src/lib/api.ts` → `getScholarshipMatches()`.
 
 ---
 
 ## Why this is better than "Search"
-1.  **Synonym Awareness**: Because TF-IDF looks at the importance of words across the whole dataset, it can often find connections that simple keyword search misses.
-2.  **Personalized**: It looks at your **Bio** (who you are) and **Skills** (what you know), not just what you typed in a search box.
-3.  **Ranking**: Instead of showing you 100 scholarships in random order, it tells you which one is *most* relevant to your life story.
+1. **Synonym & Alias Awareness**: Maps countries and degrees (e.g. "US" to "USA", "Undergrad" to "Bachelors") automatically.
+2. **Personalized**: Factors in your **Bio**, **Research Interests**, and **Skills**, not just static keywords.
+3. **Explainable Ranking**: Ranks every scholarship on a clear 0-100% match index.
 
 ---
-*Created for the ScholarshipConnectBD Team. Happy Learning!*
+*Created for the ScholarshipConnectBD Team. Refer to [SMART_MATCHMAKER.md](./SMART_MATCHMAKER.md) for full architecture diagrams.*
