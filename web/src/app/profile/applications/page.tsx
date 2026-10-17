@@ -16,7 +16,8 @@ import {
   GraduationCap,
   Calendar,
   MessageCircle,
-  MoreVertical
+  MoreVertical,
+  ArrowUpRight
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -191,13 +192,21 @@ export default function ApplicationsPage() {
 
                       <div className="flex items-center gap-3 w-full md:w-auto">
                          {item.type !== 'Self' && (
-                           <button className="flex-1 md:flex-none p-2.5 bg-white border border-slate-200 text-slate-600 rounded-md hover:text-primary transition-all shadow-sm">
+                           <Link
+                             href="/messages"
+                             title="Contact Support / Mentor"
+                             className="flex-1 md:flex-none p-2.5 bg-white border border-slate-200 text-slate-600 rounded-md hover:text-primary transition-all shadow-sm flex items-center justify-center"
+                           >
                               <MessageCircle size={18} />
-                           </button>
+                           </Link>
                          )}
-                         <button className="flex-1 md:flex-none px-6 py-3 bg-slate-900 text-white rounded-md font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg shadow-slate-100">
-                            Update
-                         </button>
+                         <Link
+                            href={item.scholarship_id ? `/scholarships/${item.scholarship_id}` : '/scholarships'}
+                            className="flex-1 md:flex-none px-5 py-2.5 bg-slate-900 text-white rounded-md font-black text-[10px] uppercase tracking-widest hover:bg-primary transition-all shadow-md shadow-slate-100 flex items-center justify-center gap-1.5"
+                         >
+                            <span>{item.status === 'Saved' ? 'Apply Now' : 'View Details'}</span>
+                            <ArrowUpRight size={14} />
+                         </Link>
                       </div>
                     </div>
 
