@@ -86,9 +86,24 @@ export default function AgencyApplyPage() {
     }
   }, [user, authLoading]);
 
-  const hasCV = vaultDocs.some(d => d.doc_type === 'CV' || d.name.toLowerCase().includes('cv') || d.name.toLowerCase().includes('resume'));
-  const hasTranscript = vaultDocs.some(d => d.doc_type === 'Transcript' || d.name.toLowerCase().includes('transcript'));
-  const hasPassport = vaultDocs.some(d => d.doc_type === 'Passport' || d.name.toLowerCase().includes('passport'));
+  const hasCV = vaultDocs.some(d => {
+    const typeStr = (d.doc_type || '').toLowerCase();
+    const nameStr = (d.name || '').toLowerCase();
+    return typeStr === 'cv' || typeStr.includes('resume') || nameStr.includes('cv') || nameStr.includes('resume');
+  });
+
+  const hasTranscript = vaultDocs.some(d => {
+    const typeStr = (d.doc_type || '').toLowerCase();
+    const nameStr = (d.name || '').toLowerCase();
+    return typeStr === 'transcript' || typeStr.includes('academic') || nameStr.includes('transcript') || nameStr.includes('marksheet');
+  });
+
+  const hasPassport = vaultDocs.some(d => {
+    const typeStr = (d.doc_type || '').toLowerCase();
+    const nameStr = (d.name || '').toLowerCase();
+    return typeStr === 'passport' || typeStr.includes('identification') || nameStr.includes('passport') || nameStr.includes('nid');
+  });
+
   const hasAllRequired = hasCV && hasTranscript && hasPassport;
 
   const handleSubmit = async (e: React.FormEvent) => {

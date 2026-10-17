@@ -266,6 +266,27 @@ export const apiService = {
     });
   },
 
+  async uploadDocument(formData: FormData) {
+    const user = auth.currentUser;
+    const headers: Record<string, string> = {};
+    if (user) {
+      const token = await user.getIdToken();
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return await safeFetch(`${API_URL}/applications/documents/`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+  },
+
+  async deleteDocument(id: number | string) {
+    return await safeFetch(`${API_URL}/applications/documents/${id}/`, {
+      method: 'DELETE',
+      headers: await getHeaders(true),
+    });
+  },
+
   async updateMentorshipStatus(id: number, status: string) {
     return await safeFetch(`${API_URL}/community/mentorships/${id}/`, {
       method: 'PATCH',
