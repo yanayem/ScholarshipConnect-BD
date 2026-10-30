@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { apiService } from '@/lib/api';
 import { Scholarship } from '@/types';
 import Link from 'next/link';
-import { Search, MapPin, ArrowRight, GraduationCap, Plus, Sparkles, Brain, AlertCircle, Loader2 } from 'lucide-react';
+import { Search, MapPin, ArrowRight, GraduationCap, Plus, Sparkles, Brain, AlertCircle, Loader2, History } from 'lucide-react';
 import Header from '@/components/Header';
 
 export default function ScholarshipList() {
@@ -34,7 +34,11 @@ export default function ScholarshipList() {
 
     const res = await apiService.getScholarships(params);
     if (res.ok) {
-      setScholarships(res.data as unknown as Scholarship[]);
+      const all = res.data as unknown as Scholarship[];
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const active = all.filter(s => !s.deadline || new Date(s.deadline) >= today);
+      setScholarships(active);
     }
     setLoading(false);
   };
@@ -152,6 +156,11 @@ export default function ScholarshipList() {
                   </>
                 )}
               </button>
+
+              <Link href="/scholarships/archive" className="bg-slate-100 text-slate-700 px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider hover:bg-slate-200 transition-all flex items-center gap-2 border border-slate-200 shadow-sm">
+                <History size={16} className="text-slate-500" />
+                Archive
+              </Link>
 
               <Link href="/scholarships/add" className="bg-slate-900 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-wider hover:bg-slate-800 transition-all flex items-center gap-2 shadow-lg shadow-slate-200">
                  <Plus size={16} />

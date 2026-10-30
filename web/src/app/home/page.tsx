@@ -404,7 +404,11 @@ export default function UserHomePage() {
         ]);
 
         if (scholarRes.ok) {
-          setScholarships(scholarRes.data as unknown as Scholarship[]);
+          const data = scholarRes.data as unknown as Scholarship[];
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const active = data.filter(s => !s.deadline || new Date(s.deadline) >= today);
+          setScholarships(active);
         }
         if (leaderRes.ok) {
           setLeaderboard((leaderRes.data as any[]).slice(0, 3));
