@@ -269,11 +269,11 @@ def _call_pollinations(prompt: str) -> Optional[str]:
             "messages": [
                 {
                     "role": "user",
-                    "content": prompt
+                    "content": prompt[:1500]
                 }
             ]
         }
-        res = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=8)
+        res = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=15)
         if res.status_code == 200 and res.text:
             cleaned = res.text.strip()
             if cleaned and len(cleaned) > 10:
@@ -281,6 +281,19 @@ def _call_pollinations(prompt: str) -> Optional[str]:
                 return cleaned
     except Exception as e:
         logger.warning(f"[Pollinations] Fallback error: {e}")
+
+    try:
+        # GET fallback if POST times out
+        url_get = f"https://text.pollinations.ai/{requests.utils.quote(prompt[:400])}"
+        res_get = requests.get(url_get, timeout=12)
+        if res_get.status_code == 200 and res_get.text:
+            cleaned = res_get.text.strip()
+            if cleaned and len(cleaned) > 10:
+                logger.info("[Pollinations GET] Fallback successful.")
+                return cleaned
+    except Exception:
+        pass
+
     return None
 
 
