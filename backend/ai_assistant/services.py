@@ -83,15 +83,13 @@ def _call_groq(prompt: str) -> Optional[str]:
     if not valid_keys:
         return None
 
-    # Active supported Groq models
+    # Active supported Groq models ordered for free & paid tiers
     models = [
-        "llama-3.3-70b-versatile",
         "llama-3.1-8b-instant",
-        "deepseek-r1-distill-llama-70b",
-        "mixtral-8x7b-32768",
-        "qwen-2.5-coder-32b",
-        "qwen-2.5-32b",
-        "llama-3.3-70b-specdec",
+        "llama-3.3-70b-versatile",
+        "llama-3.2-3b-preview",
+        "llama-3.2-1b-preview",
+        "llama-3.2-11b-vision-preview",
     ]
 
     # Method 1: Direct HTTP REST Request (Fast, no SDK dependency)
