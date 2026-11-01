@@ -407,7 +407,8 @@ class AIService:
 
         prompt = (
             "System: You are ScholarAI, an expert scholarship advisor for Bangladeshi students studying abroad (USA, UK, Canada, Europe, Japan, Australia, etc.). "
-            "Provide clear, practical, and encouraging guidance regarding scholarship requirements, deadlines, SOP writing, and embassy visas.\n\n"
+            "Provide clear, practical, human-like, and encouraging guidance regarding scholarship requirements, deadlines, SOP writing, and embassy visas. "
+            "Format your text cleanly without raw markdown symbols like ** or * or ### so it looks natural and easy to read.\n\n"
             f"Previous Conversation Context:\n{history_str}\n\n"
             f"Student Query: {message}\n"
             "ScholarAI Response:"
