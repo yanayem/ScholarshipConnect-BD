@@ -6,6 +6,71 @@ from typing import Optional, List
 
 logger = logging.getLogger(__name__)
 
+def _call_openrouter(prompt: str) -> Optional[str]:
+    """
+    Calls OpenRouter AI API with key rotation and free model fallbacks (DeepSeek R1, Llama 3.3, Gemini, etc.).
+    """
+    raw_keys = [
+        os.getenv("OPENROUTER_API_KEY"),
+        os.getenv("OPENROUTER_API_KEY_2"),
+    ]
+    valid_keys = [k.strip() for k in raw_keys if k and k.strip()]
+    if not valid_keys:
+        return None
+
+    openrouter_models = [
+        "deepseek/deepseek-r1:free",
+        "meta-llama/llama-3.3-70b-instruct:free",
+        "google/gemini-2.0-flash-exp:free",
+        "deepseek/deepseek-chat:free",
+        "qwen/qwen-2.5-coder-32b-instruct:free",
+    ]
+
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    for idx, key in enumerate(valid_keys):
+        headers = {
+            "Authorization": f"Bearer {key}",
+            "HTTP-Referer": "https://scholarshipconnectbd.com",
+            "X-Title": "ScholarshipConnect BD",
+            "Content-Type": "application/json"
+        }
+        for model in openrouter_models:
+            try:
+                payload = {
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": "You are ScholarAI, an expert scholarship consultant for Bangladeshi students. Be encouraging, precise, and concise."
+                        },
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ],
+                    "model": model,
+                    "temperature": 0.6,
+                    "max_tokens": 2048
+                }
+                res = requests.post(url, json=payload, headers=headers, timeout=15)
+                if res.status_code == 200:
+                    data = res.json()
+                    choices = data.get("choices", [])
+                    if choices:
+                        content = choices[0].get("message", {}).get("content")
+                        if content:
+                            logger.info(f"[OpenRouter] Key {idx+1} success with model {model}")
+                            return content
+                else:
+                    logger.warning(f"[OpenRouter] Key {idx+1} model {model} HTTP {res.status_code}: {res.text[:120]}")
+                    if res.status_code in [401, 403]:
+                        break
+            except Exception as e:
+                logger.warning(f"[OpenRouter] Key {idx+1} model {model} error: {e}")
+                continue
+
+    return None
+
+
 def _call_xai(prompt: str) -> Optional[str]:
     """
     Calls xAI (Grok) API via REST completions endpoint with key rotation and model fallbacks.
@@ -298,22 +363,27 @@ def _call_pollinations(prompt: str) -> Optional[str]:
 class AIService:
     @classmethod
     def _call_ai(cls, prompt: str) -> str:
-        # Step 1: xAI Grok (if XAI_API_KEY / XAI_GROK_API_KEY configured)
+        # Step 1: OpenRouter (if OPENROUTER_API_KEY configured)
+        result = _call_openrouter(prompt)
+        if result:
+            return re.sub(r'<think>.*?</think>', '', result, flags=re.DOTALL).strip()
+
+        # Step 2: xAI Grok (if XAI_API_KEY / XAI_GROK_API_KEY configured)
         result = _call_xai(prompt)
         if result:
             return re.sub(r'<think>.*?</think>', '', result, flags=re.DOTALL).strip()
 
-        # Step 2: Groq AI (Multi-key + Multi-model)
+        # Step 3: Groq AI (Multi-key + Multi-model)
         result = _call_groq(prompt)
         if result:
             return re.sub(r'<think>.*?</think>', '', result, flags=re.DOTALL).strip()
 
-        # Step 3: Gemini AI (Multi-key + Multi-model + REST)
+        # Step 4: Gemini AI (Multi-key + Multi-model + REST)
         result = _call_gemini(prompt)
         if result:
             return re.sub(r'<think>.*?</think>', '', result, flags=re.DOTALL).strip()
 
-        # Step 4: Public Free Fallback (Pollinations AI - No Key Needed)
+        # Step 5: Public Free Fallback (Pollinations AI - No Key Needed)
         result = _call_pollinations(prompt)
         if result:
             return re.sub(r'<think>.*?</think>', '', result, flags=re.DOTALL).strip()
