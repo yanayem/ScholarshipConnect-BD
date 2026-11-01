@@ -8,7 +8,8 @@ from .views import (
     AILiveSupportView,
     AIGenerateBioView,
     AIMatchmakerView,
-    AIChatHistoryView
+    AIChatHistoryView,
+    AIChatMessageDetailView
 )
 
 urlpatterns = [
@@ -19,6 +20,7 @@ urlpatterns = [
     path('improve-post/', AIImprovePostView.as_view(), name='ai-improve-post'),
     path('live-support/', AILiveSupportView.as_view(), name='ai-live-support'),
     path('chat-history/', AIChatHistoryView.as_view(), name='ai-chat-history'),
+    path('chat-history/<int:pk>/', AIChatMessageDetailView.as_view(), name='ai-chat-detail'),
     path('generate-bio/', AIGenerateBioView.as_view(), name='ai-generate-bio'),
     path('matchmaker/', AIMatchmakerView.as_view(), name='ai-matchmaker'),
 ]

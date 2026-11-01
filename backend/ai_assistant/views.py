@@ -6,6 +6,7 @@ from .models import AIChatMessage
 from .serializers import AIChatMessageSerializer
 from accounts.models import Profile
 from scholarships.models import Scholarship
+from datetime import timedelta
 from django.utils import timezone
 
 def check_ai_limit(profile):
@@ -129,7 +130,28 @@ class AIChatHistoryView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        cutoff = timezone.now() - timedelta(days=30)
+        # Permanently purge messages older than 30 days from database
+        AIChatMessage.objects.filter(user=self.request.user, created_at__lt=cutoff).delete()
         return AIChatMessage.objects.filter(user=self.request.user).order_by('created_at')
+
+class AIChatMessageDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = AIChatMessageSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return AIChatMessage.objects.filter(user=self.request.user)
+
+    def perform_destroy(self, instance):
+        if instance.is_user:
+            next_ai_msg = AIChatMessage.objects.filter(
+                user=instance.user,
+                is_user=False,
+                id__gt=instance.id
+            ).order_by('id').first()
+            if next_ai_msg:
+                next_ai_msg.delete()
+        instance.delete()
 
 class AILiveSupportView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -140,16 +162,24 @@ class AILiveSupportView(APIView):
         if not message:
             return Response({'error': 'Message is required'}, status=status.HTTP_400_BAD_REQUEST)
         
+        # Cleanup messages older than 30 days for this user from database
+        cutoff = timezone.now() - timedelta(days=30)
+        AIChatMessage.objects.filter(user=request.user, created_at__lt=cutoff).delete()
+
         # Save user message
-        AIChatMessage.objects.create(user=request.user, message=message, is_user=True)
+        user_msg = AIChatMessage.objects.create(user=request.user, message=message, is_user=True)
         
         try:
             result = AIService.live_support(message, history)
             
             # Save AI response
-            AIChatMessage.objects.create(user=request.user, message=result, is_user=False)
+            ai_msg = AIChatMessage.objects.create(user=request.user, message=result, is_user=False)
 
-            return Response({'response': result})
+            return Response({
+                'response': result,
+                'user_msg_id': user_msg.id,
+                'ai_msg_id': ai_msg.id
+            })
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 

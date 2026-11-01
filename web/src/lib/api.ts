@@ -326,6 +326,21 @@ export const apiService = {
     });
   },
 
+  async updateAIChatMessage(id: string | number, message: string) {
+    return await safeFetch(`${API_URL}/ai/chat-history/${id}/`, {
+      method: 'PATCH',
+      headers: await getHeaders(true),
+      body: JSON.stringify({ message }),
+    });
+  },
+
+  async deleteAIChatMessage(id: string | number) {
+    return await safeFetch(`${API_URL}/ai/chat-history/${id}/`, {
+      method: 'DELETE',
+      headers: await getHeaders(true),
+    });
+  },
+
   // --- Admin ---
   async adminLogin(username: string, password: string) {
     return await safeFetch(`${API_URL}/accounts/admin-login/`, {

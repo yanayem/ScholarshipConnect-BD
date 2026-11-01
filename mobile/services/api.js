@@ -1114,6 +1114,31 @@ export const apiService = {
     }
   },
 
+  async updateAIChatMessage(id, message) {
+    try {
+      const response = await fetch(`${API_URL}/ai/chat-history/${id}/`, {
+        method: 'PATCH',
+        headers: await getHeaders(),
+        body: JSON.stringify({ message }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Update AI Chat Message');
+    }
+  },
+
+  async deleteAIChatMessage(id) {
+    try {
+      const response = await fetch(`${API_URL}/ai/chat-history/${id}/`, {
+        method: 'DELETE',
+        headers: await getHeaders(),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'Delete AI Chat Message');
+    }
+  },
+
   async aiGenerateBio() {
     try {
       const response = await fetch(`${API_URL}/ai/generate-bio/`, {

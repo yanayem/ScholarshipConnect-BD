@@ -6,7 +6,6 @@ import { apiService } from '@/lib/api';
 import {
   Bot,
   Send,
-  User,
   Loader2,
   ChevronLeft,
   Sparkles,
@@ -15,7 +14,12 @@ import {
   History,
   Trash2,
   CheckCheck,
-  Zap
+  Zap,
+  MoreVertical,
+  Edit2,
+  Copy,
+  X,
+  Check
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -24,6 +28,7 @@ interface Message {
   text: string;
   isUser: boolean;
   time?: string;
+  isEdited?: boolean;
 }
 
 export default function SupportBotPage() {
@@ -35,6 +40,9 @@ export default function SupportBotPage() {
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -45,12 +53,31 @@ export default function SupportBotPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Close active dropdown menu when clicking anywhere on screen
+  useEffect(() => {
+    const handleOutsideClick = () => setActiveMenuId(null);
+    window.addEventListener('click', handleOutsideClick);
+    return () => window.removeEventListener('click', handleOutsideClick);
+  }, []);
+
+  const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+  const isWithin30Days = (m: any) => {
+    if (!m) return false;
+    if (m.created_at) {
+      const time = new Date(m.created_at).getTime();
+      return !isNaN(time) && (Date.now() - time) <= THIRTY_DAYS_MS;
+    }
+    return true;
+  };
+
   const loadHistory = async () => {
     setHistoryLoading(true);
     try {
       const res = await apiService.getAIChatHistory();
       if (res.ok && res.data && res.data.length > 0) {
-        const formattedMessages = res.data.map((m: any, index: number) => ({
+        const validHistory = res.data.filter(isWithin30Days);
+        const formattedMessages = validHistory.map((m: any, index: number) => ({
           id: m.id ? m.id.toString() : `history-${index}`,
           text: m.message,
           isUser: m.is_user,
@@ -68,13 +95,72 @@ export default function SupportBotPage() {
     }
   };
 
+  const startEdit = (msg: Message) => {
+    setEditingMessageId(msg.id);
+    setInputText(msg.text);
+    setActiveMenuId(null);
+  };
+
+  const cancelEdit = () => {
+    setEditingMessageId(null);
+    setInputText('');
+  };
+
+  const deleteMsg = async (msg: Message) => {
+    setActiveMenuId(null);
+    const index = messages.findIndex(m => m.id === msg.id);
+    if (index === -1) return;
+
+    let idsToRemove = [msg.id];
+    // If a user message is deleted, also delete its corresponding AI answer following it
+    if (msg.isUser && index + 1 < messages.length && !messages[index + 1].isUser) {
+      idsToRemove.push(messages[index + 1].id);
+    }
+
+    setMessages(prev => prev.filter(m => !idsToRemove.includes(m.id)));
+
+    if (msg.id && !msg.id.startsWith('temp-') && !msg.id.startsWith('history-')) {
+      try {
+        await apiService.deleteAIChatMessage(msg.id);
+      } catch (err) {
+        console.error('[SupportBot] Delete Message API Error:', err);
+      }
+    }
+  };
+
+  const copyMsg = (text: string) => {
+    setActiveMenuId(null);
+    navigator.clipboard.writeText(text);
+  };
+
   const handleSend = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!inputText.trim() || loading) return;
 
+    if (editingMessageId) {
+      const updatedText = inputText.trim();
+      const targetId = editingMessageId;
+      setEditingMessageId(null);
+      setInputText('');
+
+      setMessages(prev => prev.map(m =>
+        m.id === targetId ? { ...m, text: updatedText, isEdited: true } : m
+      ));
+
+      if (targetId && !targetId.startsWith('temp-') && !targetId.startsWith('history-')) {
+        try {
+          await apiService.updateAIChatMessage(targetId, updatedText);
+        } catch (err) {
+          console.error('[SupportBot] Update Message API Error:', err);
+        }
+      }
+      return;
+    }
+
+    const tempUserMsgId = `temp-${Date.now()}`;
     const userMsgText = inputText.trim();
     const userMessage = {
-        id: Date.now().toString(),
+        id: tempUserMsgId,
         text: userMsgText,
         isUser: true,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -84,7 +170,6 @@ export default function SupportBotPage() {
     setInputText('');
     setLoading(true);
 
-    // Filter out error messages from context history so previous failures don't ruin context
     const history = messages
         .filter(m => m.text && !m.text.includes('temporarily') && !m.text.includes('Connection Error') && !m.text.includes('refreshing') && !m.text.includes('experiencing high demand'))
         .slice(-6)
@@ -93,16 +178,22 @@ export default function SupportBotPage() {
     try {
         const res = await apiService.aiLiveSupport(userMsgText, history);
         if (res.ok && res.data?.response) {
-            setMessages(prev => [...prev, {
-                id: Date.now().toString(),
+            const realUserMsgId = res.data.user_msg_id ? res.data.user_msg_id.toString() : tempUserMsgId;
+            const realAiMsgId = res.data.ai_msg_id ? res.data.ai_msg_id.toString() : `temp-${Date.now() + 1}`;
+
+            setMessages(prev => {
+              const updatedPrev = prev.map(m => m.id === tempUserMsgId ? { ...m, id: realUserMsgId } : m);
+              return [...updatedPrev, {
+                id: realAiMsgId,
                 text: res.data.response,
                 isUser: false,
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            }]);
+              }];
+            });
         } else {
             const errorText = res.data?.error || res.data?.message || 'ScholarAI is currently busy. Please try asking again in a moment.';
             setMessages(prev => [...prev, {
-                id: Date.now().toString(),
+                id: `temp-${Date.now() + 1}`,
                 text: errorText,
                 isUser: false,
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -149,13 +240,10 @@ export default function SupportBotPage() {
            <button className="p-3 bg-white hover:bg-gray-50 rounded-2xl text-text-secondary shadow-sm border border-black/5 transition-all">
               <History size={18} />
            </button>
-           <button className="p-3 bg-white hover:bg-red-50 rounded-2xl text-red-500 shadow-sm border border-black/5 transition-all">
-              <Trash2 size={18} />
-           </button>
         </div>
       </header>
 
-      {/* Main Container: Following the "Profile/Messages" card style */}
+      {/* Main Container */}
       <main className="flex-1 max-w-5xl w-full mx-auto overflow-hidden flex flex-col px-4">
 
         <div className="flex-1 bg-white rounded-t-sm shadow-sm border-t border-x border-black/5 overflow-hidden flex flex-col relative">
@@ -189,20 +277,74 @@ export default function SupportBotPage() {
                        </div>
                     )}
 
-                    <div className="group relative">
-                      <div className={`px-5 py-3 rounded-[24px] shadow-sm border text-sm leading-relaxed font-medium transition-all ${
-                        msg.isUser
-                        ? 'bg-gradient-to-br from-primary to-[#1F6F66] text-white border-transparent'
-                        : 'bg-white text-foreground border-black/5'
-                      }`}>
-                         {msg.text}
+                    <div className="group relative flex items-center gap-2">
+
+                      {/* 3 Dots Menu Button for Web/Mobile */}
+                      {msg.id !== '1' && (
+                        <div className={`relative ${msg.isUser ? 'order-first' : 'order-last'}`}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveMenuId(activeMenuId === msg.id ? null : msg.id);
+                            }}
+                            className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-all"
+                            title="Message Actions"
+                          >
+                            <MoreVertical size={16} />
+                          </button>
+
+                          {/* Context Dropdown Menu */}
+                          {activeMenuId === msg.id && (
+                            <div
+                              onClick={(e) => e.stopPropagation()}
+                              className={`absolute bottom-full mb-1 ${msg.isUser ? 'right-0' : 'left-0'} z-30 bg-white border border-gray-100 shadow-xl rounded-2xl py-1.5 w-36 backdrop-blur-md animate-in fade-in duration-150`}
+                            >
+                              {msg.isUser && (
+                                <button
+                                  onClick={() => startEdit(msg)}
+                                  className="w-full px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-primary-light/50 hover:text-primary flex items-center gap-2 transition-colors"
+                                >
+                                  <Edit2 size={14} />
+                                  Edit
+                                </button>
+                              )}
+                              <button
+                                onClick={() => copyMsg(msg.text)}
+                                className="w-full px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                              >
+                                <Copy size={14} />
+                                Copy
+                              </button>
+                              <button
+                                onClick={() => deleteMsg(msg)}
+                                className="w-full px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                              >
+                                <Trash2 size={14} />
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Message Content Bubble */}
+                      <div>
+                        <div className={`px-5 py-3 rounded-[24px] shadow-sm border text-sm leading-relaxed font-medium transition-all ${
+                          msg.isUser
+                          ? 'bg-gradient-to-br from-primary to-[#1F6F66] text-white border-transparent'
+                          : 'bg-white text-foreground border-black/5'
+                        }`}>
+                           {msg.text}
+                        </div>
+
+                        {/* Meta under bubble */}
+                        <div className={`flex items-center gap-1.5 mt-2 px-1 text-[9px] font-bold text-text-secondary uppercase tracking-widest ${msg.isUser ? 'justify-end' : 'justify-start'}`}>
+                           <span>{msg.time}</span>
+                           {msg.isEdited && <span className="text-gray-400 lowercase font-normal">(edited)</span>}
+                           {msg.isUser && <CheckCheck size={12} className="text-primary" />}
+                        </div>
                       </div>
 
-                      {/* Meta under bubble */}
-                      <div className={`flex items-center gap-1.5 mt-2 px-1 text-[9px] font-bold text-text-secondary uppercase tracking-widest ${msg.isUser ? 'justify-end' : 'justify-start'}`}>
-                         <span>{msg.time}</span>
-                         {msg.isUser && <CheckCheck size={12} className="text-primary" />}
-                      </div>
                     </div>
 
                   </div>
@@ -229,7 +371,20 @@ export default function SupportBotPage() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area: Floating Style inside card */}
+          {/* Editing Banner */}
+          {editingMessageId && (
+            <div className="px-6 py-2 bg-primary-light/40 border-t border-primary/10 flex items-center justify-between text-xs text-primary font-semibold">
+              <div className="flex items-center gap-2">
+                <Edit2 size={14} />
+                <span>Editing message...</span>
+              </div>
+              <button onClick={cancelEdit} className="p-1 hover:bg-primary-light rounded-full text-text-secondary">
+                <X size={16} />
+              </button>
+            </div>
+          )}
+
+          {/* Input Area */}
           <div className="p-6 bg-white border-t border-gray-50">
              <div className="max-w-3xl mx-auto relative group">
                 <form
@@ -242,7 +397,7 @@ export default function SupportBotPage() {
 
                    <input
                      type="text"
-                     placeholder="Ask about MEXT, Commonwealth, or your SOP..."
+                     placeholder={editingMessageId ? "Edit message..." : "Ask about MEXT, Commonwealth, or your SOP..."}
                      className="flex-1 bg-transparent border-none py-3 px-2 text-sm outline-none text-foreground placeholder:text-gray-400 font-medium"
                      value={inputText}
                      onChange={(e) => setInputText(e.target.value)}
@@ -253,7 +408,7 @@ export default function SupportBotPage() {
                      disabled={!inputText.trim() || loading}
                      className="bg-primary text-white p-4 rounded-lg shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
                    >
-                      <Send size={20} />
+                      {editingMessageId ? <Check size={20} /> : <Send size={20} />}
                    </button>
                 </form>
 
