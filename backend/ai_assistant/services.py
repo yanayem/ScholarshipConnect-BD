@@ -69,7 +69,8 @@ def _call_xai(prompt: str) -> Optional[str]:
 
 def _call_groq(prompt: str) -> Optional[str]:
     """
-    Calls Groq Chat Completions API with key rotation and model fallbacks.
+    Calls Groq Chat Completions API with key rotation, model fallbacks,
+    and direct HTTP REST fallback (zero SDK requirement).
     """
     raw_keys = [
         os.getenv("GROQ_API_KEY"),
@@ -82,25 +83,62 @@ def _call_groq(prompt: str) -> Optional[str]:
     if not valid_keys:
         return None
 
-    # Supported and active Groq models ordered by speed & quality
+    # Active supported Groq models
     models = [
         "llama-3.3-70b-versatile",
         "llama-3.1-8b-instant",
-        "llama-3.2-11b-vision-preview",
-        "llama-3.2-3b-preview",
-        "llama3-70b-8192",
-        "llama3-8b-8192",
-        "gemma2-9b-it",
+        "deepseek-r1-distill-llama-70b",
+        "mixtral-8x7b-32768",
+        "qwen-2.5-coder-32b",
+        "qwen-2.5-32b",
+        "llama-3.3-70b-specdec",
     ]
 
+    # Method 1: Direct HTTP REST Request (Fast, no SDK dependency)
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    for idx, key in enumerate(valid_keys):
+        headers = {
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json"
+        }
+        for model in models:
+            try:
+                payload = {
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": "You are ScholarAI, an expert scholarship consultant for Bangladeshi students. Be encouraging, precise, and concise."
+                        },
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ],
+                    "model": model,
+                    "temperature": 0.6,
+                    "max_tokens": 2048
+                }
+                res = requests.post(url, json=payload, headers=headers, timeout=12)
+                if res.status_code == 200:
+                    data = res.json()
+                    choices = data.get("choices", [])
+                    if choices:
+                        content = choices[0].get("message", {}).get("content")
+                        if content:
+                            logger.info(f"[Groq REST] Key {idx+1} success with model {model}")
+                            return content
+                else:
+                    logger.warning(f"[Groq REST] Key {idx+1} model {model} HTTP {res.status_code}: {res.text[:120]}")
+                    if res.status_code in [401, 403]:
+                        break
+            except Exception as e:
+                logger.warning(f"[Groq REST] Key {idx+1} model {model} error: {e}")
+                continue
+
+    # Method 2: SDK Fallback (if groq package is installed)
     try:
         from groq import Groq
-    except Exception:
-        logger.warning("[Groq] Library not found. Fallback to Gemini/REST.")
-        return None
-
-    for idx, key in enumerate(valid_keys):
-        try:
+        for idx, key in enumerate(valid_keys):
             client = Groq(api_key=key)
             for model in models:
                 try:
@@ -119,21 +157,14 @@ def _call_groq(prompt: str) -> Optional[str]:
                         temperature=0.6,
                         max_tokens=2048,
                     )
-                    
                     response_text = chat_completion.choices[0].message.content
                     if response_text:
-                        logger.info(f"[Groq] Key {idx+1} success with model {model}")
+                        logger.info(f"[Groq SDK] Key {idx+1} success with model {model}")
                         return response_text
-                except Exception as model_err:
-                    err = str(model_err)
-                    if "404" in err or "model_not_found" in err or "decommissioned" in err:
-                        continue
-                    if "429" in err or "quota" in err or "401" in err or "rate_limit" in err.lower():
-                        logger.warning(f"[Groq] Key {idx+1} model {model} rate limited. Switching key...")
-                        break
+                except Exception:
                     continue
-        except Exception as key_err:
-            logger.error(f"[Groq] Key {idx+1} error: {str(key_err)}")
+    except Exception:
+        pass
             
     return None
 
@@ -141,7 +172,7 @@ def _call_groq(prompt: str) -> Optional[str]:
 def _call_gemini(prompt: str) -> Optional[str]:
     """
     Robust Gemini AI caller supporting multiple keys, multiple models,
-    and direct REST API calls as fail-safe backup.
+    and direct REST API calls across v1 & v1beta endpoints.
     """
     raw_keys = [
         os.getenv("GEMINI_API_KEY"),
@@ -153,18 +184,22 @@ def _call_gemini(prompt: str) -> Optional[str]:
     if not valid_keys:
         return None
 
-    gemini_models = [
-        "gemini-2.5-flash",
-        "gemini-2.0-flash",
-        "gemini-1.5-flash",
-        "gemini-1.5-pro",
+    # (API_VERSION, MODEL_NAME) pairs for full compatibility
+    gemini_configs = [
+        ("v1beta", "gemini-2.5-flash"),
+        ("v1beta", "gemini-1.5-flash-latest"),
+        ("v1beta", "gemini-1.5-pro-latest"),
+        ("v1", "gemini-1.5-flash"),
+        ("v1", "gemini-1.5-pro"),
+        ("v1beta", "gemini-2.0-flash-exp"),
+        ("v1beta", "gemini-2.0-flash-lite-preview-02-05"),
     ]
 
     # Method 1: Direct HTTP REST request (Zero SDK dependency, fast, robust)
     for idx, key in enumerate(valid_keys):
-        for model in gemini_models:
+        for api_ver, model in gemini_configs:
             try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
+                url = f"https://generativelanguage.googleapis.com/{api_ver}/models/{model}:generateContent?key={key}"
                 payload = {
                     "contents": [{
                         "parts": [{"text": prompt}]
@@ -174,20 +209,21 @@ def _call_gemini(prompt: str) -> Optional[str]:
                         "maxOutputTokens": 2048
                     }
                 }
-                res = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=15)
+                res = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=12)
                 if res.status_code == 200:
                     data = res.json()
                     candidates = data.get("candidates", [])
                     if candidates:
                         parts = candidates[0].get("content", {}).get("parts", [])
                         if parts and "text" in parts[0]:
-                            logger.info(f"[Gemini REST] Key {idx+1} success with model {model}")
+                            logger.info(f"[Gemini REST] Key {idx+1} success with model {model} ({api_ver})")
                             return parts[0]["text"]
-                elif res.status_code in [429, 403, 401]:
-                    logger.warning(f"[Gemini REST] Key {idx+1} hit status {res.status_code}. Trying next key/model.")
-                    break
+                else:
+                    logger.warning(f"[Gemini REST] Key {idx+1} model {model} ({api_ver}) HTTP {res.status_code}: {res.text[:120]}")
+                    if res.status_code in [401, 403]:
+                        break
             except Exception as e:
-                logger.warning(f"[Gemini REST] Key {idx+1} model {model} error: {e}")
+                logger.warning(f"[Gemini REST] Key {idx+1} model {model} ({api_ver}) error: {e}")
                 continue
 
     # Method 2: SDK Fallback (google-genai or google-generativeai)
@@ -195,7 +231,7 @@ def _call_gemini(prompt: str) -> Optional[str]:
         try:
             from google import genai
             client = genai.Client(api_key=key)
-            for model in gemini_models:
+            for _, model in gemini_configs:
                 try:
                     response = client.models.generate_content(model=model, contents=prompt)
                     if response and response.text:
@@ -208,7 +244,7 @@ def _call_gemini(prompt: str) -> Optional[str]:
         try:
             import google.generativeai as old_genai
             old_genai.configure(api_key=key)
-            for model in gemini_models:
+            for _, model in gemini_configs:
                 try:
                     m = old_genai.GenerativeModel(model)
                     response = m.generate_content(prompt)
@@ -232,20 +268,15 @@ def _call_pollinations(prompt: str) -> Optional[str]:
         payload = {
             "messages": [
                 {
-                    "role": "system",
-                    "content": "You are ScholarAI, an encouraging scholarship advisor for Bangladeshi students."
-                },
-                {
                     "role": "user",
                     "content": prompt
                 }
-            ],
-            "model": "openai"
+            ]
         }
-        res = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=15)
+        res = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=8)
         if res.status_code == 200 and res.text:
             cleaned = res.text.strip()
-            if cleaned:
+            if cleaned and len(cleaned) > 10:
                 logger.info("[Pollinations] Fallback successful.")
                 return cleaned
     except Exception as e:
