@@ -88,6 +88,7 @@ export default function SupportBotScreen() {
         if (res.ok) {
             const botMessage = { id: (Date.now() + 1).toString(), text: res.data.response, isUser: false };
             setMessages(prev => [...prev, botMessage]);
+            await cacheService.remove('ai_chat_history');
         } else {
             const errorMessage = { id: (Date.now() + 1).toString(), text: 'Sorry, I am having trouble connecting right now.', isUser: false };
             setMessages(prev => [...prev, errorMessage]);
