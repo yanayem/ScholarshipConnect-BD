@@ -19,11 +19,12 @@ def _call_openrouter(prompt: str) -> Optional[str]:
         return None
 
     openrouter_models = [
-        "deepseek/deepseek-r1:free",
-        "meta-llama/llama-3.3-70b-instruct:free",
-        "google/gemini-2.0-flash-exp:free",
-        "deepseek/deepseek-chat:free",
-        "qwen/qwen-2.5-coder-32b-instruct:free",
+        "openrouter/auto",
+        "mistralai/mistral-7b-instruct:free",
+        "google/gemma-2-9b-it:free",
+        "meta-llama/llama-3.1-8b-instruct:free",
+        "qwen/qwen-2-7b-instruct:free",
+        "nousresearch/hermes-3-llama-3.1-405b:free",
     ]
 
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -249,13 +250,11 @@ def _call_gemini(prompt: str) -> Optional[str]:
 
     # (API_VERSION, MODEL_NAME) pairs for full compatibility
     gemini_configs = [
+        ("v1beta", "gemini-1.5-flash"),
+        ("v1beta", "gemini-2.0-flash"),
         ("v1beta", "gemini-2.5-flash"),
-        ("v1beta", "gemini-1.5-flash-latest"),
-        ("v1beta", "gemini-1.5-pro-latest"),
-        ("v1", "gemini-1.5-flash"),
-        ("v1", "gemini-1.5-pro"),
-        ("v1beta", "gemini-2.0-flash-exp"),
-        ("v1beta", "gemini-2.0-flash-lite-preview-02-05"),
+        ("v1beta", "gemini-1.5-pro"),
+        ("v1beta", "gemini-2.0-flash-lite"),
     ]
 
     # Method 1: Direct HTTP REST request (Zero SDK dependency, fast, robust)
