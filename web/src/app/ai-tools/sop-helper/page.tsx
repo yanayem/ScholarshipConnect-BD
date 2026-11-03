@@ -231,48 +231,8 @@ function SOPHelperContent() {
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-3 gap-8">
 
-          {/* Left Controls & Scholarship Selector */}
+          {/* Left Controls */}
           <div className="lg:col-span-1 space-y-6">
-
-            {/* Target Scholarship Selector Dropdown */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                <GraduationCap size={14} className="text-purple-600" />
-                Select Scholarship Context
-              </h3>
-
-              <div className="space-y-4 text-xs font-medium">
-                <div>
-                  <label className="block text-slate-500 font-bold mb-1">Target Scholarship</label>
-                  <select
-                    value={selectedScholarshipId}
-                    onChange={(e) => handleScholarshipSelect(e.target.value)}
-                    className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 font-bold bg-white text-slate-900 shadow-sm"
-                  >
-                    <option value="">-- Choose Scholarship --</option>
-                    {scholarships.map((s) => (
-                      <option key={s.id} value={s.id.toString()}>
-                        {s.title} ({s.country})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {selectedScholarship && (
-                  <div className="p-4 bg-purple-50/50 rounded-xl border border-purple-100 text-xs space-y-2">
-                    <p className="font-bold text-purple-900">{selectedScholarship.title}</p>
-                    <p className="text-slate-600 text-[11px]">
-                      Provider: <span className="font-semibold text-slate-800">{selectedScholarship.provider}</span>
-                    </p>
-                    {selectedScholarship.field && (
-                      <p className="text-slate-600 text-[11px]">
-                        Field: <span className="font-semibold text-slate-800">{selectedScholarship.field}</span>
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
 
             {/* AI Action Options */}
             <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
