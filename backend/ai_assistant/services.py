@@ -415,19 +415,38 @@ class AIService:
         return cls._call_ai(prompt)
 
     @classmethod
+    def _clean_sop_text(cls, text: str) -> str:
+        if not text:
+            return ""
+        # Remove raw markdown bold/italic stars (***, **)
+        text = re.sub(r'\*{2,3}(.*?)\*{2,3}', r'\1', text)
+        # Remove leading headers (### Title -> Title)
+        text = re.sub(r'^\s*#{1,6}\s*', '', text, flags=re.MULTILINE)
+        return text.strip()
+
+    @classmethod
     def write_sop(cls, user_profile, scholarship_details: dict) -> str:
+        user_cgpa = getattr(user_profile, 'cgpa', None)
+        cgpa_str = f"{user_cgpa} out of 4.00" if user_cgpa else "N/A"
+
         prompt = (
-            f"Write a comprehensive and persuasive Statement of Purpose (SOP) for a Bangladeshi student.\n"
-            f"Student Name: {getattr(user_profile, 'full_name', 'Student')}\n"
-            f"Major/Course: {getattr(user_profile, 'major_course', 'N/A')}\n"
-            f"CGPA: {getattr(user_profile, 'cgpa', 'N/A')}\n"
-            f"Research Interests: {getattr(user_profile, 'research_interests', 'N/A')}\n"
-            f"Target Scholarship: {scholarship_details.get('title', 'Scholarship')}\n"
-            f"Field of Study: {scholarship_details.get('field', 'General')}\n"
-            f"Target Country: {scholarship_details.get('country', 'Abroad')}\n\n"
-            "Include introduction, academic background, alignment with this scholarship, career goals, and strong conclusion."
+            f"Write a formal, comprehensive, and highly professional Statement of Purpose (SOP) for a Bangladeshi student applying for higher education.\n\n"
+            f"Applicant Information:\n"
+            f"- Full Name: {getattr(user_profile, 'full_name', 'Student')}\n"
+            f"- Major/Course: {getattr(user_profile, 'major_course', 'N/A')}\n"
+            f"- CGPA: {cgpa_str}\n"
+            f"- Research/Academic Interests: {getattr(user_profile, 'research_interests', 'N/A')}\n"
+            f"- Target Scholarship: {scholarship_details.get('title', 'Scholarship')}\n"
+            f"- Field of Study: {scholarship_details.get('field', 'General')}\n"
+            f"- Target Country: {scholarship_details.get('country', 'Abroad')}\n\n"
+            "CRITICAL WRITING & FORMATTING RULES:\n"
+            "1. Write in a formal, elegant academic essay prose style for university admissions committees.\n"
+            "2. DO NOT use raw markdown formatting symbols such as **, ***, or ### anywhere in the text.\n"
+            "3. DO NOT output bullet points with raw labels like '**CGPA of 3.74 out of 4.00**'. Seamlessly integrate all academic credentials and CGPA naturally into complete formal sentences (e.g., 'Throughout my undergraduate studies, I demonstrated strong academic dedication, achieving a CGPA of 3.74 out of 4.00.').\n"
+            "4. Structure the SOP cleanly into logical paragraphs: Statement of Interest, Academic & Research Background, Motivation & Alignment with Target Scholarship, Career Goals, and Conclusion."
         )
-        return cls._call_ai(prompt)
+        raw_sop = cls._call_ai(prompt)
+        return cls._clean_sop_text(raw_sop)
 
     @classmethod
     def review_sop(cls, sop_text: str) -> str:
