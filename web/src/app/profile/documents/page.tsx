@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Header from '@/components/Header';
-import { BookOpen, FileText, Upload, Trash2, ShieldCheck, Plus, Search, Loader2 } from 'lucide-react';
+import { BookOpen, FileText, Upload, Trash2, ShieldCheck, Plus, Search, Loader2, ExternalLink, Eye } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { apiService } from '@/lib/api';
@@ -181,30 +181,65 @@ export default function DocVaultPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-             {filteredDocs.map((doc) => (
-               <div key={doc.id} className="group border border-slate-200 rounded-lg p-6 hover:border-primary/50 transition-all hover:shadow-sm bg-white relative">
-                  <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-6 group-hover:bg-primary/10 transition-colors">
-                     <FileText size={24} className="text-slate-400 group-hover:text-primary" />
-                  </div>
+             {filteredDocs.map((doc) => {
+               const fileUrl = doc.file
+                 ? (doc.file.includes('res.cloudinary.com') && !doc.file.match(/\.[a-zA-Z0-9]+$/) ? `${doc.file}.pdf` : doc.file)
+                 : null;
 
-                  <h4 className="font-bold text-slate-900 truncate mb-1" title={doc.name}>{doc.name}</h4>
-                  <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-4">{doc.doc_type || 'Document'}</p>
+               return (
+                 <div key={doc.id} className="group border border-slate-200 rounded-lg p-6 hover:border-primary/50 transition-all hover:shadow-sm bg-white relative flex flex-col justify-between">
+                    <div>
+                       <div
+                         onClick={() => fileUrl && window.open(fileUrl, '_blank')}
+                         className={`w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mb-6 group-hover:bg-primary/10 transition-colors ${fileUrl ? 'cursor-pointer' : ''}`}
+                       >
+                          <FileText size={24} className="text-slate-400 group-hover:text-primary" />
+                       </div>
 
-                  <div className="flex justify-between items-center pt-4 border-t border-slate-100">
-                     <div className="text-[10px] font-bold text-slate-500">
-                        <p>{doc.created_at ? new Date(doc.created_at).toLocaleDateString() : 'Active'}</p>
-                        {doc.size && <p className="opacity-60">{doc.size}</p>}
-                     </div>
-                     <button
-                        onClick={() => handleDelete(doc.id, doc.name)}
-                        className="p-2 text-slate-300 hover:text-red-500 transition-colors"
-                        title="Delete document"
-                     >
-                        <Trash2 size={16} />
-                     </button>
-                  </div>
-               </div>
-             ))}
+                       <h4
+                         onClick={() => fileUrl && window.open(fileUrl, '_blank')}
+                         className={`font-bold text-slate-900 truncate mb-1 ${fileUrl ? 'cursor-pointer hover:text-primary hover:underline' : ''}`}
+                         title={doc.name}
+                       >
+                         {doc.name}
+                       </h4>
+                       <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-4">{doc.doc_type || 'Document'}</p>
+                    </div>
+
+                    <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+                       <div className="text-[10px] font-bold text-slate-500">
+                          <p>{doc.created_at ? new Date(doc.created_at).toLocaleDateString() : 'Active'}</p>
+                          {doc.size && <p className="opacity-60">{doc.size}</p>}
+                       </div>
+                       <div className="flex items-center gap-2">
+                          <a
+                             href={fileUrl || '#'}
+                             target={fileUrl ? "_blank" : "_self"}
+                             rel="noopener noreferrer"
+                             onClick={(e) => {
+                                if (!fileUrl) {
+                                   e.preventDefault();
+                                   alert('File URL not available for this document.');
+                                }
+                             }}
+                             className="px-3 py-1.5 text-slate-700 hover:text-primary transition-colors flex items-center gap-1.5 bg-slate-100 hover:bg-primary/10 rounded-md text-xs font-bold border border-slate-200"
+                             title="View document"
+                          >
+                             <Eye size={14} className="text-primary" />
+                             <span>View</span>
+                          </a>
+                          <button
+                             onClick={() => handleDelete(doc.id, doc.name)}
+                             className="p-2 text-slate-300 hover:text-red-500 transition-colors"
+                             title="Delete document"
+                          >
+                             <Trash2 size={16} />
+                          </button>
+                       </div>
+                    </div>
+                 </div>
+               );
+             })}
 
              {/* Upload Placeholder */}
              <button

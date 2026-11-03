@@ -303,6 +303,14 @@ export const apiService = {
     });
   },
 
+  async aiReviewSOP(sopText: string) {
+    return await safeFetch(`${API_URL}/ai/review-sop/`, {
+      method: 'POST',
+      headers: await getHeaders(true),
+      body: JSON.stringify({ sop_text: sopText }),
+    });
+  },
+
   async aiCheckEligibility(scholarshipId: number) {
     return await safeFetch(`${API_URL}/ai/check-eligibility/`, {
       method: 'POST',

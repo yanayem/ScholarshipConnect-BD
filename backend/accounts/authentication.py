@@ -35,8 +35,8 @@ class FirebaseAuthentication(authentication.BaseAuthentication):
         
         try:
             # Verify the token with Firebase Admin SDK.
-            # This is the real check (signature, expiration, project id).
-            decoded_token = auth.verify_id_token(id_token)
+            # Allow clock_skew_seconds=10 to handle minor clock sync differences between client and server
+            decoded_token = auth.verify_id_token(id_token, clock_skew_seconds=10)
             print(f"[FIREBASE AUTH] Token verified for UID: {decoded_token.get('uid')}")
         except Exception as e:
             # If it failed verification, we report it immediately as 401.

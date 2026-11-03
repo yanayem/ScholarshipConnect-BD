@@ -56,3 +56,10 @@ class UserDocumentSerializer(serializers.ModelSerializer):
         model = UserDocument
         fields = ['id', 'user', 'name', 'doc_type', 'file', 'size', 'expiry_date', 'status', 'created_at', 'updated_at']
         read_only_fields = ['user', 'size']
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        url = ret.get('file')
+        if url and 'res.cloudinary.com' in url and not url.lower().endswith(('.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.webp', '.gif')):
+            ret['file'] = f"{url}.pdf"
+        return ret

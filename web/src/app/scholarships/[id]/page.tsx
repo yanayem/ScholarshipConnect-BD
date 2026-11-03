@@ -89,26 +89,12 @@ export default function ScholarshipDetail() {
     router.push(`/scholarships/apply/agency/${id}?title=${encodeURIComponent(scholarship?.title || '')}`);
   };
 
-  const handleGenerateSOP = async () => {
+  const handleGenerateSOP = () => {
     if (!user) {
       router.push('/login');
       return;
     }
-    setSopLoading(true);
-    setAiSop(null);
-    try {
-      const res = await apiService.aiWriteSOP(scholarship?.id as number);
-      if (res.ok && res.data) {
-        setAiSop(res.data.sop || res.data.text || JSON.stringify(res.data));
-      } else {
-        alert('Failed to generate SOP. Please try again.');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Error generating SOP.');
-    } finally {
-      setSopLoading(false);
-    }
+    router.push(`/ai-tools/sop-helper?scholarshipId=${scholarship?.id}&scholarshipTitle=${encodeURIComponent(scholarship?.title || '')}`);
   };
 
   if (loading) return (

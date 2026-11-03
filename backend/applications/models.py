@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from scholarships.models import Scholarship
 from core.utils import compress_image
+from cloudinary_storage.storage import RawMediaCloudinaryStorage
 
 class SavedScholarship(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved_scholarships')
@@ -55,7 +56,7 @@ class UserDocument(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='documents')
     name = models.CharField(max_length=255)
     doc_type = models.CharField(max_length=100)
-    file = models.FileField(upload_to='documents/')
+    file = models.FileField(upload_to='documents/', storage=RawMediaCloudinaryStorage())
     size = models.CharField(max_length=50, blank=True)
     
     # ENHANCED FEATURES: Expiry Tracking
