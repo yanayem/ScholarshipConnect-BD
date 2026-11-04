@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from djongo import models as djongo_models
 
 class AIRequestLog(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -13,6 +14,7 @@ class AIRequestLog(models.Model):
         return f"{self.user.username} - {self.request_type} - {self.created_at}"
 
 class AIChatMessage(models.Model):
+    _id = djongo_models.ObjectIdField()
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ai_chat_messages')
     message = models.TextField()
     is_user = models.BooleanField(default=True)

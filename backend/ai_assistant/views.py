@@ -177,8 +177,8 @@ class AILiveSupportView(APIView):
 
             return Response({
                 'response': result,
-                'user_msg_id': user_msg.id,
-                'ai_msg_id': ai_msg.id
+                'user_msg_id': str(user_msg.id) if user_msg.id is not None else str(getattr(user_msg, '_id', '')),
+                'ai_msg_id': str(ai_msg.id) if ai_msg.id is not None else str(getattr(ai_msg, '_id', ''))
             })
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -92,8 +92,15 @@ export default function CardPaymentPage() {
             </div>
 
             {/* Golden Shade Interactive Card Preview */}
-            <div className="relative bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 text-slate-950 rounded-[2rem] p-8 shadow-xl shadow-amber-500/15 space-y-8 overflow-hidden border border-amber-300/60">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/25 rounded-full blur-2xl pointer-events-none"></div>
+            <div className="relative bg-gradient-to-br from-[#FFD043] via-[#F7B600] to-[#D59800] text-slate-950 rounded-[2rem] p-8 shadow-xl shadow-[#F7B600]/20 space-y-8 overflow-hidden border border-[#F7B600]/60">
+              {/* Global World Map Shadow / Watermark */}
+              <div 
+                className="absolute inset-0 pointer-events-none opacity-20 bg-center bg-no-repeat bg-contain"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 500' fill='%231a1000'%3E%3Cpath d='M150 120c15-20 45-20 60-5 25 10 35-10 60 5 15 25 5 45-10 65-15 10-35 5-45 25-10 2-25-15-35-10-15-25-25-50-30-80zm45 130c20 5 35 25 40 45 10 35 5 70-15 100-15 20-25 45-20 70-10-15-25-15-30-35-15-30-5-60 10-90 10-30 5-60 15-90zm180-140c20-20 50-35 80-25 35 10 70 5 100 25 30 15 65 10 95 30 20 20 15 45 35 65 15 25 45 35 60 60 25 35 5 75 15 110-15 10-35 5-50 20-30-5-55-25-85-30-35 15-70 10-105-5-25-20-45-45-75-60-25-35-50-65-70-105-10-30 5-60-5-85zm360 230c25-15 55-15 80 0 25 20 30 50 15 75-20 25-55 25-80 10-25-20-30-55-15-85zm-480 80c10-15 30-15 40 0 15 15 10 35-5 45-15 10-35 5-40-10-5-15 0-25 5-35z'/%3E%3Cpath d='M720 150c15-10 35 0 45 15 10 20 0 40-15 45-20 5-35-10-40-30-5-15 0-25 10-30zm-270 20c20-10 45 5 50 25 5 25-10 45-30 50-25 5-45-10-50-30-5-25 10-40 30-45zm-160-50c15-5 30 5 35 20 5 20-5 35-20 40-20 5-35-5-40-20-5-20 10-35 25-40z'/%3E%3C/svg%3E")`
+                }}
+              />
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 rounded-full blur-2xl pointer-events-none"></div>
               <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-amber-700/20 rounded-full blur-xl pointer-events-none"></div>
 
               <div className="flex justify-between items-center relative z-10">

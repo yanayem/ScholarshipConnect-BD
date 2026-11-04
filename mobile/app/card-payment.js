@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView, StatusBar, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView, StatusBar, Alert, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialIcons, Ionicons, FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -82,14 +82,20 @@ export default function CardPaymentScreen() {
 
                     {/* Visual Card Preview */}
                     <LinearGradient
-                        colors={['#1F2937', '#111827']}
+                        colors={['#F9C736', '#F7B600', '#D69400']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                         style={styles.cardPreview}
                     >
+                        {/* Global World Map Shadow / Watermark */}
+                        <Image
+                            source={{ uri: "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 500' fill='%231a1000'%3E%3Cpath d='M150 120c15-20 45-20 60-5 25 10 35-10 60 5 15 25 5 45-10 65-15 10-35 5-45 25-10 2-25-15-35-10-15-25-25-50-30-80zm45 130c20 5 35 25 40 45 10 35 5 70-15 100-15 20-25 45-20 70-10-15-25-15-30-35-15-30-5-60 10-90 10-30 5-60 15-90zm180-140c20-20 50-35 80-25 35 10 70 5 100 25 30 15 65 10 95 30 20 20 15 45 35 65 15 25 45 35 60 60 25 35 5 75 15 110-15 10-35 5-50 20-30-5-55-25-85-30-35 15-70 10-105-5-25-20-45-45-75-60-25-35-50-65-70-105-10-30 5-60-5-85zm360 230c25-15 55-15 80 0 25 20 30 50 15 75-20 25-55 25-80 10-25-20-30-55-15-85zm-480 80c10-15 30-15 40 0 15 15 10 35-5 45-15 10-35 5-40-10-5-15 0-25 5-35z'/%3E%3Cpath d='M720 150c15-10 35 0 45 15 10 20 0 40-15 45-20 5-35-10-40-30-5-15 0-25 10-30zm-270 20c20-10 45 5 50 25 5 25-10 45-30 50-25 5-45-10-50-30-5-25 10-40 30-45zm-160-50c15-5 30 5 35 20 5 20-5 35-20 40-20 5-35-5-40-20-5-20 10-35 25-40z'/%3E%3C/svg%3E" }}
+                            style={styles.globalMapOverlay}
+                            resizeMode="contain"
+                        />
                         <View style={styles.cardTop}>
-                            <FontAwesome name="cc-visa" size={40} color="#fff" />
-                            <Ionicons name="wifi" size={24} color="#fff" style={{ opacity: 0.5 }} />
+                            <FontAwesome name="cc-visa" size={40} color="#1A1F71" />
+                            <Ionicons name="wifi" size={24} color="#372600" style={{ opacity: 0.6 }} />
                         </View>
 
                         <Text style={styles.previewNumber}>
@@ -205,6 +211,8 @@ const styles = StyleSheet.create({
     headerTitle: { fontSize: 18, fontFamily: theme.typography.fontFamily.bold, color: theme.colors.heading },
     scroll: { padding: 24 },
     cardPreview: {
+        position: 'relative',
+        overflow: 'hidden',
         height: 200,
         borderRadius: 24,
         padding: 24,
@@ -212,18 +220,19 @@ const styles = StyleSheet.create({
         marginBottom: 32,
         ...theme.shadows.premium,
     },
+    globalMapOverlay: { ...StyleSheet.absoluteFillObject, opacity: 0.16, pointerEvents: 'none' },
     cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     previewNumber: {
         fontSize: 22,
-        color: '#fff',
+        color: '#1A1A1A',
         fontFamily: theme.typography.fontFamily.bold,
         letterSpacing: 2,
         marginVertical: 20,
         textAlign: 'center'
     },
     cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-    cardLabel: { fontSize: 10, color: 'rgba(255,255,255,0.6)', marginBottom: 4 },
-    cardValue: { fontSize: 14, color: '#fff', fontFamily: theme.typography.fontFamily.semiBold },
+    cardLabel: { fontSize: 10, color: 'rgba(30, 20, 0, 0.65)', marginBottom: 4 },
+    cardValue: { fontSize: 14, color: '#1A1A1A', fontFamily: theme.typography.fontFamily.semiBold },
     formBox: { marginBottom: 20 },
     formTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 20, color: theme.colors.heading },
     inputLabel: { fontSize: 13, color: theme.colors.textSecondary, marginBottom: 8, marginLeft: 4, fontWeight: '600' },

@@ -32,7 +32,7 @@ interface Message {
 }
 
 export default function SupportBotPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([
     { id: '1', text: 'Welcome to ScholarAI Support. I am here to assist with your applications, SOPs, and scholarship queries. How can I help you today?', isUser: false, time: 'System' }
@@ -46,8 +46,10 @@ export default function SupportBotPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    loadHistory();
-  }, []);
+    if (!authLoading && user) {
+      loadHistory();
+    }
+  }, [authLoading, user]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -191,7 +193,10 @@ export default function SupportBotPage() {
               }];
             });
         } else {
-            const errorText = res.data?.error || res.data?.message || 'ScholarAI is currently busy. Please try asking again in a moment.';
+            let errorText = res.data?.error || res.data?.message || 'ScholarAI is currently busy. Please try asking again in a moment.';
+            if (typeof errorText === 'string' && (errorText.includes('<!DOCTYPE') || errorText.includes('<html') || errorText.includes('<table'))) {
+                errorText = 'Server error occurred while processing your request. Please try asking again.';
+            }
             setMessages(prev => [...prev, {
                 id: `temp-${Date.now() + 1}`,
                 text: errorText,
