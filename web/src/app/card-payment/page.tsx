@@ -91,36 +91,37 @@ export default function CardPaymentPage() {
               <p className="text-slate-500 text-sm font-medium">Enter your Debit or Credit Card details securely.</p>
             </div>
 
-            {/* Light Themed Interactive Card Preview */}
-            <div className="relative bg-gradient-to-br from-teal-600 via-teal-700 to-emerald-800 text-white rounded-[2rem] p-8 shadow-xl space-y-8 overflow-hidden border border-teal-500/30">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+            {/* Golden Shade Interactive Card Preview */}
+            <div className="relative bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 text-slate-950 rounded-[2rem] p-8 shadow-xl shadow-amber-500/15 space-y-8 overflow-hidden border border-amber-300/60">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/25 rounded-full blur-2xl pointer-events-none"></div>
+              <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-amber-700/20 rounded-full blur-xl pointer-events-none"></div>
 
               <div className="flex justify-between items-center relative z-10">
-                <span className="text-xs font-black tracking-widest uppercase text-teal-100">SCHOLARCONNECT CARD</span>
+                <span className="text-xs font-black tracking-widest uppercase text-amber-950/80">SCHOLARCONNECT PRO CARD</span>
                 <div className="flex items-center gap-3">
-                  <Wifi size={20} className="text-teal-200" />
-                  <span className="text-xs font-black bg-white/20 backdrop-blur-md text-white px-3 py-1 rounded-full border border-white/30">
+                  <Wifi size={20} className="text-amber-950/70" />
+                  <span className="text-xs font-black bg-amber-950/10 backdrop-blur-md text-amber-950 px-3 py-1 rounded-full border border-amber-950/20">
                     VISA / MASTERCARD
                   </span>
                 </div>
               </div>
 
               <div className="py-4 relative z-10">
-                <p className="text-2xl md:text-3xl font-mono tracking-widest text-center text-white drop-shadow">
+                <p className="text-2xl md:text-3xl font-mono font-bold tracking-widest text-center text-amber-950 drop-shadow-sm">
                   {cardNumber || '•••• •••• •••• ••••'}
                 </p>
               </div>
 
-              <div className="flex justify-between items-end border-t border-white/20 pt-6 relative z-10">
+              <div className="flex justify-between items-end border-t border-amber-950/15 pt-6 relative z-10">
                 <div>
-                  <p className="text-[9px] font-black tracking-widest text-teal-200 uppercase mb-1">CARD HOLDER</p>
-                  <p className="font-bold text-sm text-white tracking-wide uppercase">
+                  <p className="text-[9px] font-black tracking-widest text-amber-900/70 uppercase mb-1">CARD HOLDER</p>
+                  <p className="font-black text-sm text-amber-950 tracking-wide uppercase">
                     {cardHolder || 'YOUR NAME'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[9px] font-black tracking-widest text-teal-200 uppercase mb-1">EXPIRES</p>
-                  <p className="font-mono font-bold text-sm text-white tracking-wide">
+                  <p className="text-[9px] font-black tracking-widest text-amber-900/70 uppercase mb-1">EXPIRES</p>
+                  <p className="font-mono font-black text-sm text-amber-950 tracking-wide">
                     {expiry || 'MM/YY'}
                   </p>
                 </div>
