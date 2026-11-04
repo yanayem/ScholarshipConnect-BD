@@ -231,7 +231,7 @@ function SOPHelperContent() {
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-3 gap-8">
 
-          {/* Left Controls */}
+          {/* Left Controls & Scholarship Selector */}
           <div className="lg:col-span-1 space-y-6">
 
             {/* AI Action Options */}
@@ -277,11 +277,11 @@ function SOPHelperContent() {
             </div>
 
             {/* Quick Tips */}
-            <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-sm space-y-3">
-              <h4 className="text-xs font-black uppercase tracking-widest text-purple-400 flex items-center gap-2">
+            <div className="bg-purple-50/60 border border-purple-100 rounded-2xl p-6 shadow-sm space-y-3">
+              <h4 className="text-xs font-black uppercase tracking-widest text-purple-700 flex items-center gap-2">
                 <Sparkles size={14} /> SOP Tips for Success
               </h4>
-              <ul className="text-xs text-slate-300 space-y-2 font-medium leading-relaxed">
+              <ul className="text-xs text-slate-600 space-y-2 font-medium leading-relaxed">
                 <li>• Clearly articulate your academic background & research interests.</li>
                 <li>• Connect your career goals directly with the scholarship offering.</li>
                 <li>• Keep the tone professional, concise, and impact-driven.</li>

@@ -208,10 +208,26 @@ export const apiService = {
     });
   },
 
-  async getApplications() {
-    return await safeFetch(`${API_URL}/applications/`, {
+  async getApplications(admin?: boolean) {
+    const url = admin ? `${API_URL}/applications/?admin=true` : `${API_URL}/applications/`;
+    return await safeFetch(url, {
       method: 'GET',
       headers: await getHeaders(true),
+    });
+  },
+
+  async getApplicationDetail(id: number | string) {
+    return await safeFetch(`${API_URL}/applications/apply/${id}/`, {
+      method: 'GET',
+      headers: await getHeaders(true),
+    });
+  },
+
+  async updateApplicationStatus(id: number | string, status: string) {
+    return await safeFetch(`${API_URL}/applications/apply/${id}/`, {
+      method: 'PATCH',
+      headers: await getHeaders(true),
+      body: JSON.stringify({ status }),
     });
   },
 
@@ -242,6 +258,14 @@ export const apiService = {
       method: 'POST',
       headers: await getHeaders(true),
       body: JSON.stringify({ method: 'points' }),
+    });
+  },
+
+  async initiateCheckout(paymentMethod: string = 'SSLCommerz') {
+    return await safeFetch(`${API_URL}/payments/checkout/`, {
+      method: 'POST',
+      headers: await getHeaders(true),
+      body: JSON.stringify({ payment_method: paymentMethod }),
     });
   },
 

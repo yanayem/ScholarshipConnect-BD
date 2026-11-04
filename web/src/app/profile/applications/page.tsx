@@ -34,6 +34,20 @@ const STATUS_CONFIG: any = {
 const TABS = ['All', 'Saved', 'Applied', 'Processing', 'Under Review', 'Accepted', 'Rejected'];
 const STEPS = ['Saved', 'Applied', 'Processing', 'Under Review', 'Accepted'];
 
+const normalizeStatus = (rawStatus: string) => {
+  if (!rawStatus) return 'Applied';
+  const s = String(rawStatus).trim();
+  const lower = s.toLowerCase();
+  if (lower === 'submitted' || lower === 'applied') return 'Applied';
+  if (lower === 'saved') return 'Saved';
+  if (lower === 'processing') return 'Processing';
+  if (lower === 'under review' || lower === 'under_review') return 'Under Review';
+  if (lower === 'shortlisted') return 'Shortlisted';
+  if (lower === 'accepted') return 'Accepted';
+  if (lower === 'rejected') return 'Rejected';
+  return s.charAt(0).toUpperCase() + s.slice(1);
+};
+
 export default function ApplicationsPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -55,25 +69,25 @@ export default function ApplicationsPage() {
         ]);
         let data: any[] = [];
 
-        if (appRes.ok) {
-          const appList = Array.isArray(appRes.data) ? appRes.data : ((appRes.data as any).results || []);
+        if (appRes?.ok) {
+          const appList = Array.isArray(appRes.data) ? appRes.data : (appRes.data?.results || []);
           data = data.concat(appList.map((item: any) => ({
             id: 'a' + item.id,
-            scholarship_id: item.scholarship,
-            title: item.scholarship_title || 'N/A',
-            country: item.scholarship_country || 'N/A',
-            level: item.scholarship_level || 'N/A',
-            deadline: item.scholarship_deadline || 'N/A',
-            status: item.status,
-            type: item.application_type
+            scholarship_id: item.scholarship?.id || item.scholarship,
+            title: item.scholarship_title || item.scholarship_details?.title || 'N/A',
+            country: item.scholarship_country || item.scholarship_details?.country || 'N/A',
+            level: item.scholarship_level || item.scholarship_details?.level || 'N/A',
+            deadline: item.scholarship_deadline || item.scholarship_details?.deadline || 'N/A',
+            status: normalizeStatus(item.status),
+            type: item.application_type || 'Self'
           })));
         }
 
-        if (savedRes.ok) {
-          const savedList = Array.isArray(savedRes.data) ? savedRes.data : ((savedRes.data as any).results || []);
+        if (savedRes?.ok) {
+          const savedList = Array.isArray(savedRes.data) ? savedRes.data : (savedRes.data?.results || []);
           data = data.concat(savedList.map((item: any) => ({
             id: 's' + item.id,
-            scholarship_id: item.scholarship_details?.id,
+            scholarship_id: item.scholarship_details?.id || item.scholarship,
             title: item.scholarship_details?.title || 'N/A',
             country: item.scholarship_details?.country || 'N/A',
             level: item.scholarship_details?.level || 'N/A',
@@ -85,12 +99,20 @@ export default function ApplicationsPage() {
 
         // Deduplicate or sort so Applied status shows up instead of Saved
         const uniqueDataMap = new Map();
+        // First add all Saved items
+        data.filter(i => i.status === 'Saved').forEach(item => {
+          const key = String(item.scholarship_id || item.title).toLowerCase().trim();
+          if (key && key !== 'n/a') uniqueDataMap.set(key, item);
+        });
+        // Then add non-Saved items (Applied, Processing, etc.) so they ALWAYS override Saved!
+        data.filter(i => i.status !== 'Saved').forEach(item => {
+          const key = String(item.scholarship_id || item.title).toLowerCase().trim();
+          if (key && key !== 'n/a') uniqueDataMap.set(key, item);
+        });
+        // Fallback for missing keys
         data.forEach(item => {
           const key = String(item.scholarship_id || item.title).toLowerCase().trim();
-          const existing = uniqueDataMap.get(key);
-          if (!existing || (existing.status === 'Saved' && item.status !== 'Saved')) {
-            uniqueDataMap.set(key, item);
-          }
+          if (!key || key === 'n/a') uniqueDataMap.set(item.id, item);
         });
 
         setApplications(Array.from(uniqueDataMap.values()));
@@ -105,9 +127,17 @@ export default function ApplicationsPage() {
 
   const filtered = activeTab === 'All'
     ? applications
-    : applications.filter(a => a.status === activeTab);
+    : applications.filter(a => (a.status || '').toLowerCase() === activeTab.toLowerCase());
 
-  if (authLoading || !user) return null;
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-background">

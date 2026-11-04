@@ -297,7 +297,12 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
 
         total_scholarships = Scholarship.objects.count()
         total_users = User.objects.count()
-        total_applications = ScholarshipApplication.objects.count()
+        valid_statuses = [
+            'Applied', 'applied', 'Submitted', 'submitted',
+            'Processing', 'processing', 'Under Review', 'under review',
+            'Accepted', 'accepted', 'Approved', 'approved', 'Rejected', 'rejected'
+        ]
+        total_applications = ScholarshipApplication.objects.filter(status__in=valid_statuses).count()
         total_mentorships = MentorshipSession.objects.count()
 
         countries = list(Scholarship.objects.exclude(country__isnull=True).exclude(country='').values_list('country', flat=True))

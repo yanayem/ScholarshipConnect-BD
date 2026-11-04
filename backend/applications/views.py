@@ -2,6 +2,7 @@ from rest_framework import generics, permissions, parsers, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
+from django.conf import settings
 from .models import SavedScholarship, ScholarshipApplication, UserDocument
 from .serializers import (
     SavedScholarshipSerializer, 
@@ -41,13 +42,83 @@ class ScholarshipApplicationListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff:
-            return ScholarshipApplication.objects.all().order_by('-created_at')
+        admin_emails_str = getattr(settings, 'ADMIN_EMAILS', '')
+        admin_emails = [e.strip().lower() for e in admin_emails_str.split(',') if e.strip()]
+        
+        is_admin = user.is_staff or user.is_superuser or (user.email and user.email.lower() in admin_emails) or self.request.query_params.get('admin') == 'true'
+        if is_admin:
+            valid_statuses = [
+                'Applied', 'applied', 'Submitted', 'submitted',
+                'Processing', 'processing', 'Under Review', 'under review',
+                'Accepted', 'accepted', 'Approved', 'approved', 'Rejected', 'rejected'
+            ]
+            return ScholarshipApplication.objects.filter(status__in=valid_statuses).order_by('-created_at')
         return ScholarshipApplication.objects.filter(user=user).order_by('-created_at')
+
+    def _init_agency_chat(self, instance, user):
+        admin_id = None
+        if instance.application_type == 'Agency':
+            try:
+                from django.contrib.auth.models import User
+                from community.models import ChatMessage
+                agency_admin = User.objects.filter(is_superuser=True).first() or User.objects.filter(is_staff=True).first()
+                if agency_admin:
+                    admin_id = agency_admin.id
+                    if agency_admin != user:
+                        # 1. Send Student's SOP as initial message
+                        if instance.sop and instance.sop.strip():
+                            sop_msg = f"📄 My Statement of Purpose (SOP) for {instance.scholarship.title}:\n\n{instance.sop.strip()}"
+                            ChatMessage.objects.get_or_create(
+                                sender=user,
+                                receiver=agency_admin,
+                                message=sop_msg,
+                                defaults={'is_read': False}
+                            )
+
+                        # 2. Send Admin Welcome/Ack message
+                        welcome_msg = f"Hello {instance.full_name}! We have received your agency processing request for '{instance.scholarship.title}'. A consultant will review your profile and SOP shortly."
+                        ChatMessage.objects.get_or_create(
+                            sender=agency_admin,
+                            receiver=user,
+                            message=welcome_msg,
+                            defaults={'is_read': False}
+                        )
+            except:
+                pass
+        return admin_id
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
+        user = request.user
+        scholarship_id = request.data.get('scholarship')
+        
+        # Handle existing applications gracefully
+        existing_app = ScholarshipApplication.objects.filter(user=user, scholarship_id=scholarship_id).first()
+        if existing_app:
+            new_status = request.data.get('status', 'Applied')
+            if existing_app.status == 'Saved' or new_status != 'Saved':
+                existing_app.status = new_status if new_status != 'Saved' else 'Applied'
+                if 'application_type' in request.data:
+                    existing_app.application_type = request.data['application_type']
+                if 'full_name' in request.data and request.data['full_name']:
+                    existing_app.full_name = request.data['full_name']
+                if 'email' in request.data and request.data['email']:
+                    existing_app.email = request.data['email']
+                if 'sop' in request.data and request.data['sop']:
+                    existing_app.sop = request.data['sop']
+                existing_app.save()
+
+                admin_id = self._init_agency_chat(existing_app, user)
+                response_data = self.get_serializer(existing_app).data
+                if admin_id:
+                    response_data['agency_admin_id'] = admin_id
+
+                return Response(response_data, status=status.HTTP_200_OK)
+            else:
+                raise ValidationError({"error": "You have already applied or requested processing for this scholarship."})
+
         return self.perform_create(serializer)
 
     def perform_create(self, serializer):
@@ -72,24 +143,7 @@ class ScholarshipApplicationListCreateView(generics.ListCreateAPIView):
             pass
 
         # 4. Automated Agency Chat Initialization safely
-        admin_id = None
-        if instance.application_type == 'Agency':
-            try:
-                from django.contrib.auth.models import User
-                from community.models import ChatMessage
-                agency_admin = User.objects.filter(is_superuser=True).first()
-                if agency_admin:
-                    admin_id = agency_admin.id
-                    if agency_admin != user:
-                        welcome_msg = f"Hello {instance.full_name}! We have received your agency processing request for '{instance.scholarship.title}'. A consultant will review your profile shortly."
-                        ChatMessage.objects.get_or_create(
-                            sender=agency_admin,
-                            receiver=user,
-                            message=welcome_msg,
-                            defaults={'is_read': False}
-                        )
-            except:
-                pass
+        admin_id = self._init_agency_chat(instance, user)
 
         # 5. Build response data
         headers = self.get_success_headers(serializer.data)
@@ -178,23 +232,48 @@ class ApplicationDocumentRemoveView(APIView):
 # Admin-only view to update the processing status of applications.
 # ==========================
 class ScholarshipApplicationUpdateView(APIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            admin_emails_str = getattr(settings, 'ADMIN_EMAILS', '')
+            admin_emails = [e.strip().lower() for e in admin_emails_str.split(',') if e.strip()]
+            is_admin = request.user.is_staff or request.user.is_superuser or (request.user.email and request.user.email.lower() in admin_emails)
+            
+            if is_admin:
+                application = ScholarshipApplication.objects.get(pk=pk)
+            else:
+                application = ScholarshipApplication.objects.get(pk=pk, user=request.user)
+            serializer = ScholarshipApplicationSerializer(application, context={'request': request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except ScholarshipApplication.DoesNotExist:
+            return Response({"error": "Application not found"}, status=status.HTTP_404_NOT_FOUND)
 
     def patch(self, request, pk):
         try:
+            admin_emails_str = getattr(settings, 'ADMIN_EMAILS', '')
+            admin_emails = [e.strip().lower() for e in admin_emails_str.split(',') if e.strip()]
+            is_admin = request.user.is_staff or request.user.is_superuser or (request.user.email and request.user.email.lower() in admin_emails)
+
+            if not is_admin:
+                return Response({"error": "Only staff members can update status"}, status=status.HTTP_403_FORBIDDEN)
+
             application = ScholarshipApplication.objects.get(pk=pk)
             new_status = request.data.get('status')
             if new_status:
                 application.status = new_status
                 application.save()
                 
-                send_notification(
-                    user=application.user,
-                    title="Application Status Updated",
-                    message=f"The status of your application for '{application.scholarship_title}' has been changed to: {new_status}."
-                )
+                try:
+                    send_notification(
+                        user=application.user,
+                        title="Application Status Updated",
+                        message=f"The status of your application for '{application.scholarship.title}' has been changed to: {new_status}."
+                    )
+                except:
+                    pass
 
-                return Response({"message": f"Status updated to {new_status}"})
+                return Response(ScholarshipApplicationSerializer(application, context={'request': request}).data, status=status.HTTP_200_OK)
             return Response({"error": "Status is required"}, status=status.HTTP_400_BAD_REQUEST)
         except ScholarshipApplication.DoesNotExist:
             return Response({"error": "Application not found"}, status=status.HTTP_404_NOT_FOUND)

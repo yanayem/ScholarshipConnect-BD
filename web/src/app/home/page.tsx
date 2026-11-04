@@ -36,7 +36,6 @@ import {
 function StudentHome({ user, scholarships, leaderboard, loading, search, setSearch, router, initials }: any) {
   const countries = ['USA', 'UK', 'Canada', 'Germany', 'Japan', 'Australia'];
   const aiTools = [
-    { name: 'Live Support', sub: 'Instant AI Chat', icon: MessageSquare, color: 'text-orange-600 border-orange-100 bg-orange-50/30', href: '/ai-tools/support-bot' },
     { name: 'Eligibility', sub: 'Instant Analysis', icon: ShieldCheck, color: 'text-emerald-600 border-emerald-100 bg-emerald-50/30', href: '/ai-tools/eligibility' },
     { name: 'Doc Vault', sub: 'Store Safely', icon: BookOpen, color: 'text-amber-600 border-amber-100 bg-amber-50/30', href: '/profile/documents' },
   ];
@@ -71,7 +70,7 @@ function StudentHome({ user, scholarships, leaderboard, loading, search, setSear
         <div className="lg:col-span-3 space-y-10 md:space-y-12">
           <section>
             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 md:mb-6">Quick AI Tools</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               {aiTools.map((tool) => (
                 <Link
                   key={tool.name}

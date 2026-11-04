@@ -35,11 +35,29 @@ export default function ScholarshipDetail() {
     loadDetail();
   }, [id]);
 
-  const handleApply = () => {
+  const handleApply = async () => {
     if (!user) {
       router.push('/login');
       return;
     }
+
+    try {
+      await apiService.applyForScholarship({
+        scholarship: scholarship?.id,
+        full_name: user?.full_name || user?.username || 'Student',
+        email: user?.email || '',
+        phone: user?.phone_number || '',
+        university: user?.university || '',
+        cgpa: user?.cgpa || null,
+        academic_level: user?.academic_level || '',
+        sop: 'Applied via official portal link.',
+        application_type: 'Self',
+        status: 'Applied'
+      });
+    } catch (err) {
+      console.error('Failed to record application:', err);
+    }
+
     if (scholarship?.official_link) {
       window.open(scholarship.official_link, '_blank');
       return;
@@ -371,21 +389,6 @@ export default function ScholarshipDetail() {
                    >
                      {scholarship.official_link ? <LinkIcon size={16} /> : null}
                      {scholarship.official_link ? 'Apply Officially' : 'Apply Externally'}
-                   </button>
-                   <button
-                     onClick={handleGenerateSOP}
-                     disabled={sopLoading}
-                     className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-950/20 flex items-center justify-center gap-2 disabled:bg-slate-400"
-                   >
-                     <Brain size={18} />
-                     {sopLoading ? 'AI is Writing SOP...' : 'Write SOP with AI'}
-                   </button>
-                   <button
-                     onClick={() => router.push('/ai-tools/matchmaker')}
-                     className="w-full border border-slate-200 text-slate-700 py-4 rounded-lg font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
-                   >
-                     <Brain size={18} />
-                     AI Matchmaker
                    </button>
                    <button
                      onClick={handleAgencyApply}

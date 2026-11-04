@@ -11,16 +11,31 @@ import { cacheService } from '../../services/cache';
 import { useToast } from '../../components/Toast';
 
 const STATUS_CONFIG = {
-  Saved:        { color: theme.colors.textSecondary, bg: theme.colors.secondaryBackground, icon: 'bookmark-outline' },
-  Preparing:    { color: theme.colors.warning, bg: theme.colors.yellowCard, icon: 'edit' },
-  Submitted:    { color: theme.colors.info, bg: 'rgba(106, 169, 255, 0.1)', icon: 'send' },
-  'Under Review': { color: '#8E44AD', bg: theme.colors.lavenderCard, icon: 'hourglass-empty' },
-  Shortlisted:  { color: theme.colors.primary, bg: theme.colors.tealCard, icon: 'stars' },
-  Accepted:     { color: theme.colors.success, bg: theme.colors.mintCard, icon: 'check-circle' },
-  Rejected:     { color: theme.colors.error, bg: 'rgba(232, 93, 117, 0.1)', icon: 'cancel' },
+  Saved:          { color: theme.colors.textSecondary, bg: theme.colors.secondaryBackground, icon: 'bookmark-outline' },
+  Applied:        { color: theme.colors.info, bg: 'rgba(106, 169, 255, 0.1)', icon: 'send' },
+  Processing:     { color: theme.colors.warning, bg: theme.colors.yellowCard, icon: 'hourglass-empty' },
+  'Under Review': { color: '#8E44AD', bg: theme.colors.lavenderCard, icon: 'hourglass-full' },
+  Shortlisted:    { color: theme.colors.primary, bg: theme.colors.tealCard, icon: 'stars' },
+  Accepted:       { color: theme.colors.success, bg: theme.colors.mintCard, icon: 'check-circle' },
+  Rejected:       { color: theme.colors.error, bg: 'rgba(232, 93, 117, 0.1)', icon: 'cancel' },
 };
 
-const TABS = ['All', 'Saved', 'Preparing', 'Submitted', 'Under Review', 'Shortlisted', 'Accepted', 'Rejected'];
+const TABS = ['All', 'Saved', 'Applied', 'Processing', 'Under Review', 'Shortlisted', 'Accepted', 'Rejected'];
+const STEPS = ['Saved', 'Applied', 'Processing', 'Under Review', 'Shortlisted', 'Accepted'];
+
+const normalizeStatus = (rawStatus) => {
+  if (!rawStatus) return 'Applied';
+  const s = String(rawStatus).trim();
+  const lower = s.toLowerCase();
+  if (lower === 'submitted' || lower === 'applied') return 'Applied';
+  if (lower === 'saved') return 'Saved';
+  if (lower === 'processing') return 'Processing';
+  if (lower === 'under review' || lower === 'under_review') return 'Under Review';
+  if (lower === 'shortlisted') return 'Shortlisted';
+  if (lower === 'accepted') return 'Accepted';
+  if (lower === 'rejected') return 'Rejected';
+  return s.charAt(0).toUpperCase() + s.slice(1);
+};
 
 export default function ApplicationsScreen() {
   const [activeTab, setActiveTab] = useState('All');
@@ -32,7 +47,7 @@ export default function ApplicationsScreen() {
       // 1. Try Cache First
       try {
         const cachedApps = await cacheService.get('user_applications');
-        if (cachedApps) {
+        if (cachedApps && Array.isArray(cachedApps)) {
           setApplications(cachedApps);
         }
       } catch (e) {}
@@ -44,37 +59,52 @@ export default function ApplicationsScreen() {
         ]);
         let data = [];
 
-        if (savedRes.ok) {
-          data = data.concat(savedRes.data.map(item => ({
+        if (appRes?.ok) {
+          const appList = Array.isArray(appRes.data) ? appRes.data : (appRes.data?.results || []);
+          data = data.concat(appList.map(item => ({
+            id: 'a' + item.id,
+            scholarship_id: item.scholarship?.id || item.scholarship,
+            title: item.scholarship_title || item.scholarship_details?.title || 'N/A',
+            country: item.scholarship_country || item.scholarship_details?.country || 'N/A',
+            level: item.scholarship_level || item.scholarship_details?.level || 'N/A',
+            deadline: item.scholarship_deadline || item.scholarship_details?.deadline || 'N/A',
+            status: normalizeStatus(item.status),
+            type: item.application_type || 'Self'
+          })));
+        }
+
+        if (savedRes?.ok) {
+          const savedList = Array.isArray(savedRes.data) ? savedRes.data : (savedRes.data?.results || []);
+          data = data.concat(savedList.map(item => ({
             id: 's' + item.id,
+            scholarship_id: item.scholarship_details?.id || item.scholarship,
             title: item.scholarship_details?.title || 'N/A',
             country: item.scholarship_details?.country || 'N/A',
             level: item.scholarship_details?.level || 'N/A',
             deadline: item.scholarship_details?.deadline || 'N/A',
             status: 'Saved',
-            type: 'Self' // Mark as Self/Saved
+            type: 'Self'
           })));
         }
 
-        if (appRes.ok) {
-          data = data.concat(appRes.data.map(item => ({
-            id: 'a' + item.id,
-            title: item.scholarship_title || 'N/A',
-            country: item.scholarship_country || 'N/A',
-            level: item.scholarship_level || 'N/A',
-            deadline: item.scholarship_deadline || 'N/A',
-            status: item.application_type === 'Self' ? 'Saved' : item.status, // Map all Self apps to Saved
-            type: item.application_type
-          })));
-        }
+        // Deduplicate so Applied status ALWAYS overrides Saved
+        const uniqueMap = new Map();
+        data.filter(i => i.status === 'Saved').forEach(item => {
+          const key = String(item.scholarship_id || item.title).toLowerCase().trim();
+          if (key && key !== 'n/a') uniqueMap.set(key, item);
+        });
+        data.filter(i => i.status !== 'Saved').forEach(item => {
+          const key = String(item.scholarship_id || item.title).toLowerCase().trim();
+          if (key && key !== 'n/a') uniqueMap.set(key, item);
+        });
+        data.forEach(item => {
+          const key = String(item.scholarship_id || item.title).toLowerCase().trim();
+          if (!key || key === 'n/a') uniqueMap.set(item.id, item);
+        });
 
-        if (!savedRes.ok || !appRes.ok) {
-          showToast('Failed to load some data. Please check connection.', 'warning');
-        }
-
-        setApplications(data);
-        // Save to cache
-        await cacheService.set('user_applications', data, 10);
+        const finalData = Array.from(uniqueMap.values());
+        setApplications(finalData);
+        await cacheService.set('user_applications', finalData, 10);
       } catch (error) {
         console.error('Failed to load applications', error);
         showToast('Error loading applications', 'error');
@@ -85,16 +115,14 @@ export default function ApplicationsScreen() {
 
   const filtered = activeTab === 'All'
     ? applications
-    : applications.filter(a => a.status === activeTab);
+    : applications.filter(a => (a.status || '').toLowerCase() === activeTab.toLowerCase());
 
   const counts = {};
   TABS.forEach(t => {
     counts[t] = t === 'All'
       ? applications.length
-      : applications.filter(a => a.status === t).length;
+      : applications.filter(a => (a.status || '').toLowerCase() === t.toLowerCase()).length;
   });
-
-  const STEPS = ['Saved', 'Preparing', 'Submitted', 'Under Review', 'Shortlisted', 'Accepted'];
 
   return (
     <View style={styles.root}>
@@ -133,7 +161,16 @@ export default function ApplicationsScreen() {
           filtered.map(item => {
             const cfg = STATUS_CONFIG[item.status] || STATUS_CONFIG.Saved;
             return (
-              <View key={item.id} style={styles.card}>
+              <TouchableOpacity
+                key={item.id}
+                style={styles.card}
+                activeOpacity={0.9}
+                onPress={() => {
+                  if (item.scholarship_id) {
+                    router.push(`/scholarships/${item.scholarship_id}`);
+                  }
+                }}
+              >
                 <View style={styles.cardHeader}>
                   <Text style={styles.cardTitle}>{item.title}</Text>
                   <View style={[styles.statusBadge, { backgroundColor: cfg.bg }]}>
@@ -153,14 +190,14 @@ export default function ApplicationsScreen() {
                   <Text style={styles.deadline}>
                     <MaterialIcons name="event" size={13} color={theme.colors.error} /> {item.deadline}
                   </Text>
-                  {item.type !== 'Self' && (
-                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    {item.type !== 'Self' && (
                       <TouchableOpacity
                         style={styles.helpBtn}
                         onPress={async () => {
                           try {
                             const res = await apiService.getUsers();
-                            if (res.ok) {
+                            if (res.ok && Array.isArray(res.data)) {
                               const staff = res.data.find(u => u.is_staff || u.is_superuser);
                               if (staff) {
                                 router.push({
@@ -180,11 +217,18 @@ export default function ApplicationsScreen() {
                       >
                         <MaterialIcons name="help-outline" size={18} color={theme.colors.info} />
                       </TouchableOpacity>
-                      <TouchableOpacity style={styles.detailBtn}>
-                        <Text style={styles.detailBtnText}>Update Status</Text>
+                    )}
+                    {item.scholarship_id && (
+                      <TouchableOpacity
+                        style={styles.detailBtn}
+                        onPress={() => router.push(`/scholarships/${item.scholarship_id}`)}
+                      >
+                        <Text style={styles.detailBtnText}>
+                          {item.status === 'Saved' ? 'Apply Now' : 'Details'}
+                        </Text>
                       </TouchableOpacity>
-                    </View>
-                  )}
+                    )}
+                  </View>
                 </View>
 
                 {/* Progress Indicator - Only show for Agency/Expert applications */}
@@ -209,7 +253,7 @@ export default function ApplicationsScreen() {
                     </ScrollView>
                   </View>
                 )}
-              </View>
+              </TouchableOpacity>
             );
           })
         )}
@@ -242,7 +286,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface, borderRadius: 24, padding: 20, marginBottom: 16,
     ...theme.shadows.premium,
   },
-  cardHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 },
+  cardHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', mb: 12 },
   cardTitle: { flex: 1, fontSize: 16, fontWeight: 'bold', color: theme.colors.heading, marginRight: 10 },
   statusBadge: {
     flexDirection: 'row', alignItems: 'center', borderRadius: 8,
@@ -251,7 +295,7 @@ const styles = StyleSheet.create({
   statusText: { fontSize: 12, fontWeight: '700' },
   metaRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
   metaText: { fontSize: 13, color: theme.colors.textSecondary, marginLeft: 4 },
-  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 },
+  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
   deadline: { fontSize: 13, color: theme.colors.error, fontWeight: '500' },
   helpBtn: {
     width: 34, height: 34, borderRadius: 10,

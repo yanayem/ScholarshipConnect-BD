@@ -1,4 +1,5 @@
 from django.urls import path
+from accounts.views import LeaderboardView
 from .views import (
     DiscussionListCreateView, 
     DiscussionRetrieveUpdateDestroyView,
@@ -26,6 +27,7 @@ from .views import (
 
 urlpatterns = [
     path('', DiscussionListCreateView.as_view(), name='discussion-list'),
+    path('leaderboard/', LeaderboardView.as_view(), name='community-leaderboard'),
     path('reviews/', MentorReviewView.as_view(), name='mentor-review'),
     path('reports/', ReportListView.as_view(), name='report-list'),
     path('conversations/', ConversationListView.as_view(), name='conversation-list'),

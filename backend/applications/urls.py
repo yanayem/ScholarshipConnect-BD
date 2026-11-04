@@ -10,6 +10,7 @@ from .views import (
 )
 
 urlpatterns = [
+    path('', ScholarshipApplicationListCreateView.as_view(), name='scholarship-application-list'),
     path('saved/', SavedScholarshipListCreateView.as_view(), name='saved-scholarships'),
     path('saved/<int:pk>/', SavedScholarshipDestroyView.as_view(), name='saved-scholarship-delete'),
     path('apply/', ScholarshipApplicationListCreateView.as_view(), name='scholarship-apply'),

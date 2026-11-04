@@ -906,9 +906,10 @@ export const apiService = {
     }
   },
 
-  async getApplications() {
+  async getApplications(admin = false) {
     try {
-      const response = await fetch(`${API_URL}/applications/apply/`, {
+      const url = admin ? `${API_URL}/applications/?admin=true` : `${API_URL}/applications/`;
+      const response = await fetch(url, {
         method: 'GET',
         headers: await getHeaders(),
       });

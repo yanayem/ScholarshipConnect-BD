@@ -150,6 +150,15 @@ class ProfileSerializer(serializers.ModelSerializer):
                     instance.profile_picture.delete(save=False)
                 instance.profile_picture = None
 
+        # Handle explicit is_pro update from initial data
+        if hasattr(self, 'initial_data') and 'is_pro' in self.initial_data:
+            is_pro_val = self.initial_data['is_pro']
+            if is_pro_val is False or is_pro_val == 'false' or is_pro_val == 0:
+                instance.is_pro = False
+                instance.pro_expiry = None
+            elif is_pro_val is True or is_pro_val == 'true' or is_pro_val == 1:
+                instance.is_pro = True
+
         # Update remaining Profile fields
         for attr, value in validated_data.items():
             # SMART UPDATE: Don't overwrite existing data with empty strings or None

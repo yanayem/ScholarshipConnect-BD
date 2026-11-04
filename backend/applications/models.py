@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from scholarships.models import Scholarship
 from core.utils import compress_image
+from core.fields import SafeDecimalField
 from cloudinary_storage.storage import RawMediaCloudinaryStorage
 
 class SavedScholarship(models.Model):
@@ -35,8 +36,8 @@ class ScholarshipApplication(models.Model):
     email = models.EmailField()
     phone = models.CharField(max_length=20, blank=True)
     university = models.CharField(max_length=255, blank=True)
-    cgpa = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
-    ielts_score = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
+    cgpa = SafeDecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
+    ielts_score = SafeDecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
     academic_level = models.CharField(max_length=50, blank=True)
     sop = models.TextField(verbose_name="Statement of Purpose")
     

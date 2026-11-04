@@ -429,7 +429,7 @@ export default function ScholarshipDetails() {
               onPress={async () => {
                 setShowApplyModal(false);
 
-                // Track this as a "Self" application automatically under "Saved" status
+                // Track this as a "Self" application automatically under "Applied" status
                 try {
                   const payload = {
                     scholarship: id,
@@ -441,7 +441,7 @@ export default function ScholarshipDetails() {
                     academic_level: user?.academic_level || '',
                     sop: 'Applied via official portal shortcut.',
                     application_type: 'Self',
-                    status: 'Saved' // Ensure it goes to the "Saved" tab
+                    status: 'Applied' // Ensure it goes to the "Applied" tab
                   };
                   await apiService.applyForScholarship(payload);
                 } catch (e) {

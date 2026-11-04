@@ -57,6 +57,12 @@ export default function AgencyApplyScreen() {
     loadProfileAndDocs();
   }, []);
 
+  useEffect(() => {
+    if (prefilledSop) {
+      setFormData(prev => ({ ...prev, sop: prefilledSop }));
+    }
+  }, [prefilledSop]);
+
   const hasCV = vaultDocs.some(d => {
     const typeStr = (d.doc_type || '').toLowerCase();
     const nameStr = (d.name || '').toLowerCase();

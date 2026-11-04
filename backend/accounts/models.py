@@ -91,7 +91,10 @@ class Profile(models.Model):
             self.is_pro = True
             self.pro_expiry = None
         else:
-            if self.is_currently_pro and self.pro_expiry:
+            if self.is_pro and self.pro_expiry is None:
+                # User already has lifetime Pro access
+                pass
+            elif self.is_currently_pro and self.pro_expiry:
                 self.pro_expiry += datetime.timedelta(days=days)
             else:
                 self.is_pro = True

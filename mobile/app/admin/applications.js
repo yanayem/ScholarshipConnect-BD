@@ -27,9 +27,9 @@ export default function ApplicationManager() {
   const loadApplications = async () => {
     try {
       setLoading(true);
-      const res = await apiService.getApplications();
+      const res = await apiService.getApplications(true);
       if (res.ok) {
-        setApps(res.data);
+        setApps(Array.isArray(res.data) ? res.data : (res.data?.results || []));
       }
     } catch (e) {
       console.error('[ADMIN] Failed to load applications:', e);
@@ -106,8 +106,9 @@ export default function ApplicationManager() {
   };
 
   const filtered = (apps || []).filter(a =>
-    (a.user_full_name || a.full_name || '').toLowerCase().includes(search.toLowerCase()) ||
-    (a.scholarship_title || '').toLowerCase().includes(search.toLowerCase())
+    (a.status || '').toLowerCase() !== 'saved' &&
+    ((a.user_full_name || a.full_name || '').toLowerCase().includes(search.toLowerCase()) ||
+    (a.scholarship_title || '').toLowerCase().includes(search.toLowerCase()))
   );
 
   const renderItem = ({ item }) => (

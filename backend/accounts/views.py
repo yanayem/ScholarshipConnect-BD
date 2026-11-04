@@ -130,7 +130,7 @@ class LeaderboardView(APIView):
                             "full_name": p.full_name or (user.username if user else "User"),
                             "scholar_points": points,
                             "avatar_url": p.avatar_url,
-                            "is_pro": p.is_pro if p.is_pro else False
+                            "is_pro": p.is_currently_pro
                         })
                 except:
                     continue
@@ -255,9 +255,15 @@ class UpgradeToProView(APIView):
         profile.upgrade_to_pro(duration_days)
         profile.scholar_points -= cost
         profile.save()
-        expiry_str = profile.pro_expiry.strftime('%Y-%m-%d')
+        expiry_str = profile.pro_expiry.strftime('%Y-%m-%d') if profile.pro_expiry else None
         send_notification(user=request.user, title="Pro Membership Activated! 🌟", message=f"Congratulations! You've unlocked 1 week of ScholarConnect Pro using 200 points. Valid until {expiry_str}.", send_email=True)
-        return Response({"message": f"Successfully upgraded to Pro until {expiry_str}!", "remaining_points": profile.scholar_points, "expiry": expiry_str})
+        return Response({
+            "message": f"Successfully upgraded to Pro until {expiry_str}!",
+            "remaining_points": profile.scholar_points,
+            "expiry": expiry_str,
+            "is_pro": True,
+            "profile": ProfileSerializer(profile).data
+        })
 
 class AutocompleteView(APIView):
     permission_classes = [permissions.IsAuthenticated]
