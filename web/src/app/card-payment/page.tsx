@@ -72,7 +72,7 @@ export default function CardPaymentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-slate-50/50">
       <Header />
 
       <main className="max-w-4xl mx-auto px-6 py-10 lg:py-16">
@@ -91,47 +91,47 @@ export default function CardPaymentPage() {
               <p className="text-slate-500 text-sm font-medium">Enter your Debit or Credit Card details securely.</p>
             </div>
 
-            {/* Visual Card Preview */}
-            <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-[2rem] p-8 shadow-2xl space-y-8 overflow-hidden border border-slate-700">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+            {/* Light Themed Interactive Card Preview */}
+            <div className="relative bg-gradient-to-br from-teal-600 via-teal-700 to-emerald-800 text-white rounded-[2rem] p-8 shadow-xl space-y-8 overflow-hidden border border-teal-500/30">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
 
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-black tracking-widest uppercase text-slate-400">SCHOLARCONNECT CARD</span>
+              <div className="flex justify-between items-center relative z-10">
+                <span className="text-xs font-black tracking-widest uppercase text-teal-100">SCHOLARCONNECT CARD</span>
                 <div className="flex items-center gap-3">
-                  <Wifi size={20} className="text-slate-400" />
-                  <span className="text-xs font-black bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full border border-emerald-500/30">
+                  <Wifi size={20} className="text-teal-200" />
+                  <span className="text-xs font-black bg-white/20 backdrop-blur-md text-white px-3 py-1 rounded-full border border-white/30">
                     VISA / MASTERCARD
                   </span>
                 </div>
               </div>
 
-              <div className="py-4">
-                <p className="text-2xl md:text-3xl font-mono tracking-widest text-center text-slate-100 drop-shadow">
+              <div className="py-4 relative z-10">
+                <p className="text-2xl md:text-3xl font-mono tracking-widest text-center text-white drop-shadow">
                   {cardNumber || '•••• •••• •••• ••••'}
                 </p>
               </div>
 
-              <div className="flex justify-between items-end border-t border-slate-700/60 pt-6">
+              <div className="flex justify-between items-end border-t border-white/20 pt-6 relative z-10">
                 <div>
-                  <p className="text-[9px] font-black tracking-widest text-slate-400 uppercase mb-1">CARD HOLDER</p>
-                  <p className="font-bold text-sm text-slate-200 tracking-wide uppercase">
+                  <p className="text-[9px] font-black tracking-widest text-teal-200 uppercase mb-1">CARD HOLDER</p>
+                  <p className="font-bold text-sm text-white tracking-wide uppercase">
                     {cardHolder || 'YOUR NAME'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[9px] font-black tracking-widest text-slate-400 uppercase mb-1">EXPIRES</p>
-                  <p className="font-mono font-bold text-sm text-slate-200 tracking-wide">
+                  <p className="text-[9px] font-black tracking-widest text-teal-200 uppercase mb-1">EXPIRES</p>
+                  <p className="font-mono font-bold text-sm text-white tracking-wide">
                     {expiry || 'MM/YY'}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Card Input Form */}
+            {/* Clean Light Input Form */}
             <form onSubmit={handleCardPayment} className="space-y-6">
               <div>
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">Cardholder Name *</label>
-                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/5 transition-all">
+                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 focus-within:border-teal-600 focus-within:bg-white focus-within:ring-4 focus-within:ring-teal-500/10 transition-all">
                   <User size={20} className="text-slate-400 mr-3" />
                   <input
                     type="text"
@@ -145,7 +145,7 @@ export default function CardPaymentPage() {
 
               <div>
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">Card Number *</label>
-                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/5 transition-all">
+                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 focus-within:border-teal-600 focus-within:bg-white focus-within:ring-4 focus-within:ring-teal-500/10 transition-all">
                   <CreditCard size={20} className="text-slate-400 mr-3" />
                   <input
                     type="text"
@@ -161,7 +161,7 @@ export default function CardPaymentPage() {
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">Expiry Date *</label>
-                  <div className="flex items-center bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/5 transition-all">
+                  <div className="flex items-center bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 focus-within:border-teal-600 focus-within:bg-white focus-within:ring-4 focus-within:ring-teal-500/10 transition-all">
                     <Calendar size={20} className="text-slate-400 mr-3" />
                     <input
                       type="text"
@@ -176,7 +176,7 @@ export default function CardPaymentPage() {
 
                 <div>
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">CVV *</label>
-                  <div className="flex items-center bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/5 transition-all">
+                  <div className="flex items-center bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 focus-within:border-teal-600 focus-within:bg-white focus-within:ring-4 focus-within:ring-teal-500/10 transition-all">
                     <KeyRound size={20} className="text-slate-400 mr-3" />
                     <input
                       type="password"
@@ -200,7 +200,7 @@ export default function CardPaymentPage() {
                 <button
                   type="submit"
                   disabled={processing}
-                  className="w-full py-5 bg-slate-900 text-white rounded-[1.5rem] font-black text-sm uppercase tracking-[0.2em] hover:bg-slate-800 transition-all flex items-center justify-center gap-4 shadow-2xl shadow-slate-300 disabled:opacity-50"
+                  className="w-full py-5 bg-teal-600 text-white rounded-[1.5rem] font-black text-sm uppercase tracking-[0.2em] hover:bg-teal-700 transition-all flex items-center justify-center gap-4 shadow-xl shadow-teal-600/20 disabled:opacity-50"
                 >
                   {processing ? 'Processing Payment...' : 'Pay 500 BDT & Unlock Pro'}
                   <ArrowRight size={20} />
