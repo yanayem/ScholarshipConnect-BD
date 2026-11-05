@@ -312,7 +312,7 @@ export default function EditProfilePage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <main className="max-w-4xl mx-auto px-4 sm:px-3 sm:px-6 py-5 sm:py-8 sm:py-12">
         <button
           onClick={() => router.back()}
           className="flex items-center gap-2 text-text-secondary hover:text-primary transition-colors mb-6 font-bold text-xs uppercase tracking-widest"

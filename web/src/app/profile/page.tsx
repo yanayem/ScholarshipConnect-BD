@@ -110,7 +110,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-7xl mx-auto px-6 py-10 lg:py-16 flex flex-col lg:flex-row gap-10">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-6 sm:py-10 lg:py-16 flex flex-col lg:flex-row gap-10">
         {/* Left Sidebar Navigation */}
         <aside className="w-full lg:w-72 shrink-0 space-y-4">
            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-hidden relative">
@@ -204,11 +204,11 @@ export default function ProfilePage() {
         </aside>
 
         {/* Main Content Area */}
-        <div className="flex-1 bg-white border border-slate-200 rounded-sm p-8 md:p-12 shadow-sm">
+        <div className="flex-1 bg-white border border-slate-200 rounded-sm p-4 sm:p-8 md:p-12 shadow-sm">
           {/* Minimal Profile Header */}
           <div className="flex flex-col md:flex-row items-center md:items-start gap-10 mb-16">
             <div className="relative shrink-0">
-               <div className="w-32 h-32 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-primary text-4xl font-bold shadow-xl shadow-primary/5 overflow-hidden">
+               <div className="w-32 h-32 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-primary text-2xl sm:text-4xl font-bold shadow-xl shadow-primary/5 overflow-hidden">
                   {(user.avatar || u.avatar_url || u.profile_picture_url) ? (
                     <img src={user.avatar || u.avatar_url || u.profile_picture_url} className="w-full h-full object-cover rounded-lg" alt="Avatar" />
                   ) : initials}
@@ -222,7 +222,7 @@ export default function ProfilePage() {
                <div className="space-y-1">
                   <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4">
                      <div>
-                        <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">{user.full_name}</h1>
+                        <h1 className="text-3xl sm:text-2xl sm:text-4xl font-bold text-slate-900 tracking-tight">{user.full_name}</h1>
                         <p className="text-slate-500 font-medium text-sm tracking-widest mt-1">{user.email}</p>
                      </div>
                      <Link
@@ -374,7 +374,7 @@ export default function ProfilePage() {
                      ].map((test, i) => (
                        <div key={i} className="p-8 border border-black/5 rounded-lg bg-white text-center shadow-sm">
                           <p className="text-[10px] font-medium text-slate-400 uppercase tracking-[0.2em] mb-2">{test.label}</p>
-                          <p className="text-3xl font-bold text-primary underline decoration-primary/10 decoration-4 underline-offset-8">{test.score || '--'}</p>
+                          <p className="text-xl sm:text-3xl font-bold text-primary underline decoration-primary/10 decoration-4 underline-offset-8">{test.score || '--'}</p>
                        </div>
                      ))}
                   </div>

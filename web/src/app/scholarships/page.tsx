@@ -131,11 +131,11 @@ export default function ScholarshipList() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-6 py-10 lg:py-16">
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 md:p-12 shadow-sm">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-10 lg:py-16">
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8 md:p-12 shadow-sm">
           <header className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">Scholarships</h1>
+              <h1 className="text-xl sm:text-3xl font-bold text-slate-900 mb-2">Scholarships</h1>
               <p className="text-slate-500 text-sm font-medium">Find and apply for verified international opportunities.</p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
@@ -231,7 +231,7 @@ export default function ScholarshipList() {
                   <Link
                     key={item.id}
                     href={`/scholarships/${item.id}`}
-                    className="group border border-slate-100/80 rounded-2xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-primary/30 transition-all bg-slate-50/30 hover:bg-white shadow-sm hover:shadow-md"
+                    className="group border border-slate-100/80 rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-primary/30 transition-all bg-slate-50/30 hover:bg-white shadow-sm hover:shadow-md w-full max-w-full overflow-hidden"
                   >
                     <div className="flex-1">
                       <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -285,7 +285,7 @@ export default function ScholarshipList() {
         </div>
       </main>
 
-      <footer className="py-12 border-t border-slate-200">
+      <footer className="py-12 border-t border-slate-200 mb-20 lg:mb-0">
         <div className="max-w-6xl mx-auto px-8 flex flex-col sm:flex-row justify-between items-center gap-6">
            <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">© 2026 ScholarshipConnectBD</p>
            <div className="flex gap-10">

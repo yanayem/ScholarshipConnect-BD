@@ -44,12 +44,12 @@ export default function ScholarshipDetail() {
     try {
       await apiService.applyForScholarship({
         scholarship: scholarship?.id,
-        full_name: user?.full_name || user?.username || 'Student',
+        full_name: user?.full_name || (user as any)?.username || 'Student',
         email: user?.email || '',
-        phone: user?.phone_number || '',
+        phone: (user as any)?.phone_number || '',
         university: user?.university || '',
         cgpa: user?.cgpa || null,
-        academic_level: user?.academic_level || '',
+        academic_level: (user as any)?.academic_level || '',
         sop: 'Applied via official portal link.',
         application_type: 'Self',
         status: 'Applied'
@@ -127,8 +127,8 @@ export default function ScholarshipDetail() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-6 py-10 lg:py-16">
-        <div className="bg-white border border-slate-200 rounded-sm p-8 md:p-12 shadow-sm">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-10 lg:py-16">
+        <div className="bg-white border border-slate-200 rounded-sm p-4 sm:p-8 md:p-12 shadow-sm">
           <button
             onClick={() => router.back()}
             className="flex items-center gap-2 text-slate-400 hover:text-primary transition-colors text-xs font-black uppercase tracking-widest mb-12 bg-gray-50 px-4 py-2 rounded-xl border border-black/5 self-start"
@@ -148,7 +148,7 @@ export default function ScholarshipDetail() {
                     <span className="text-[10px] bg-blue-50 text-blue-500 px-3 py-1 rounded-lg font-black uppercase tracking-widest border border-blue-100">{scholarship.field}</span>
                   )}
                 </div>
-                <h1 className="text-4xl font-bold text-slate-900 mb-4 leading-tight">{scholarship.title}</h1>
+                <h1 className="text-2xl sm:text-4xl font-bold text-slate-900 mb-4 leading-tight">{scholarship.title}</h1>
 
                 {/* Pro Features Action Bar Row (Exactly as requested) */}
                 <div className="flex flex-col sm:flex-row gap-4 my-6 bg-slate-50 p-4 rounded-2xl border border-slate-100">

@@ -1,8 +1,10 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import AdminSidebar from '@/components/AdminSidebar';
+import AdminTopBar from '@/components/AdminTopBar';
 
 export default function AdminLayout({
   children,
@@ -38,7 +40,7 @@ export default function AdminLayout({
     );
   }
 
-  // Allow the login page to render without verification
+  // Allow the login page to render without sidebar or topbar
   if (pathname === '/admin/login') {
     return <>{children}</>;
   }
@@ -53,5 +55,21 @@ export default function AdminLayout({
     return null;
   }
 
-  return <>{children}</>;
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row">
+      {/* Permanent Left-Side Navigation Bar for All Devices */}
+      <AdminSidebar />
+
+      {/* Main Content Area with Top Bar */}
+      <div className="flex-1 w-full lg:pl-64 min-w-0 flex flex-col">
+        {/* Top Bar with Profile Icon and Role Badge */}
+        <AdminTopBar />
+
+        {/* Admin Content */}
+        <div className="flex-1">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
 }

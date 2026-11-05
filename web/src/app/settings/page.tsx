@@ -127,7 +127,7 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-5 sm:py-8">
         <button
           onClick={() => router.back()}
           className="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors mb-6 font-bold text-xs uppercase tracking-wider"

@@ -9,6 +9,55 @@ import { theme } from '../../theme';
 import { apiService } from '../../services/api';
 import { cacheService } from '../../services/cache';
 
+// ─── Date separator helper (Facebook Messenger style) ───────────────────────
+const getDateLabel = (dateStr) => {
+    if (!dateStr) return null;
+    const msgDate = new Date(dateStr);
+    if (isNaN(msgDate.getTime())) return null;
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const msgDay = new Date(msgDate.getFullYear(), msgDate.getMonth(), msgDate.getDate());
+    const diffDays = Math.round((today - msgDay) / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) {
+        return msgDate.toLocaleDateString('en-US', { weekday: 'long' }); // e.g. "Monday"
+    }
+    return msgDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: diffDays > 365 ? 'numeric' : undefined });
+};
+
+const isSameDay = (a, b) => {
+    if (!a || !b) return false;
+    const da = new Date(a);
+    const db = new Date(b);
+    return da.getFullYear() === db.getFullYear() &&
+        da.getMonth() === db.getMonth() &&
+        da.getDate() === db.getDate();
+};
+
+// Inject date-separator items between messages where the date changes
+const injectDateSeparators = (msgs) => {
+    const result = [];
+    let lastDate = null;
+
+    for (const msg of msgs) {
+        const msgDate = msg.created_at || null;
+        if (msgDate && !isSameDay(msgDate, lastDate)) {
+            result.push({
+                id: `sep-${msgDate}`,
+                type: 'separator',
+                label: getDateLabel(msgDate),
+            });
+            lastDate = msgDate;
+        }
+        result.push(msg);
+    }
+    return result;
+};
+// ────────────────────────────────────────────────────────────────────────────
+
 export default function SupportBotScreen() {
     const [messages, setMessages] = useState([
         { id: '1', text: 'Hello! I am your ScholarshipConnect AI Assistant. How can I help you today?', isUser: false }
@@ -85,7 +134,7 @@ export default function SupportBotScreen() {
     const saveToLocalCache = async (allMessages) => {
         try {
             const formattedForCache = allMessages
-                .filter(m => m.id !== '1' && !m.text.includes('trouble connecting'))
+                .filter(m => m.id !== '1' && !m.text?.includes('trouble connecting'))
                 .filter(isWithin30Days)
                 .map(m => ({
                     id: m.id,
@@ -93,7 +142,7 @@ export default function SupportBotScreen() {
                     is_user: m.isUser,
                     created_at: m.created_at || new Date().toISOString()
                 }));
-            await cacheService.set('ai_chat_history', formattedForCache, 60 * 24 * 30); // Cache for 30 days
+            await cacheService.set('ai_chat_history', formattedForCache, 60 * 24 * 30);
         } catch (e) {
             console.error('[SupportBot] Update Cache Error:', e);
         }
@@ -106,7 +155,7 @@ export default function SupportBotScreen() {
     }, [messages.length]);
 
     const handleLongPress = (item) => {
-        if (item.id === '1') return; // Do not edit/delete default greeting
+        if (item.id === '1') return;
 
         const options = item.isUser
             ? [
@@ -152,7 +201,6 @@ export default function SupportBotScreen() {
         if (index === -1) return;
 
         let idsToRemove = [item.id];
-        // If user message is deleted, also remove its corresponding AI response immediately following it
         if (item.isUser && index + 1 < messages.length && !messages[index + 1].isUser) {
             idsToRemove.push(messages[index + 1].id);
         }
@@ -195,14 +243,14 @@ export default function SupportBotScreen() {
             return;
         }
 
+        const now = new Date().toISOString();
         const tempUserMsgId = `temp-${Date.now()}`;
-        const userMessage = { id: tempUserMsgId, text: inputText, isUser: true };
+        const userMessage = { id: tempUserMsgId, text: inputText, isUser: true, created_at: now };
         const updatedWithUser = [...messages, userMessage];
         setMessages(updatedWithUser);
         setInputText('');
         setLoading(true);
 
-        // Prepare history for context (last 6 valid messages)
         const history = messages
             .filter(m => m.text && !m.text.includes('trouble connecting') && !m.text.includes('unavailable') && !m.text.includes('experiencing high demand'))
             .slice(-6)
@@ -214,8 +262,10 @@ export default function SupportBotScreen() {
             const realUserMsgId = res.data.user_msg_id ? res.data.user_msg_id.toString() : tempUserMsgId;
             const realAiMsgId = res.data.ai_msg_id ? res.data.ai_msg_id.toString() : `temp-${Date.now() + 1}`;
 
-            const botMessage = { id: realAiMsgId, text: res.data.response, isUser: false };
-            const finalMessages = updatedWithUser.map(m => m.id === tempUserMsgId ? { ...m, id: realUserMsgId } : m).concat(botMessage);
+            const botMessage = { id: realAiMsgId, text: res.data.response, isUser: false, created_at: new Date().toISOString() };
+            const finalMessages = updatedWithUser
+                .map(m => m.id === tempUserMsgId ? { ...m, id: realUserMsgId } : m)
+                .concat(botMessage);
 
             setMessages(finalMessages);
             await saveToLocalCache(finalMessages);
@@ -226,50 +276,73 @@ export default function SupportBotScreen() {
         setLoading(false);
     };
 
-    const renderMessage = ({ item }) => (
-        <View style={[styles.messageWrapper, item.isUser ? styles.userWrapper : styles.botWrapper]}>
-            {!item.isUser && (
-                <View style={styles.botIcon}>
-                    <MaterialIcons name="smart-toy" size={16} color="#fff" />
+    // Build display list with date separators injected
+    const displayMessages = injectDateSeparators(messages);
+
+    const renderItem = ({ item }) => {
+        // Date separator row
+        if (item.type === 'separator') {
+            return (
+                <View style={styles.separatorRow}>
+                    <View style={styles.separatorLine} />
+                    <Text style={styles.separatorLabel}>{item.label}</Text>
+                    <View style={styles.separatorLine} />
                 </View>
-            )}
+            );
+        }
 
-            {item.isUser && item.id !== '1' && (
-                <TouchableOpacity
-                    onPress={() => handleLongPress(item)}
-                    style={styles.moreOptionsBtn}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                    <MaterialIcons name="more-vert" size={18} color={theme.colors.textMuted} />
-                </TouchableOpacity>
-            )}
-
-            <TouchableOpacity
-                activeOpacity={0.85}
-                onLongPress={() => handleLongPress(item)}
-                style={[styles.messageBubble, item.isUser ? styles.userBubble : styles.botBubble]}
-            >
-                <Text style={[styles.messageText, item.isUser ? styles.userText : styles.botText]}>
-                    {item.text}
-                </Text>
-                {item.isEdited && (
-                    <Text style={[styles.editedLabel, item.isUser ? styles.userEditedLabel : styles.botEditedLabel]}>
-                        (edited)
-                    </Text>
+        // Normal message bubble
+        return (
+            <View style={[styles.messageWrapper, item.isUser ? styles.userWrapper : styles.botWrapper]}>
+                {!item.isUser && (
+                    <View style={styles.botIcon}>
+                        <MaterialIcons name="smart-toy" size={16} color="#fff" />
+                    </View>
                 )}
-            </TouchableOpacity>
 
-            {!item.isUser && item.id !== '1' && (
+                {item.isUser && item.id !== '1' && (
+                    <TouchableOpacity
+                        onPress={() => handleLongPress(item)}
+                        style={styles.moreOptionsBtn}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                        <MaterialIcons name="more-vert" size={18} color={theme.colors.textMuted} />
+                    </TouchableOpacity>
+                )}
+
                 <TouchableOpacity
-                    onPress={() => handleLongPress(item)}
-                    style={styles.moreOptionsBtn}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    activeOpacity={0.85}
+                    onLongPress={() => handleLongPress(item)}
+                    style={[styles.messageBubble, item.isUser ? styles.userBubble : styles.botBubble]}
                 >
-                    <MaterialIcons name="more-vert" size={18} color={theme.colors.textMuted} />
+                    <Text style={[styles.messageText, item.isUser ? styles.userText : styles.botText]}>
+                        {item.text}
+                    </Text>
+                    {item.isEdited && (
+                        <Text style={[styles.editedLabel, item.isUser ? styles.userEditedLabel : styles.botEditedLabel]}>
+                            (edited)
+                        </Text>
+                    )}
+                    {/* Timestamp (time only, like Messenger) */}
+                    {item.created_at && item.id !== '1' && (
+                        <Text style={[styles.timeLabel, item.isUser ? styles.userTimeLabel : styles.botTimeLabel]}>
+                            {new Date(item.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                        </Text>
+                    )}
                 </TouchableOpacity>
-            )}
-        </View>
-    );
+
+                {!item.isUser && item.id !== '1' && (
+                    <TouchableOpacity
+                        onPress={() => handleLongPress(item)}
+                        style={styles.moreOptionsBtn}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                        <MaterialIcons name="more-vert" size={18} color={theme.colors.textMuted} />
+                    </TouchableOpacity>
+                )}
+            </View>
+        );
+    };
 
     return (
         <KeyboardAvoidingView
@@ -300,9 +373,9 @@ export default function SupportBotScreen() {
             ) : (
                 <FlatList
                     ref={flatListRef}
-                    data={messages}
+                    data={displayMessages}
                     keyExtractor={item => item.id}
-                    renderItem={renderMessage}
+                    renderItem={renderItem}
                     contentContainerStyle={styles.chatContent}
                 />
             )}
@@ -365,6 +438,28 @@ const styles = StyleSheet.create({
     statusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: theme.colors.success },
     statusText: { fontSize: 12, color: theme.colors.textSecondary },
 
+    // ── Date Separator ──────────────────────────────────────────────────────
+    separatorRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 18,
+        paddingHorizontal: 10,
+    },
+    separatorLine: {
+        flex: 1,
+        height: 1,
+        backgroundColor: theme.colors.border,
+    },
+    separatorLabel: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: theme.colors.textSecondary,
+        marginHorizontal: 10,
+        backgroundColor: theme.colors.background,
+        paddingHorizontal: 6,
+    },
+    // ────────────────────────────────────────────────────────────────────────
+
     chatContent: { padding: 20, paddingBottom: 40 },
     messageWrapper: { flexDirection: 'row', marginBottom: 15, maxWidth: '85%', alignItems: 'center' },
     userWrapper: { alignSelf: 'flex-end' },
@@ -386,13 +481,19 @@ const styles = StyleSheet.create({
     userEditedLabel: { color: 'rgba(255, 255, 255, 0.7)' },
     botEditedLabel: { color: theme.colors.textMuted },
 
+    // ── Timestamp ───────────────────────────────────────────────────────────
+    timeLabel: { fontSize: 10, marginTop: 4, alignSelf: 'flex-end' },
+    userTimeLabel: { color: 'rgba(255,255,255,0.65)' },
+    botTimeLabel: { color: theme.colors.textMuted },
+    // ────────────────────────────────────────────────────────────────────────
+
     loadingContainer: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, marginBottom: 10 },
     loadingText: { fontSize: 12, color: theme.colors.textSecondary, fontStyle: 'italic' },
 
     editingBanner: {
         flexDirection: 'row',
         alignItems: 'center',
-        justify: 'space-between',
+        justifyContent: 'space-between',
         paddingHorizontal: 20,
         paddingVertical: 8,
         backgroundColor: '#E6F4F1',

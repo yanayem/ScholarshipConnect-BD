@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -63,7 +63,7 @@ export default function AdminLogin() {
           <div className="w-20 h-20 bg-primary rounded-[2rem] flex items-center justify-center text-white mx-auto mb-6 shadow-xl shadow-primary/20">
             <ShieldCheck size={40} />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Admin Security</h1>
+          <h1 className="text-xl sm:text-3xl font-bold text-slate-900 mb-2">Admin Security</h1>
           <p className="text-slate-500 font-medium">Verify your staff identity to continue</p>
         </div>
 

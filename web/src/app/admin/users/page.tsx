@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from 'react';
-import Header from '@/components/Header';
+
 import { apiService } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -40,9 +40,9 @@ export default function AdminUsersPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+      
 
-      <main className="max-w-6xl mx-auto px-6 py-12">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-12">
         <div className="flex items-center gap-4 mb-10">
            <button onClick={() => router.push('/admin')} className="p-2 text-slate-400 hover:text-slate-900 transition-colors">
               <ArrowLeft size={20} />

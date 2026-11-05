@@ -92,7 +92,7 @@ export default function AIToolsPage() {
 
         <div className="mt-16 bg-gradient-to-br from-primary to-[#1F6F66] rounded-[48px] p-12 text-white text-center relative overflow-hidden shadow-2xl">
            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
-           <h2 className="text-3xl font-bold mb-6 relative z-10">Unlock the Full Power of ScholarAI</h2>
+           <h2 className="text-xl sm:text-3xl font-bold mb-6 relative z-10">Unlock the Full Power of ScholarAI</h2>
            <p className="text-white/80 max-w-xl mx-auto mb-10 relative z-10">
               Upgrade to Pro to get unlimited access to all AI tools, including professional SOP drafting and personalized CV reviews.
            </p>

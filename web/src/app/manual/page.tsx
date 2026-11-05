@@ -31,8 +31,8 @@ export default function ManualPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-6 py-10 lg:py-16">
-        <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 md:p-12 shadow-sm">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-10 lg:py-16">
+        <div className="bg-white border border-slate-200 rounded-[2.5rem] p-4 sm:p-8 md:p-12 shadow-sm">
           <button
             onClick={() => router.back()}
             className="flex items-center gap-2 text-slate-400 hover:text-primary transition-colors text-xs font-black uppercase tracking-widest mb-12"
@@ -45,7 +45,7 @@ export default function ManualPage() {
             <div className="w-16 h-16 bg-blue-50 text-primary rounded-2xl flex items-center justify-center mx-auto mb-8 border border-blue-100 shadow-sm">
                <HelpCircle size={32} />
             </div>
-            <h1 className="text-4xl font-bold text-slate-900 mb-4 tracking-tight">User Manual</h1>
+            <h1 className="text-2xl sm:text-4xl font-bold text-slate-900 mb-4 tracking-tight">User Manual</h1>
             <p className="text-slate-500 font-medium text-lg leading-relaxed">Everything you need to know about navigating and using ScholarConnectBD effectively.</p>
           </header>
 

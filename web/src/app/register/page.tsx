@@ -111,7 +111,7 @@ export default function RegisterPage() {
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-primary/20">S</div>
               <span className="font-bold text-xl tracking-tight text-slate-900">ScholarshipConnect<span className="text-primary">BD</span></span>
             </Link>
-            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Create Account</h2>
+            <h2 className="text-xl sm:text-3xl font-bold text-slate-900 tracking-tight">Create Account</h2>
             <p className="text-slate-500 mt-2 font-medium">Join thousands of Bangladeshi scholars today.</p>
           </div>
 

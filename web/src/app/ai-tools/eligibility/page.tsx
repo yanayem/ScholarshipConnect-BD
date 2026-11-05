@@ -215,7 +215,7 @@ export default function EligibilityPage() {
     <div className="min-h-screen bg-slate-50/50">
       <Header />
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <main className="max-w-5xl mx-auto px-4 sm:px-3 sm:px-6 py-5 sm:py-8 sm:py-12">
         {/* Page Banner Header */}
         <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-10 mb-8 shadow-sm">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">

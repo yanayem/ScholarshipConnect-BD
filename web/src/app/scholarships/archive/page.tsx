@@ -41,8 +41,8 @@ export default function ScholarshipArchivePage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-6 py-10 lg:py-16">
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 md:p-12 shadow-sm">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-10 lg:py-16">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-4 sm:p-8 md:p-12 shadow-sm">
           {/* Top Bar / Back Link */}
           <div className="mb-6">
             <Link
@@ -58,7 +58,7 @@ export default function ScholarshipArchivePage() {
             <div>
               <div className="flex items-center gap-2.5 mb-1">
                 <History className="text-slate-400" size={26} />
-                <h1 className="text-3xl font-bold text-slate-900">Scholarship Archive</h1>
+                <h1 className="text-xl sm:text-3xl font-bold text-slate-900">Scholarship Archive</h1>
               </div>
               <p className="text-slate-500 text-sm font-medium">
                 These scholarships have already passed their application deadlines.

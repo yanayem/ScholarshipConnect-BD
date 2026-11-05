@@ -105,8 +105,8 @@ export default function AddScholarshipPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-4xl mx-auto px-6 py-10 lg:py-16">
-        <div className="bg-white border border-slate-200 rounded-sm p-8 md:p-12 shadow-sm">
+      <main className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-10 lg:py-16">
+        <div className="bg-white border border-slate-200 rounded-sm p-4 sm:p-8 md:p-12 shadow-sm">
           <button
             onClick={() => router.back()}
             className="flex items-center gap-2 text-slate-400 hover:text-primary transition-colors text-xs font-bold uppercase tracking-widest mb-10"
@@ -116,7 +116,7 @@ export default function AddScholarshipPage() {
           </button>
 
           <header className="mb-12">
-            <h1 className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">Submit Scholarship</h1>
+            <h1 className="text-xl sm:text-3xl font-bold text-slate-900 mb-2 tracking-tight">Submit Scholarship</h1>
             <p className="text-slate-500 text-sm font-medium">Add a new opportunity to the database.</p>
           </header>
 

@@ -13,7 +13,7 @@ export default function PrivacyPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-4xl mx-auto px-6 py-10 lg:py-16">
+      <main className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-10 lg:py-16">
         <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 md:p-16 shadow-sm">
           <button
             onClick={() => router.back()}

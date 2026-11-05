@@ -131,6 +131,13 @@ class ScholarshipApplicationListCreateView(generics.ListCreateAPIView):
 
         # 2. Save the application
         instance = serializer.save(user=user)
+        # Security: only associate documents owned by this user
+        doc_ids = self.request.data.get('documents', [])
+        if doc_ids:
+            user_docs = UserDocument.objects.filter(user=user, id__in=doc_ids)
+            instance.documents.set(user_docs)
+        else:
+            instance.documents.set(UserDocument.objects.filter(user=user))
         
         # 3. Handle notifications safely
         try:
@@ -163,12 +170,13 @@ class UserDocumentListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff:
-            queryset = UserDocument.objects.all()
+        # Strict user isolation: Non-staff users can ONLY ever see their own documents.
+        # Staff/Admins can see documents filtered by user_id parameter when reviewing student applications.
+        if user.is_staff or user.is_superuser:
             user_id_param = self.request.query_params.get('user_id')
             if user_id_param:
-                queryset = queryset.filter(user_id=user_id_param)
-            return queryset.order_by('-created_at')
+                return UserDocument.objects.filter(user_id=user_id_param).order_by('-created_at')
+            return UserDocument.objects.all().order_by('-created_at')
             
         docs = UserDocument.objects.filter(user=user)
         

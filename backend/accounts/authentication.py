@@ -59,7 +59,8 @@ class FirebaseAuthentication(authentication.BaseAuthentication):
 
         try:
             uid = decoded_token.get('uid')
-            email = decoded_token.get('email', '')
+            raw_email = decoded_token.get('email', '')
+            email = raw_email.strip().lower() if raw_email else ""
             
             # Map Firebase users to Django users by uid (used as username)
             user, created = User.objects.get_or_create(

@@ -62,10 +62,10 @@ export default function CalendarPage() {
     <div className="min-h-screen bg-slate-50/50">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-6 py-10">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-10">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">Scholarship Deadlines</h1>
+            <h1 className="text-xl sm:text-3xl font-bold text-slate-900 mb-2">Scholarship Deadlines</h1>
             <p className="text-slate-500 text-sm">Never miss an application deadline again.</p>
           </div>
 
@@ -78,7 +78,7 @@ export default function CalendarPage() {
 
         <div className="grid lg:grid-cols-7 gap-6">
           {/* Calendar Grid */}
-          <div className="lg:col-span-5 border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm">
+          <div className="lg:col-span-5 border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm overflow-x-auto min-w-full"><div className="min-w-[600px] sm:min-w-0">
              <div className="grid grid-cols-7 border-b border-slate-100 bg-slate-50/70">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                   <div key={day} className="py-4 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest">{day}</div>
@@ -111,6 +111,7 @@ export default function CalendarPage() {
                   );
                 })}
              </div>
+          </div>
           </div>
 
           {/* Upcoming Deadlines Sidebar */}

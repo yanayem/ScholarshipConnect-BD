@@ -60,10 +60,10 @@ export default function MentorSessionsPage() {
     <div className="min-h-screen bg-white">
       <Header />
 
-      <main className="max-w-5xl mx-auto px-6 py-12">
+      <main className="max-w-5xl mx-auto px-3 sm:px-6 py-6 sm:py-12">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">Mentorship Sessions</h1>
+            <h1 className="text-xl sm:text-3xl font-bold text-slate-900 mb-2">Mentorship Sessions</h1>
             <p className="text-slate-500 text-sm font-medium">Manage your student consultations and requests.</p>
           </div>
 

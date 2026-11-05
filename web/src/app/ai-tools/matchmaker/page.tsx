@@ -66,8 +66,8 @@ export default function MatchmakerPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-4xl mx-auto px-6 py-10 lg:py-16">
-        <div className="bg-white border border-slate-200 rounded-sm p-8 md:p-12 shadow-sm">
+      <main className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-10 lg:py-16">
+        <div className="bg-white border border-slate-200 rounded-sm p-4 sm:p-8 md:p-12 shadow-sm">
 
           {/* Header Section */}
           <div className="flex items-center gap-4 mb-10 pb-6 border-b border-slate-50">

@@ -31,14 +31,14 @@ export default function BlogPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-6 py-10 lg:py-16">
-        <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 md:p-12 shadow-sm">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-10 lg:py-16">
+        <div className="bg-white border border-slate-200 rounded-[2.5rem] p-4 sm:p-8 md:p-12 shadow-sm">
           <header className="mb-16">
             <div className="flex items-center gap-4 mb-6">
                <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] bg-primary-light px-4 py-1.5 rounded-lg border border-primary/10">Insights</span>
                <div className="h-px flex-1 bg-slate-100"></div>
             </div>
-            <h1 className="text-4xl font-bold text-slate-900 mb-6 tracking-tight leading-tight">Scholar Stories & Guides</h1>
+            <h1 className="text-2xl sm:text-4xl font-bold text-slate-900 mb-6 tracking-tight leading-tight">Scholar Stories & Guides</h1>
             <p className="text-slate-500 max-w-2xl font-medium leading-relaxed text-lg">
               Success stories and application tips written by Bangladeshi students who've already secured their international dreams.
             </p>
@@ -81,7 +81,7 @@ export default function BlogPage() {
                                    <span className="flex items-center gap-2.5"><Clock size={16} className="text-primary" /> 5 min read</span>
                                 </div>
 
-                                <h2 className="text-3xl font-bold text-slate-900 group-hover:text-primary transition-colors leading-tight tracking-tight">
+                                <h2 className="text-xl sm:text-3xl font-bold text-slate-900 group-hover:text-primary transition-colors leading-tight tracking-tight">
                                    {post.title}
                                 </h2>
 

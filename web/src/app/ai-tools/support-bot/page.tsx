@@ -194,7 +194,7 @@ export default function SupportBotPage() {
             });
         } else {
             let errorText = res.data?.error || res.data?.message || 'ScholarAI is currently busy. Please try asking again in a moment.';
-            if (typeof errorText === 'string' && (errorText.includes('<!DOCTYPE') || errorText.includes('<html') || errorText.includes('<table'))) {
+            if (typeof errorText === 'string' && (errorText.includes('<!DOCTYPE') || errorText.includes('<html') || errorText.includes('<div className="overflow-x-auto w-full"><table'))) {
                 errorText = 'Server error occurred while processing your request. Please try asking again.';
             }
             setMessages(prev => [...prev, {
@@ -274,7 +274,7 @@ export default function SupportBotPage() {
                   key={msg.id}
                   className={`flex flex-col ${msg.isUser ? 'items-end' : 'items-start'}`}
                 >
-                  <div className={`flex items-start gap-3 max-w-[80%] ${msg.isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+                  <div className={`flex items-start gap-3 max-w-[92%] sm:max-w-[80%] ${msg.isUser ? 'flex-row-reverse' : 'flex-row'}`}>
 
                     {!msg.isUser && (
                        <div className="w-8 h-8 bg-primary-light text-primary rounded-xl flex items-center justify-center text-xs font-bold shrink-0 mt-1 shadow-sm">
@@ -292,7 +292,7 @@ export default function SupportBotPage() {
                               e.stopPropagation();
                               setActiveMenuId(activeMenuId === msg.id ? null : msg.id);
                             }}
-                            className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-all"
+                            className="opacity-60 sm:opacity-0 group-hover:opacity-100 p-1.5 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-all"
                             title="Message Actions"
                           >
                             <MoreVertical size={16} />

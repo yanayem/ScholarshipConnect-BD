@@ -161,7 +161,6 @@ export default function Header() {
               <Link href={isAdminPath ? "/admin" : (user ? "/home" : "/")} className="flex items-center gap-2 shrink-0">
                 <div className="w-9 h-9 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
                   <img src="/logo.png" className="w-full h-full object-cover" alt="ScholarshipConnectBD Logo" onError={(e) => {
-                    // Fallback to text if image not found yet
                     e.currentTarget.style.display = 'none';
                     const fallback = e.currentTarget.nextSibling as HTMLElement;
                     if (fallback) fallback.style.display = 'flex';
@@ -225,18 +224,6 @@ export default function Header() {
                 </Link>
               )}
 
-              {/* COMMENTED OUT FOR FUTURE USE: Grid Menu Button
-              {user && (
-                <button
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all mr-1"
-                  title="Menu"
-                >
-                  <Grid size={22} strokeWidth={1.8} />
-                </button>
-              )}
-              */}
-
               {!loading && user ? (
                 <>
                   <Link href="/notifications" className="text-slate-400 hover:text-primary transition-colors relative p-1">
@@ -251,6 +238,8 @@ export default function Header() {
                       ) : user.full_name?.charAt(0)}
                     </div>
                   </Link>
+
+
                 </>
               ) : (
                 <div className="flex items-center gap-4">
@@ -299,114 +288,42 @@ export default function Header() {
           </div>
         )}
 
-        {/* COMMENTED OUT FOR FUTURE USE: Apps Dropdown Menu
-        {mobileMenuOpen && user && (
-          <div className="absolute top-16 right-4 sm:right-8 w-[300px] bg-white border border-slate-200 rounded-2xl shadow-2xl z-[60] overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-slate-100 border border-slate-200 text-primary rounded-lg flex items-center justify-center font-bold text-xs overflow-hidden">
-                  {(user as any).avatar || (user as any).avatar_url || (user as any).profile_picture_url ? (
-                    <img src={(user as any).avatar || (user as any).avatar_url || (user as any).profile_picture_url} className="w-full h-full object-cover" alt="" />
-                  ) : user.full_name?.charAt(0)}
-                </div>
-                <div className="min-w-0">
-                  <h4 className="text-xs font-bold text-slate-900 truncate">{user.full_name}</h4>
-                  <p className="text-[9px] font-bold text-primary uppercase tracking-wider">Scholar Pro</p>
-                </div>
-              </div>
-              <button onClick={() => setMobileMenuOpen(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100">
-                <X size={16} />
-              </button>
-            </div>
 
-            <div className="max-h-[350px] overflow-y-auto p-2 space-y-0.5">
-              {[
-                { name: 'Dashboard', icon: Trophy, href: '/profile' },
-                ...((user as any).is_staff ? [{ name: 'Admin Console', icon: ShieldCheck, href: '/admin' }] : []),
-                { name: 'My Applications', icon: Send, href: '/profile/applications' },
-                { name: 'Document Vault', icon: FileText, href: '/profile/documents' },
-                { name: 'Saved Scholarships', icon: Bookmark, href: '/scholarships?filter=saved' },
-                { name: 'Leaderboard', icon: Star, href: '/community/leaderboard' },
-                { name: 'My Insights', icon: LineChart, href: '/profile/progress' },
-                { name: 'History & Activity', icon: History, href: '/profile/activity' },
-                { name: 'Find Mentors', icon: Users, href: '/mentorship' },
-                { name: 'Notifications', icon: Bell, href: '/notifications' },
-                { name: 'Account Settings', icon: Settings, href: '/profile/settings' },
-                { name: 'Privacy Policy', icon: Lock, href: '/privacy' },
-              ].map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                      isActive
-                        ? 'bg-primary text-white shadow-md'
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-primary'
-                    }`}
-                  >
-                    <item.icon size={16} />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
-            </div>
-
-            {user.is_mentor && (
-              <div className="p-2 bg-slate-50 border-t border-slate-100 flex gap-2">
-                <button
-                  onClick={() => {
-                     toggleMentorMode();
-                     setMobileMenuOpen(false);
-                  }}
-                  className="w-full py-2 bg-white border border-slate-200 rounded-xl text-[9px] font-black uppercase tracking-wider text-slate-700 hover:bg-slate-100 transition-all"
-                >
-                  {isMentorMode ? 'Student' : 'Mentor'} Mode
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-        */}
       </header>
 
-      {/* Bottom Navigation Bar for Mobile */}
-      {!isAdminPath && user && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-100 z-[100] px-2 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.05)] flex justify-around items-center h-20">
+      {/* Native App-Style Bottom Tab Bar for Mobile */}
+      {!isAdminPath && (
+        <nav
+          aria-label="Mobile Navigation"
+          className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-[99999] px-1 py-1 shadow-[0_-4px_25px_rgba(0,0,0,0.15)] rounded-t-2xl flex items-center justify-between h-16 pointer-events-auto transform-none will-change-transform"
+        >
           {currentNav.map((item) => {
-            const isActive = pathname === item.href;
-            const isCenterHome = item.name === 'Home';
+            const isActive = pathname === item.href || (item.href !== '/home' && pathname.startsWith(item.href));
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-col items-center justify-center flex-1 transition-all relative ${
-                  isActive ? 'text-teal-600' : 'text-slate-400'
+                className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors relative ${
+                  isActive ? 'text-primary' : 'text-slate-400 hover:text-slate-600'
                 }`}
               >
-                <div className={`flex items-center justify-center transition-all ${
-                  isCenterHome
-                    ? 'w-14 h-14 bg-white rounded-full border border-slate-100 -mt-10 shadow-lg text-slate-700'
-                    : 'w-7 h-7'
-                } ${isActive && !isCenterHome ? 'scale-110' : ''} ${isActive && isCenterHome ? 'text-teal-600 border-teal-100' : ''}`}>
-                  <item.icon size={isCenterHome ? 26 : 22} strokeWidth={isActive ? 2.5 : 2} />
+                <div className={`flex items-center justify-center transition-transform ${isActive ? 'scale-110' : ''}`}>
+                  <item.icon size={22} strokeWidth={isActive ? 2.4 : 1.8} />
                 </div>
-                <span className={`text-[10px] font-bold tracking-tight mt-1.5 transition-colors ${
-                  isActive ? 'text-teal-600' : 'text-slate-400'
+                <span className={`text-[9px] sm:text-[10px] tracking-tight mt-0.5 font-bold truncate max-w-full ${
+                  isActive ? 'text-primary' : 'text-slate-500'
                 }`}>
                   {item.name}
                 </span>
-                {isActive && !isCenterHome && (
-                  <div className="absolute -bottom-1 w-1 h-1 bg-teal-600 rounded-full"></div>
+                {isActive && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary mt-0.5" />
                 )}
               </Link>
             );
           })}
-        </div>
+        </nav>
       )}
     </>
   );
 }
-

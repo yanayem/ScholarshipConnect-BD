@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from 'react';
-import Header from '@/components/Header';
+
 import { apiService } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -145,13 +145,13 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      
 
-      <main className="max-w-7xl mx-auto px-6 py-10 lg:py-16">
-        <div className="bg-white border border-slate-200 rounded-none p-8 md:p-12 shadow-sm">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-6 sm:py-10 lg:py-16">
+        <div className="bg-white border border-slate-200 rounded-none p-4 sm:p-8 md:p-12 shadow-sm">
           <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-16">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">Admin Console</h1>
+              <h1 className="text-xl sm:text-3xl font-bold text-slate-900 mb-2">Admin Console</h1>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
                 <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">{healthStatus}</p>

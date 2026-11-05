@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from 'react';
-import Header from '@/components/Header';
+
 import { apiService } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -81,9 +81,9 @@ export default function ApplicationsAdmin() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      
 
-      <main className="max-w-7xl mx-auto px-6 py-10 lg:py-16">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-6 sm:py-10 lg:py-16">
         <Link href="/admin" className="inline-flex items-center gap-2 text-slate-500 hover:text-primary mb-8 font-bold text-xs uppercase tracking-widest transition-colors">
           <ArrowLeft size={16} />
           Back to Console
@@ -95,7 +95,7 @@ export default function ApplicationsAdmin() {
                     <FileText size={32} />
                 </div>
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900">Student Applications</h1>
+                    <h1 className="text-xl sm:text-3xl font-bold text-slate-900">Student Applications</h1>
                     <p className="text-slate-500 text-sm font-medium">Review and track scholarship submissions</p>
                 </div>
             </div>

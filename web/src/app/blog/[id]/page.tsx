@@ -47,8 +47,8 @@ export default function BlogDetailPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-6 py-10 lg:py-16">
-        <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 md:p-12 shadow-sm">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-10 lg:py-16">
+        <div className="bg-white border border-slate-200 rounded-[2.5rem] p-4 sm:p-8 md:p-12 shadow-sm">
           <button
             onClick={() => router.back()}
             className="flex items-center gap-2 text-slate-400 hover:text-primary transition-colors text-xs font-bold uppercase tracking-widest mb-12"
@@ -123,7 +123,7 @@ export default function BlogDetailPage() {
             </div>
 
             <div className="border-[3px] border-slate-900 rounded-[3rem] p-12 text-slate-900 text-center space-y-8 relative overflow-hidden bg-white">
-                <h3 className="text-3xl font-bold relative z-10">Inspired by this story?</h3>
+                <h3 className="text-xl sm:text-3xl font-bold relative z-10">Inspired by this story?</h3>
                 <p className="text-slate-500 text-base max-w-lg mx-auto relative z-10 font-medium leading-relaxed">Start your own journey today with our AI Matchmaker and find scholarships that fit your profile.</p>
                 <button
                   onClick={() => router.push('/ai-tools/matchmaker')}

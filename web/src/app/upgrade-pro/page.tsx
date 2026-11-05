@@ -63,7 +63,7 @@ export default function UpgradeProPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-6 py-10 lg:py-16">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-10 lg:py-16">
         <div className="bg-white border border-slate-200 rounded-sm p-8 md:p-16 shadow-sm">
           <div className="text-center max-w-2xl mx-auto mb-20 space-y-8">
              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary-light text-primary text-[10px] font-black uppercase tracking-[0.2em]">

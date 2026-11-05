@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -23,6 +23,7 @@ export default function AgencyApplyPage() {
   const { id } = useParams();
   const searchParams = useSearchParams();
   const scholarshipTitle = searchParams.get('title') || 'Scholarship';
+  const prefilledSopParam = searchParams.get('prefilledSop');
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
 
@@ -38,11 +39,29 @@ export default function AgencyApplyPage() {
     cgpa: '',
     ielts: '',
     academicLevel: '',
-    sop: 'I am requesting agency processing for this application. Please contact me for further details and document collection.',
+    sop: '',
   });
 
   const [vaultDocs, setVaultDocs] = useState<any[]>([]);
   const [docsLoading, setDocsLoading] = useState(true);
+
+  useEffect(() => {
+    let chosenSop = '';
+    if (prefilledSopParam && prefilledSopParam.trim()) {
+      chosenSop = prefilledSopParam.trim();
+    } else {
+      try {
+        const specific = id ? localStorage.getItem(`generated_sop_${id}`) : null;
+        const latest = localStorage.getItem('latest_generated_sop');
+        chosenSop = (specific || latest || '').trim();
+      } catch (e) {}
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      sop: chosenSop || 'I am requesting agency processing for this application. Please contact me for further details and document collection.'
+    }));
+  }, [id, prefilledSopParam]);
 
   useEffect(() => {
     if (!authLoading && !user) router.push('/login');
@@ -156,7 +175,7 @@ export default function AgencyApplyPage() {
         <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-6 border border-emerald-100">
           <CheckCircle2 size={40} />
         </div>
-        <h1 className="text-3xl font-bold text-slate-900 mb-4">Request Received!</h1>
+        <h1 className="text-xl sm:text-3xl font-bold text-slate-900 mb-4">Request Received!</h1>
         <p className="text-slate-500 max-w-md mb-10 leading-relaxed font-medium">
           Your request for Premium Agency Processing has been submitted successfully.
           Our expert consultants have been notified and a chat thread has been created for you.
@@ -186,8 +205,8 @@ export default function AgencyApplyPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="max-w-4xl mx-auto px-6 py-10 lg:py-16">
-        <div className="bg-white border border-slate-200 rounded-sm p-8 md:p-12 shadow-sm">
+      <main className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-10 lg:py-16">
+        <div className="bg-white border border-slate-200 rounded-sm p-4 sm:p-8 md:p-12 shadow-sm">
           <button
             onClick={() => router.back()}
             className="flex items-center gap-2 text-slate-400 hover:text-primary transition-colors text-xs font-black uppercase tracking-widest mb-10"
@@ -202,7 +221,7 @@ export default function AgencyApplyPage() {
                 <Briefcase size={24} />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Expert Agency Service</h1>
+                <h1 className="text-xl sm:text-3xl font-bold text-slate-900 tracking-tight">Expert Agency Service</h1>
                 <p className="text-slate-500 text-sm font-medium">Professional submission & document verification.</p>
               </div>
             </div>

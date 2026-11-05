@@ -72,3 +72,26 @@ body {
 .element-lg {
   @apply rounded-lg;
 }
+
+/* Hide Next.js dev tools floating badge so it does not block mobile navigation */
+nextjs-portal,
+[data-nextjs-toast-wrapper],
+[data-nextjs-dev-tools-button],
+#nextjs-dev-tools-button {
+  display: none !important;
+}
+/* Ensure mobile fixed bottom navigation stays strictly pinned to viewport */
+@supports (-webkit-touch-callout: none) {
+  nav[aria-label="Mobile Navigation"] {
+    position: fixed !important;
+    bottom: 0 !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+  }
+}
+nav[aria-label="Mobile Navigation"] {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  transform: none !important;
+}

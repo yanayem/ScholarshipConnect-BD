@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from 'react';
-import Header from '@/components/Header';
+
 import { apiService } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, useParams } from 'next/navigation';
@@ -102,9 +102,9 @@ export default function ApplicationDetailPage() {
 
   return (
     <div className="min-h-screen bg-slate-50/50">
-      <Header />
+      
 
-      <main className="max-w-6xl mx-auto px-6 py-10 lg:py-16">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-10 lg:py-16">
         {/* Top Back Link */}
         <Link
           href="/admin/applications"

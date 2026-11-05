@@ -102,11 +102,11 @@ export default function DocVaultPage() {
     <div className="min-h-screen bg-white">
       <Header />
 
-      <main className="max-w-5xl mx-auto px-6 py-12">
-        <div className="bg-white border border-slate-200 rounded-sm p-8 md:p-12 shadow-sm">
+      <main className="max-w-5xl mx-auto px-3 sm:px-6 py-6 sm:py-12">
+        <div className="bg-white border border-slate-200 rounded-sm p-4 sm:p-8 md:p-12 shadow-sm">
           <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">Document Vault</h1>
+            <h1 className="text-xl sm:text-3xl font-bold text-slate-900 mb-2">Document Vault</h1>
             <p className="text-slate-500 text-sm font-medium flex items-center gap-2">
                <ShieldCheck size={16} className="text-emerald-500" />
                Your documents are encrypted and secure.

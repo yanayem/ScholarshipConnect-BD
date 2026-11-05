@@ -70,7 +70,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-slate-900">Recently Added</h2>
+              <h2 className="text-xl sm:text-3xl font-bold text-slate-900">Recently Added</h2>
               <p className="text-slate-500 font-medium">Explore the latest opportunities verified for you.</p>
             </div>
             <Link href="/scholarships" className="text-primary font-bold text-xs uppercase tracking-widest flex items-center gap-2 group">

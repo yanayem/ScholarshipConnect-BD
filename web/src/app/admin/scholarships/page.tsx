@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from 'react';
-import Header from '@/components/Header';
+
 import { apiService } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -41,9 +41,9 @@ export default function AdminScholarshipsPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+      
 
-      <main className="max-w-6xl mx-auto px-6 py-12">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-12">
         <div className="flex items-center gap-4 mb-10">
            <button onClick={() => router.push('/admin')} className="p-2 text-slate-400 hover:text-slate-900 transition-colors">
               <ArrowLeft size={20} />
@@ -82,7 +82,7 @@ export default function AdminScholarshipsPage() {
           </div>
         ) : (
           <div className="border border-slate-100 rounded-none overflow-hidden shadow-sm">
-             <table className="w-full text-left">
+             <div className="overflow-x-auto w-full"><table className="w-full text-left">
                 <thead className="bg-slate-50 border-b border-slate-100">
                    <tr>
                       <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Scholarship</th>
@@ -127,7 +127,7 @@ export default function AdminScholarshipsPage() {
                      </tr>
                    ))}
                 </tbody>
-             </table>
+             </table></div>
           </div>
         )}
       </main>

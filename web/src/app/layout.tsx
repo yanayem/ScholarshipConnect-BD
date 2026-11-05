@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
@@ -15,6 +15,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 export const metadata: Metadata = {
   title: "ScholarshipConnectBD | Bridging Bangladeshi Students to Global Opportunities",
   description: "A comprehensive platform to discover, track, and apply for international scholarships.",
@@ -27,7 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased pb-20 lg:pb-0`} suppressHydrationWarning>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased pb-20 lg:pb-0 overflow-x-hidden max-w-full`} suppressHydrationWarning>
         <AuthProvider>
           <MentorModeProvider>
             <ProtectedRoute>

@@ -31,13 +31,13 @@ export default function MentorshipPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-6 py-10 lg:py-16">
-        <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 md:p-12 shadow-sm">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-10 lg:py-16">
+        <div className="bg-white border border-slate-200 rounded-[2.5rem] p-4 sm:p-8 md:p-12 shadow-sm">
           <header className="text-center max-w-2xl mx-auto mb-16">
             <div className="w-16 h-16 bg-primary-light text-primary rounded-2xl flex items-center justify-center mx-auto mb-8 border border-primary/10">
                <Users size={32} />
             </div>
-            <h1 className="text-4xl font-bold text-slate-900 mb-6 tracking-tight">Connect with Mentors</h1>
+            <h1 className="text-2xl sm:text-4xl font-bold text-slate-900 mb-6 tracking-tight">Connect with Mentors</h1>
             <p className="text-slate-500 font-medium leading-relaxed">
               Get personalized guidance from Bangladeshi scholars who have already secured international scholarships.
             </p>
@@ -73,7 +73,7 @@ export default function MentorshipPage() {
                {mentors.map((mentor) => (
                  <div key={mentor.id} className="group border border-slate-100 rounded-[2rem] p-8 hover:border-primary/30 transition-all bg-slate-50/20 flex flex-col hover:shadow-xl hover:shadow-slate-100/50">
                     <div className="flex justify-between items-start mb-8">
-                       <div className="w-20 h-20 bg-white border border-slate-200 rounded-[1.5rem] flex items-center justify-center text-primary text-3xl font-bold shrink-0 shadow-sm">
+                       <div className="w-20 h-20 bg-white border border-slate-200 rounded-[1.5rem] flex items-center justify-center text-primary text-xl sm:text-3xl font-bold shrink-0 shadow-sm">
                           {mentor.avatar ? <img src={mentor.avatar} className="w-full h-full object-cover rounded-[1.5rem]" alt="Avatar" /> : (mentor.full_name || 'M')[0]}
                        </div>
                        <div className="flex items-center gap-1 bg-yellow-50 text-yellow-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-yellow-100 shadow-sm">

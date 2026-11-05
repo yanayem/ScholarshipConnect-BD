@@ -33,12 +33,12 @@ export default function LeaderboardPage() {
     <div className="min-h-screen bg-slate-50/50">
       <Header />
 
-      <main className="max-w-4xl mx-auto px-6 py-12">
+      <main className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-12">
         <header className="text-center mb-16">
           <div className="w-16 h-16 bg-yellow-400 text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-yellow-400/20 rotate-3">
              <Trophy size={32} />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Community Leaderboard</h1>
+          <h1 className="text-xl sm:text-3xl font-bold text-slate-900 mb-2">Community Leaderboard</h1>
           <p className="text-slate-500 max-w-md mx-auto text-sm">Celebrating our top contributors and successful scholars.</p>
         </header>
 

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
@@ -79,7 +79,9 @@ export default function ApplicationsPage() {
             level: item.scholarship_level || item.scholarship_details?.level || 'N/A',
             deadline: item.scholarship_deadline || item.scholarship_details?.deadline || 'N/A',
             status: normalizeStatus(item.status),
-            type: item.application_type || 'Self'
+            type: item.application_type || 'Self',
+            created_at: item.created_at || null,
+            is_application: true
           })));
         }
 
@@ -93,29 +95,45 @@ export default function ApplicationsPage() {
             level: item.scholarship_details?.level || 'N/A',
             deadline: item.scholarship_details?.deadline || 'N/A',
             status: 'Saved',
-            type: 'Self'
+            type: 'Self',
+            created_at: item.created_at || null,
+            is_application: false
           })));
         }
 
-        // Deduplicate or sort so Applied status shows up instead of Saved
-        const uniqueDataMap = new Map();
-        // First add all Saved items
-        data.filter(i => i.status === 'Saved').forEach(item => {
+        // Group by scholarship to prioritize actual application statuses (Applied, Processing, Under Review, etc.)
+        // while ensuring Saved scholarships without an application explicitly show "Saved" status.
+        const scholarshipMap = new Map();
+
+        // 1. First process all actual applications (Applied, Processing, Under Review, Accepted, Rejected, etc.)
+        data.filter(item => item.is_application).forEach(item => {
           const key = String(item.scholarship_id || item.title).toLowerCase().trim();
-          if (key && key !== 'n/a') uniqueDataMap.set(key, item);
-        });
-        // Then add non-Saved items (Applied, Processing, etc.) so they ALWAYS override Saved!
-        data.filter(i => i.status !== 'Saved').forEach(item => {
-          const key = String(item.scholarship_id || item.title).toLowerCase().trim();
-          if (key && key !== 'n/a') uniqueDataMap.set(key, item);
-        });
-        // Fallback for missing keys
-        data.forEach(item => {
-          const key = String(item.scholarship_id || item.title).toLowerCase().trim();
-          if (!key || key === 'n/a') uniqueDataMap.set(item.id, item);
+          if (key && key !== 'n/a') {
+            scholarshipMap.set(key, item);
+          } else {
+            scholarshipMap.set(item.id, item);
+          }
         });
 
-        setApplications(Array.from(uniqueDataMap.values()));
+        // 2. Then add saved bookmarks ONLY if the user has not submitted an application for it yet
+        data.filter(item => !item.is_application).forEach(item => {
+          const key = String(item.scholarship_id || item.title).toLowerCase().trim();
+          if (key && key !== 'n/a') {
+            if (!scholarshipMap.has(key)) {
+              scholarshipMap.set(key, item);
+            }
+          } else {
+            scholarshipMap.set(item.id, item);
+          }
+        });
+
+                const sortedList = Array.from(scholarshipMap.values()).sort((a: any, b: any) => {
+          const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return timeB - timeA; // Newest first
+        });
+
+        setApplications(sortedList);
       } catch (error) {
         console.error('Failed to load applications', error);
       } finally {
@@ -143,10 +161,10 @@ export default function ApplicationsPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-6 py-10 lg:py-16">
-        <div className="bg-white border border-slate-200 rounded-sm p-8 md:p-12 shadow-sm">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-10 lg:py-16">
+        <div className="bg-white border border-slate-200 rounded-sm p-4 sm:p-8 md:p-12 shadow-sm">
           <header className="mb-12">
-            <h1 className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">My Applications</h1>
+            <h1 className="text-xl sm:text-3xl font-bold text-slate-900 mb-2 tracking-tight">My Applications</h1>
             <p className="text-slate-500 text-sm font-medium">Track your progress and manage your scholarship journey.</p>
           </header>
 
@@ -205,7 +223,7 @@ export default function ApplicationsPage() {
                                {item.status}
                             </div>
                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest border border-slate-200 px-2.5 py-1 rounded-md bg-white">
-                               {item.type === 'Self' ? 'Self-Guided' : 'Expert-Assisted'}
+                               {item.status === 'Saved' ? 'Bookmarked' : (item.type === 'Self' ? 'Self-Guided' : 'Expert-Assisted')}
                             </span>
                          </div>
 
@@ -213,10 +231,16 @@ export default function ApplicationsPage() {
                             <h3 className="text-lg font-bold text-slate-900 group-hover/link:text-primary transition-colors tracking-tight leading-tight">{item.title}</h3>
                          </Link>
 
-                         <div className="flex flex-wrap gap-4 text-[11px] font-bold text-slate-500 uppercase tracking-tight opacity-70">
-                            <span className="flex items-center gap-1.5"><MapPin size={15} className="text-primary" /> {item.country}</span>
-                            <span className="flex items-center gap-1.5"><GraduationCap size={15} className="text-primary" /> {item.level}</span>
-                            <span className="flex items-center gap-1.5 text-red-500"><Calendar size={15} /> {item.deadline}</span>
+                         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] font-bold text-slate-500 uppercase tracking-tight">
+                            <span className="flex items-center gap-1.5"><MapPin size={14} className="text-primary" /> {item.country}</span>
+                            <span className="flex items-center gap-1.5"><GraduationCap size={14} className="text-primary" /> {item.level}</span>
+                            <span className="flex items-center gap-1.5 text-red-500"><Calendar size={14} /> Deadline: {item.deadline}</span>
+                            {item.created_at && (
+                              <span className="flex items-center gap-1.5 text-teal-700 bg-teal-50/70 border border-teal-100 px-2 py-0.5 rounded text-[10px] font-black">
+                                <Clock size={12} className="text-teal-600" />
+                                {item.status === 'Saved' ? 'Saved On' : 'Applied On'}: {new Date(item.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                              </span>
+                            )}
                          </div>
                       </div>
 
@@ -241,7 +265,7 @@ export default function ApplicationsPage() {
                     </div>
 
                     {/* Progress Line */}
-                    {item.status !== 'Rejected' && item.type !== 'Self' && (
+                    {item.status !== 'Rejected' && item.status !== 'Saved' && (
                       <div className="mt-8 pt-6 border-t border-slate-200 overflow-x-auto scrollbar-hide">
                          <div className="flex min-w-[500px] justify-between relative px-2">
                             <div className="absolute top-1.5 left-0 right-0 h-0.5 bg-slate-200 rounded-full -z-0"></div>

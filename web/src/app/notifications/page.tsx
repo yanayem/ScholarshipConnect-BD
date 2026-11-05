@@ -60,11 +60,11 @@ export default function NotificationsPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-3xl mx-auto px-6 py-10 lg:py-16">
-        <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 md:p-12 shadow-sm">
+      <main className="max-w-3xl mx-auto px-3 sm:px-6 py-6 sm:py-10 lg:py-16">
+        <div className="bg-white border border-slate-200 rounded-[2.5rem] p-4 sm:p-8 md:p-12 shadow-sm">
           <header className="flex justify-between items-center mb-12">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">Notifications</h1>
+              <h1 className="text-xl sm:text-3xl font-bold text-slate-900 mb-2">Notifications</h1>
               <p className="text-slate-500 text-sm font-medium">Stay updated with your scholarship activity.</p>
             </div>
 

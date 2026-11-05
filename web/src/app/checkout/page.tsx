@@ -62,8 +62,8 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-5xl mx-auto px-6 py-10 lg:py-16">
-        <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 md:p-12 shadow-sm">
+      <main className="max-w-5xl mx-auto px-3 sm:px-6 py-6 sm:py-10 lg:py-16">
+        <div className="bg-white border border-slate-200 rounded-[2.5rem] p-4 sm:p-8 md:p-12 shadow-sm">
           <button
             onClick={() => router.back()}
             className="flex items-center gap-2 text-slate-400 hover:text-primary transition-colors text-xs font-black uppercase tracking-widest mb-12"
@@ -76,7 +76,7 @@ export default function CheckoutPage() {
             {/* Order Summary */}
             <div className="space-y-10">
                 <div>
-                  <h1 className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">Order Summary</h1>
+                  <h1 className="text-xl sm:text-3xl font-bold text-slate-900 mb-2 tracking-tight">Order Summary</h1>
                   <p className="text-slate-500 text-sm font-medium">Review your subscription upgrade details.</p>
                 </div>
 
