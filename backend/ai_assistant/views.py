@@ -147,8 +147,8 @@ class AIChatMessageDetailView(generics.RetrieveUpdateDestroyAPIView):
             next_ai_msg = AIChatMessage.objects.filter(
                 user=instance.user,
                 is_user=False,
-                id__gt=instance.id
-            ).order_by('id').first()
+                created_at__gt=instance.created_at
+            ).order_by('created_at').first()
             if next_ai_msg:
                 next_ai_msg.delete()
         instance.delete()
@@ -177,8 +177,8 @@ class AILiveSupportView(APIView):
 
             return Response({
                 'response': result,
-                'user_msg_id': str(user_msg.id) if user_msg.id is not None else str(getattr(user_msg, '_id', '')),
-                'ai_msg_id': str(ai_msg.id) if ai_msg.id is not None else str(getattr(ai_msg, '_id', ''))
+                'user_msg_id': str(getattr(user_msg, '_id', '')),
+                'ai_msg_id': str(getattr(ai_msg, '_id', ''))
             })
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
