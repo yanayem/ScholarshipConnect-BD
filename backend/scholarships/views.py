@@ -464,8 +464,7 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
             prompt = (
                 "Extract structured scholarship information from the scraped webpage text below. "
                 "Respond ONLY with a valid raw JSON object (no markdown backticks, no explanation). "
-                "Use these exact keys:
-"
+                "Use these exact keys:\n"
                 "- \"title\": Scholarship name/title\n"
                 "- \"provider\": Organization or University offering it\n"
                 "- \"country\": Country or Region (e.g. USA, UK, Germany, Europe, Japan, Canada)\n"
