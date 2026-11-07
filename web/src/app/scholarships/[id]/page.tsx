@@ -35,34 +35,17 @@ export default function ScholarshipDetail() {
     loadDetail();
   }, [id]);
 
-  const handleApply = async () => {
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-
-    try {
-      await apiService.applyForScholarship({
-        scholarship: scholarship?.id,
-        full_name: user?.full_name || (user as any)?.username || 'Student',
-        email: user?.email || '',
-        phone: (user as any)?.phone_number || '',
-        university: user?.university || '',
-        cgpa: user?.cgpa || null,
-        academic_level: (user as any)?.academic_level || '',
-        sop: 'Applied via official portal link.',
-        application_type: 'Self',
-        status: 'Applied'
-      });
-    } catch (err) {
-      console.error('Failed to record application:', err);
-    }
-
+  const handleApply = () => {
+    // Opens the official scholarship portal in a new tab.
+    // Does NOT create an application record — that happens only via the Agency Apply flow.
     if (scholarship?.official_link) {
       window.open(scholarship.official_link, '_blank');
       return;
     }
-    window.open('https://www.google.com/search?q=' + encodeURIComponent(scholarship?.title + " application link"), '_blank');
+    window.open(
+      'https://www.google.com/search?q=' + encodeURIComponent((scholarship?.title || '') + ' official application link'),
+      '_blank'
+    );
   };
 
   const handleSave = async () => {

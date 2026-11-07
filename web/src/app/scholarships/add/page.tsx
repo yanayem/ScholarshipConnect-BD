@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Header from '@/components/Header';
 import { apiService } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
@@ -24,6 +24,7 @@ export default function AddScholarshipPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [aiExtracting, setAiExtracting] = useState(false);
+  const extractingRef = useRef(false);
   const [aiMode, setAiMode] = useState<'url' | 'text'>('url');
   const [urlInput, setUrlInput] = useState('');
   const [rawText, setRawText] = useState('');
@@ -58,6 +59,8 @@ export default function AddScholarshipPage() {
       alert('Please enter a valid official scholarship webpage URL.');
       return;
     }
+    if (extractingRef.current) return;
+    extractingRef.current = true;
     setAiExtracting(true);
     try {
       const res = await apiService.extractScholarshipFromUrl(urlInput.trim());
@@ -87,6 +90,7 @@ export default function AddScholarshipPage() {
       alert('Network error during webpage scraping.');
     } finally {
       setAiExtracting(false);
+      extractingRef.current = false;
     }
   };
 
@@ -96,6 +100,8 @@ export default function AddScholarshipPage() {
       alert('Please paste the scholarship circular text or details.');
       return;
     }
+    if (extractingRef.current) return;
+    extractingRef.current = true;
     setAiExtracting(true);
     try {
       const res = await apiService.aiExtractScholarship(rawText);
@@ -126,6 +132,7 @@ export default function AddScholarshipPage() {
       alert('Network error occurred during AI extraction.');
     } finally {
       setAiExtracting(false);
+      extractingRef.current = false;
     }
   };
 
