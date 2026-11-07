@@ -88,7 +88,7 @@ export default function AddScholarship() {
           official_link: s.official_link || '',
           image_url: s.image_url || '',
         });
-        showToast('✨ Form auto-filled by AI!', 'success');
+        showToast('Form auto-filled by AI!', 'success');
       } else {
         showToast(res.data?.error || 'AI Extraction failed', 'error');
       }
@@ -224,7 +224,7 @@ export default function AddScholarship() {
           <View style={styles.aiBox}>
             <View style={styles.aiHeader}>
               <MaterialIcons name="auto-awesome" size={20} color="#0D9488" />
-              <Text style={styles.aiTitle}>✨ Smart AI Auto-Fill</Text>
+              <Text style={styles.aiTitle}>Smart AI Auto-Fill</Text>
             </View>
             <Text style={styles.aiSub}>Paste circular text to auto-fill form fields instantly</Text>
             <TextInput

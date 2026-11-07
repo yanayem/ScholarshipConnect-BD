@@ -79,7 +79,7 @@ export default function AddScholarshipPage() {
           official_link: s.official_link || urlInput.trim(),
         }));
         if (s.deadline) setIsOngoing(false);
-        alert('✨ Webpage analyzed & form auto-filled successfully! Review the details below.');
+        alert('Webpage analyzed & form auto-filled successfully! Review the details below.');
       } else {
         alert(res.data?.error || 'Could not extract scholarship info from this webpage. Please try raw text extract.');
       }
@@ -118,7 +118,7 @@ export default function AddScholarshipPage() {
           image_url: s.image_url || prev.image_url,
         }));
         if (s.deadline) setIsOngoing(false);
-        alert('✨ Scholarship details extracted & auto-filled by AI! You can review or edit the fields below.');
+        alert('Scholarship details extracted & auto-filled by AI! You can review or edit the fields below.');
       } else {
         alert(res.data?.error || 'AI extraction failed. Please try again.');
       }
@@ -207,7 +207,7 @@ export default function AddScholarshipPage() {
                   <Sparkles size={18} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">✨ Smart AI Auto-Fill</h3>
+                  <h3 className="text-sm font-bold text-slate-900">Smart AI Auto-Fill</h3>
                   <p className="text-xs text-slate-600 font-medium">Extract details from an official website link or paste circular text</p>
                 </div>
               </div>
