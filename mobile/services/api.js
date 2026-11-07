@@ -377,6 +377,37 @@ export const apiService = {
     }
   },
 
+  async extractScholarshipFromUrl(url) {
+    try {
+      const headers = await getHeaders(true);
+      const res = await fetch(`${API_URL}/scholarships/extract-url/`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ url }),
+      });
+      const data = await res.json();
+      return { ok: res.ok, status: res.status, data };
+    } catch (error) {
+      console.error('[API] extractScholarshipFromUrl error:', error);
+      return { ok: false, data: { error: 'Network request failed' } };
+    }
+  },
+
+    async aiExtractScholarship(text) {
+    try {
+      const headers = await getHeaders(true);
+      headers['Content-Type'] = 'application/json';
+      const response = await fetch(`${API_URL}/scholarships/ai-extract/`, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ text }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'AI Extract Scholarship');
+    }
+  },
+
   async updateScholarship(id, scholarshipData) {
     try {
       const isFormData = scholarshipData instanceof FormData;

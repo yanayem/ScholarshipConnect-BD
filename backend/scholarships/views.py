@@ -1,5 +1,6 @@
 import requests
 import os
+import re
 from rest_framework import viewsets, permissions, status, filters
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -86,7 +87,8 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
                     else:
                         queryset = queryset.exclude(status='rejected')
                 else:
-                    queryset = queryset.filter(Q(status='active') | Q(submitted_by=user)).exclude(status='rejected')
+                    # Regular users only see active (admin-approved) scholarships
+                    queryset = queryset.filter(status='active')
             else:
                 queryset = queryset.filter(status='active')
             
@@ -420,3 +422,159 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
             ]
 
         return Response(results)
+
+    @action(detail=False, methods=['post'], url_path='extract-url', permission_classes=[permissions.IsAuthenticated])
+    def extract_from_url(self, request):
+        """
+        URL Scraper + AI Parser:
+        Fetches webpage content from an official scholarship URL and extracts structured info via AI.
+        """
+        import json
+        from bs4 import BeautifulSoup
+        from ai_assistant.services import AIService
+
+        url = request.data.get('url', '').strip()
+        if not url:
+            return Response({"error": "Please provide a valid website URL."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not (url.startswith('http://') or url.startswith('https://')):
+            url = 'https://' + url
+
+        try:
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            }
+            resp = requests.get(url, headers=headers, timeout=12)
+            if resp.status_code != 200:
+                return Response({"error": f"Failed to fetch website (HTTP status {resp.status_code})."}, status=status.HTTP_400_BAD_REQUEST)
+
+            soup = BeautifulSoup(resp.content, 'html.parser')
+
+            # Clean scripts, styles, navigations
+            for tag in soup(['script', 'style', 'nav', 'footer', 'header', 'noscript', 'svg']):
+                tag.decompose()
+
+            raw_text = ' '.join(soup.stripped_strings)
+            raw_text = raw_text[:8000] # limit to relevant first 8k chars
+
+            if len(raw_text) < 50:
+                return Response({"error": "Webpage content appears empty or could not be scraped."}, status=status.HTTP_400_BAD_REQUEST)
+
+            prompt = (
+                "Extract structured scholarship information from the scraped webpage text below. "
+                "Respond ONLY with a valid raw JSON object (no markdown backticks, no explanation). "
+                "Use these exact keys:
+"
+                "- \"title\": Scholarship name/title\n"
+                "- \"provider\": Organization or University offering it\n"
+                "- \"country\": Country or Region (e.g. USA, UK, Germany, Europe, Japan, Canada)\n"
+                "- \"amount\": Financial coverage (e.g. Fully Funded, Tuition Waiver, $10,000/year)\n"
+                "- \"category\": Category (e.g. Government, University, Private, International)\n"
+                "- \"level\": Study level (e.g. Bachelors, Masters, PhD)\n"
+                "- \"field\": Field of study (e.g. Engineering, Computer Science, General)\n"
+                "- \"min_cgpa\": Minimum CGPA required as number string (e.g. \"3.00\") or empty string \"\"\n"
+                "- \"deadline\": Deadline in YYYY-MM-DD format if found, else empty string \"\"\n"
+                "- \"description\": Short summary of the program\n"
+                "- \"eligibility\": Bulleted list of requirements\n"
+                f"Webpage Content:\n{raw_text}\n"
+            )
+
+            ai_response = AIService._call_ai(prompt)
+            clean_json = re.sub(r'```(?:json)?\s*(.*?)\s*```', r'\1', ai_response, flags=re.DOTALL).strip()
+            parsed = json.loads(clean_json)
+
+            # Ensure official_link points to the requested URL
+            parsed['official_link'] = url
+
+            return Response({
+                "message": "Scholarship extracted from URL successfully!",
+                "scholarship": parsed
+            }, status=status.HTTP_200_OK)
+
+        except requests.exceptions.RequestException as e:
+            return Response({"error": f"Network error when connecting to URL: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": f"Failed to extract information: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'], url_path='ai-extract', permission_classes=[permissions.IsAuthenticated])
+    def ai_extract(self, request):
+        """
+        AI Smart Extraction: Takes raw text (from OCR, image, website, or email)
+        and automatically parses & saves a draft Scholarship for Admin Review.
+        """
+        import json
+        from ai_assistant.services import AIService
+
+        raw_text = request.data.get('text', '').strip()
+        if not raw_text:
+            return Response({"error": "No text provided for AI extraction."}, status=status.HTTP_400_BAD_REQUEST)
+
+        prompt = (
+            "Extract structured scholarship information from the text below. "
+            "Respond ONLY with a valid raw JSON object (no markdown backticks, no markdown formatting, no explanations). "
+            "Use these exact keys:\n"
+            "- \"title\": Scholarship name/title\n"
+            "- \"provider\": Organization or University offering it\n"
+            "- \"country\": Country or Region (e.g. USA, Europe, Germany)\n"
+            "- \"amount\": Financial benefits (e.g. Fully Funded, $10,000, Tuition Waiver)\n"
+            "- \"category\": Category (e.g. Government, University, Private, International)\n"
+            "- \"level\": Study level (e.g. Bachelors, Masters, PhD)\n"
+            "- \"field\": Field of study (e.g. Engineering, Public Policy, Journalism, General)\n"
+            "- \"deadline\": Deadline in YYYY-MM-DD format if present, else empty string \"\"\n"
+            "- \"description\": Short summary of the program\n"
+            "- \"eligibility\": Bulleted list of requirements\n"
+            "- \"official_link\": Website URL if present in text, else empty string \"\"\n\n"
+            f"Input Text:\n{raw_text}\n"
+        )
+
+        ai_response = AIService._call_ai(prompt)
+        
+        # Strip markdown codeblocks if present
+        clean_json = re.sub(r'```(?:json)?\s*(.*?)\s*```', r'\1', ai_response, flags=re.DOTALL).strip()
+        
+        try:
+            parsed = json.loads(clean_json)
+        except Exception as e:
+            return Response({
+                "error": "Failed to parse AI output into JSON.",
+                "raw_ai_response": ai_response
+            }, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+        # Prepare deadline
+        deadline_val = parsed.get('deadline', '').strip() or None
+        if deadline_val:
+            try:
+                from datetime import datetime
+                deadline_val = datetime.strptime(deadline_val, '%Y-%m-%d').date()
+            except Exception:
+                deadline_val = None
+
+        user = request.user
+        is_staff = user.is_authenticated and user.is_staff
+        status_val = 'active' if is_staff else 'pending'
+
+        scholarship = Scholarship.objects.create(
+            title=parsed.get('title', 'Extracted Scholarship')[:255],
+            provider=parsed.get('provider', '')[:255],
+            country=parsed.get('country', '')[:100],
+            amount=parsed.get('amount', '')[:255],
+            category=parsed.get('category', 'International')[:100],
+            level=parsed.get('level', '')[:100],
+            field=parsed.get('field', '')[:100],
+            deadline=deadline_val,
+            description=parsed.get('description', ''),
+            eligibility=parsed.get('eligibility', ''),
+            official_link=parsed.get('official_link', ''),
+            status=status_val,
+            submitted_by=user if user.is_authenticated else None,
+            is_featured=False
+        )
+
+        serializer = self.get_serializer(scholarship)
+        return Response({
+            "message": "Scholarship automatically extracted and saved successfully!",
+            "status": status_val,
+            "scholarship": serializer.data
+        }, status=status.HTTP_201_CREATED)
+

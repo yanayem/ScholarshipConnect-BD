@@ -60,6 +60,44 @@ export default function AddScholarship() {
     official_link: '',
     image_url: '',
   });
+  const [rawText, setRawText] = useState('');
+  const [aiExtracting, setAiExtracting] = useState(false);
+
+  const handleAiExtract = async () => {
+    if (!rawText.trim()) {
+      showToast('Please paste scholarship circular text', 'info');
+      return;
+    }
+    setAiExtracting(true);
+    try {
+      const res = await apiService.aiExtractScholarship(rawText);
+      if (res.ok && res.data?.scholarship) {
+        const s = res.data.scholarship;
+        setFormData({
+          title: s.title || '',
+          provider: s.provider || '',
+          country: s.country || '',
+          amount: s.amount || '',
+          category: s.category || '',
+          level: s.level || '',
+          field: s.field || '',
+          min_cgpa: s.min_cgpa ? String(s.min_cgpa) : '',
+          deadline: s.deadline || '',
+          description: s.description || '',
+          eligibility: s.eligibility || '',
+          official_link: s.official_link || '',
+          image_url: s.image_url || '',
+        });
+        showToast('✨ Form auto-filled by AI!', 'success');
+      } else {
+        showToast(res.data?.error || 'AI Extraction failed', 'error');
+      }
+    } catch (err) {
+      showToast('Network error during AI extraction', 'error');
+    } finally {
+      setAiExtracting(false);
+    }
+  };
 
   const handleInputChange = (name, value) => {
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -182,9 +220,42 @@ export default function AddScholarship() {
           entering={FadeInDown.duration(600)}
           style={styles.formCard}
         >
+          {/* AI Smart Extract Box */}
+          <View style={styles.aiBox}>
+            <View style={styles.aiHeader}>
+              <MaterialIcons name="auto-awesome" size={20} color="#0D9488" />
+              <Text style={styles.aiTitle}>✨ Smart AI Auto-Fill</Text>
+            </View>
+            <Text style={styles.aiSub}>Paste circular text to auto-fill form fields instantly</Text>
+            <TextInput
+              style={styles.aiInput}
+              placeholder="Paste raw scholarship text or details..."
+              placeholderTextColor={theme.colors.placeholder}
+              value={rawText}
+              onChangeText={setRawText}
+              multiline
+              numberOfLines={3}
+            />
+            <Pressable
+              style={({ pressed }) => [
+                styles.aiButton,
+                (aiExtracting || !rawText.trim()) && { opacity: 0.5 },
+                pressed && { backgroundColor: '#0F766E' }
+              ]}
+              disabled={aiExtracting || !rawText.trim()}
+              onPress={handleAiExtract}
+            >
+              <MaterialIcons name="psychology" size={16} color="#FFFFFF" />
+              <Text style={styles.aiBtnText}>
+                {aiExtracting ? 'Extracting with AI...' : 'Auto-Fill Form'}
+              </Text>
+            </Pressable>
+          </View>
+
           <InputField
             label="Scholarship Title *"
             name="title"
+            value={formData.title}
             value={formData.title}
             onChangeText={handleInputChange}
             placeholder="e.g. MEXT Research Scholarship"
@@ -428,6 +499,60 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.xl,
     padding: theme.spacing.xl,
     ...theme.shadows.premium,
+  },
+  aiBox: {
+    backgroundColor: '#F0FDFA',
+    borderWidth: 1,
+    borderColor: '#CCFBF1',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+  },
+  aiHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  aiTitle: {
+    fontSize: 14,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: '#0F766E',
+  },
+  aiSub: {
+    fontSize: 11,
+    color: '#0F766E',
+    fontFamily: theme.typography.fontFamily.medium,
+    marginBottom: 10,
+    opacity: 0.8,
+  },
+  aiInput: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#99F6E4',
+    borderRadius: 10,
+    padding: 10,
+    fontSize: 12,
+    color: '#0F172A',
+    minHeight: 60,
+    textAlignVertical: 'top',
+    marginBottom: 10,
+  },
+  aiButton: {
+    backgroundColor: '#0D9488',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    alignSelf: 'flex-end',
+  },
+  aiBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontFamily: theme.typography.fontFamily.bold,
   },
   hintText: {
     fontSize: 12,

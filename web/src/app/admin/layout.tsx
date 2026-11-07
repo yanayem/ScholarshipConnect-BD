@@ -56,7 +56,7 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-[#F8F2E7]/60 flex flex-col lg:flex-row">
       {/* Permanent Left-Side Navigation Bar for All Devices */}
       <AdminSidebar />
 

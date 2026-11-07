@@ -155,7 +155,23 @@ export const apiService = {
     });
   },
 
-  async addScholarship(formData: FormData) {
+  async extractScholarshipFromUrl(url: string) {
+    return await safeFetch(`${API_URL}/scholarships/extract-url/`, {
+      method: 'POST',
+      headers: await getHeaders(true),
+      body: JSON.stringify({ url }),
+    });
+  },
+
+  async aiExtractScholarship(text: string) {
+    return await safeFetch(`${API_URL}/scholarships/ai-extract/`, {
+      method: 'POST',
+      headers: await getHeaders(true),
+      body: JSON.stringify({ text }),
+    });
+  },
+
+    async addScholarship(formData: FormData) {
     const user = auth.currentUser;
     const headers: Record<string, string> = {};
     if (user) {
@@ -462,7 +478,14 @@ export const apiService = {
     });
   },
 
-  async approveScholarship(id: number | string, action: string, note = '') {
+  async deleteScholarship(id: number | string) {
+    return await safeFetch(`${API_URL}/scholarships/${id}/`, {
+      method: 'DELETE',
+      headers: await getHeaders(true),
+    });
+  },
+
+    async approveScholarship(id: number | string, action: string, note = '') {
     return await safeFetch(`${API_URL}/scholarships/${id}/approve/`, {
       method: 'POST',
       headers: await getHeaders(true),
