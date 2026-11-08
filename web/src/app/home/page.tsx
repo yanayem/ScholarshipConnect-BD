@@ -208,7 +208,7 @@ function StudentHome({ user, scholarships, leaderboard, loading, search, setSear
              <div className="w-12 h-12 bg-primary text-white rounded-xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/20">
                 <Brain size={24} />
              </div>
-             <h4 className="text-sm font-bold text-slate-900 mb-2">ScholarAI Match</h4>
+             <h4 className="text-sm font-bold text-slate-900 mb-2">Scholarship Matchmaker</h4>
              <p className="text-[10px] text-slate-500 mb-6 leading-relaxed font-bold uppercase tracking-wider">
                 Tailored matches based on your profile.
              </p>

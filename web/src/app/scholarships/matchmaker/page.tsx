@@ -2,43 +2,21 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { apiService } from '@/lib/api';
-import { Recommendation, User } from '@/types';
-
-// Icons as simple SVG components to avoid external dependency issues for now
-const BotIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
-);
-
-const ArrowLeftIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-);
-
-const GraduationCapIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-);
-
-const MapPinIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-);
+import { Recommendation } from '@/types';
+import Header from '@/components/Header';
+import { ArrowLeft, MapPin, GraduationCap, ChevronRight } from 'lucide-react';
 
 export default function MatchmakerPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
 
   useEffect(() => {
     const loadMatches = async () => {
       setLoading(true);
       try {
-        const [res, profileRes] = await Promise.all([
-          apiService.getScholarshipMatches(),
-          apiService.getProfile()
-        ]);
-
-        if (profileRes.ok) setUser(profileRes.data);
+        const res = await apiService.getScholarshipMatches();
         if (res.ok && res.data) {
           const recs = (res.data as any).recommendations || (Array.isArray(res.data) ? res.data : []);
           setRecommendations(recs as Recommendation[]);
@@ -55,114 +33,114 @@ export default function MatchmakerPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-white">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        <p className="mt-4 text-text-secondary font-medium">Analyzing your profile with AI...</p>
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header />
+        <div className="flex-1 flex flex-col items-center justify-center p-6">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mb-3" />
+          <p className="text-slate-600 text-sm">Loading matches...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4 flex items-center">
-        <button onClick={() => router.back()} className="mr-4 p-2 hover:bg-gray-100 rounded-full transition-colors">
-          <ArrowLeftIcon />
-        </button>
-        <h1 className="text-xl font-bold text-foreground">AI Matchmaker</h1>
-      </header>
+    <div className="min-h-screen bg-background pb-16">
+      <Header />
 
-      <main className="max-w-3xl mx-auto p-6">
-        {/* AI Banner */}
-        <div className="flex items-center bg-primary-light p-6 rounded-2xl mb-8 border border-primary/10">
-          <div className="text-primary p-3 bg-white rounded-xl shadow-sm">
-            <BotIcon />
-          </div>
-          <div className="ml-4 flex-1">
-            <h2 className="text-lg font-bold text-primary">Smart Suggestions</h2>
-            {!user?.is_pro ? (
-              <Link href="/upgrade-pro" className="text-sm text-red-600 font-bold hover:underline block mt-1">
-                PRO FEATURE: Upgrade for 100% precision matching & hidden opportunities.
-              </Link>
-            ) : (
-              <p className="text-sm text-primary/80 block mt-1">NLP model is currently analyzing your deep profile.</p>
-            )}
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        {/* Top Header */}
+        <div className="flex items-center gap-3 mb-5">
+          <button
+            onClick={() => router.back()}
+            className="p-2 bg-white rounded-xl border border-black/5 text-slate-700 hover:bg-slate-50 transition-colors shadow-sm"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <div>
+            <h1 className="text-xl font-bold text-slate-900">Scholarship Matches</h1>
+            <p className="text-xs text-slate-600">
+              {recommendations.length} recommendations matched with your profile
+            </p>
           </div>
         </div>
 
-        <h3 className="text-foreground font-bold mb-4 flex items-center gap-2">
-          Top Recommendations
-          <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-            {recommendations.length} Found
-          </span>
-        </h3>
+        {/* Single Combined Sheet / Page Card */}
+        <div className="bg-white rounded-2xl border border-black/5 shadow-sm overflow-hidden">
+          {recommendations.length > 0 ? (
+            <div className="divide-y divide-slate-100">
+              {recommendations.map((item, index) => {
+                const score = Math.round(item.match_score || 0);
 
-        {recommendations.length > 0 ? (
-          <div className="grid gap-4">
-            {recommendations.map((item, index) => (
-              <div
-                key={item.scholarship.id}
-                onClick={() => router.push(`/scholarships/${item.scholarship.id}`)}
-                className="bg-white p-6 rounded-2xl shadow-sm border border-black/5 hover:border-primary/30 cursor-pointer transition-all group"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex gap-2">
-                    <span className="bg-green-50 text-green-700 text-xs font-bold px-3 py-1 rounded-lg border border-green-100">
-                      {item.match_score}% Match
-                    </span>
-                    {index === 0 && (
-                      <span className="bg-primary text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider flex items-center">
-                        Best Fit
-                      </span>
-                    )}
-                  </div>
-                </div>
+                return (
+                  <div
+                    key={item.scholarship.id}
+                    onClick={() => router.push(`/scholarships/${item.scholarship.id}`)}
+                    className="p-4 sm:p-5 hover:bg-slate-50/70 cursor-pointer transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                  >
+                    {/* Left Side: Scholarship details */}
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-base font-semibold text-slate-900 group-hover:text-primary transition-colors line-clamp-1">
+                        {item.scholarship.title}
+                      </h2>
 
-                <div className="flex justify-between items-center">
-                  <div className="flex-1">
-                    <h4 className="text-lg font-bold text-foreground mb-1 group-hover:text-primary transition-colors">{item.scholarship.title}</h4>
-                    <p className="text-sm text-text-secondary mb-4">{item.scholarship.provider}</p>
+                      {item.scholarship.provider && (
+                        <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">
+                          {item.scholarship.provider}
+                        </p>
+                      )}
 
-                    <div className="flex gap-4">
-                      <div className="flex items-center gap-1.5 text-xs text-text-secondary">
-                        <MapPinIcon />
-                        {item.scholarship.country}
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 mt-2">
+                        {item.scholarship.country && (
+                          <span className="flex items-center gap-1">
+                            <MapPin size={13} className="text-primary" />
+                            {item.scholarship.country}
+                          </span>
+                        )}
+                        {item.scholarship.level && (
+                          <span className="flex items-center gap-1">
+                            <GraduationCap size={13} className="text-primary" />
+                            {item.scholarship.level}
+                          </span>
+                        )}
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs text-text-secondary">
-                        <GraduationCapIcon />
-                        {item.scholarship.level}
+                    </div>
+
+                    {/* Right Side: Badges & Arrow */}
+                    <div className="flex items-center justify-between sm:justify-end gap-2.5 shrink-0 self-start sm:self-center pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 sm:border-transparent w-full sm:w-auto">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          {score}% Match
+                        </span>
+                        {index === 0 && score >= 70 && (
+                          <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-[#E6F4F1] text-[#2A9D8F] tracking-wide">
+                            BEST FIT
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="text-slate-300 group-hover:text-primary group-hover:translate-x-0.5 transition-all">
+                        <ChevronRight size={18} />
                       </div>
                     </div>
                   </div>
-                </div>
-
-                {/* Match Score Bar */}
-                <div className="h-1.5 bg-gray-100 rounded-full mt-6 overflow-hidden">
-                  <div
-                    className="h-full bg-primary transition-all duration-1000 ease-out"
-                    style={{ width: `${item.match_score}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center py-20 text-center space-y-4 bg-white rounded-3xl border border-dashed border-gray-200">
-            <div className="bg-gray-50 p-6 rounded-full">
-              <BotIcon />
+                );
+              })}
             </div>
-            <div>
-              <p className="text-foreground font-bold">No matches found</p>
-              <p className="text-text-secondary text-sm max-w-[250px] mt-1">Try updating your profile details to get better AI recommendations.</p>
+          ) : (
+            <div className="p-8 sm:p-12 text-center">
+              <p className="text-base font-semibold text-slate-800 mb-1">No matches found</p>
+              <p className="text-xs text-slate-500 mb-5 max-w-xs mx-auto">
+                Complete your profile details to see personalized scholarship recommendations.
+              </p>
+              <button
+                onClick={() => router.push('/profile')}
+                className="px-5 py-2.5 bg-primary text-white text-xs font-semibold rounded-xl hover:bg-primary/90 transition-all shadow-sm"
+              >
+                Update Profile
+              </button>
             </div>
-            <button
-              onClick={() => router.push('/profile')}
-              className="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-opacity-90 transition-all shadow-md active:scale-95"
-            >
-              Update Profile
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </main>
     </div>
   );

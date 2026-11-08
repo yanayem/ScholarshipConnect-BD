@@ -327,6 +327,34 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
             "popular_countries": popular_countries
         })
 
+    @action(detail=False, methods=['get'], url_path='public-stats', permission_classes=[permissions.AllowAny])
+    def public_stats(self, _request):
+        try:
+            from django.contrib.auth.models import User
+            ScholarshipApplication = apps.get_model('applications', 'ScholarshipApplication')
+
+            total_scholarships = Scholarship.objects.count()
+            total_applications = ScholarshipApplication.objects.count()
+            total_scholars = User.objects.count()
+
+            country_list = list(Scholarship.objects.exclude(country__isnull=True).exclude(country='').values_list('country', flat=True))
+            countries_count = len(set(c.strip() for c in country_list if c and isinstance(c, str) and c.strip()))
+
+            return Response({
+                "total_scholarships": total_scholarships,
+                "total_applications": total_applications,
+                "total_scholars": total_scholars,
+                "countries_count": countries_count
+            })
+        except Exception as e:
+            print(f"Error in public_stats: {e}")
+            return Response({
+                "total_scholarships": 0,
+                "total_applications": 0,
+                "total_scholars": 0,
+                "countries_count": 0
+            })
+
     @action(detail=False, methods=['get'], url_path='live-search', permission_classes=[permissions.AllowAny])
     def live_search(self, request):
         query = request.query_params.get('q', '')

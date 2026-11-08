@@ -7,7 +7,7 @@ import Link from 'next/link';
 export default function AIToolsPage() {
   const tools = [
     {
-      title: 'AI Matchmaker',
+      title: 'Scholarship Matchmaker',
       desc: 'Get personalized scholarship recommendations based on your unique academic profile using NLP.',
       icon: Search,
       path: '/scholarships/matchmaker',

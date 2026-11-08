@@ -152,7 +152,7 @@ export default function ScholarshipList() {
                 ) : (
                   <>
                     <Sparkles size={16} />
-                    Smart Matchmaker
+                    Scholarship Matchmaker
                   </>
                 )}
               </button>

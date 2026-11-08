@@ -1,30 +1,46 @@
-import React from 'react';
-import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image, StatusBar, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  StatusBar,
+  Platform,
+  RefreshControl,
+  useWindowDimensions
+} from 'react-native';
 import { router } from 'expo-router';
-import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { theme } from '../../../theme';
 import { apiService } from '../../../services/api';
 
 export default function MatchmakerScreen() {
+  const { width } = useWindowDimensions();
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [user, setUser] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
-  const [profileSummary, setProfileSummary] = useState(null);
 
-  const loadMatches = async () => {
-    setLoading(true);
+  const isTablet = width >= 768;
+
+  const loadMatches = async (isPullToRefresh = false) => {
+    if (isPullToRefresh) setRefreshing(true);
+    else setLoading(true);
+
     try {
       const [res, profileRes] = await Promise.all([
         apiService.getScholarshipMatches(),
         apiService.getProfile()
       ]);
 
-      if (profileRes.ok) setUser(profileRes.data);
+      if (profileRes?.ok && profileRes.data) {
+        setUser(profileRes.data);
+      }
 
       if (res && res.ok && res.data) {
         setRecommendations(res.data.recommendations || []);
-        setProfileSummary(res.data.profile_summary || null);
       } else {
         console.warn('[MATCHMAKER] Failed to load matches:', res?.status);
       }
@@ -32,6 +48,7 @@ export default function MatchmakerScreen() {
       console.error('[MATCHMAKER] Error fetching matches:', e);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -42,8 +59,10 @@ export default function MatchmakerScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
+        <StatusBar barStyle="dark-content" />
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>Analyzing your profile with AI...</Text>
+        <Text style={styles.loadingTitle}>Analyzing Your Profile</Text>
+        <Text style={styles.loadingText}>Finding best matching scholarships...</Text>
       </View>
     );
   }
@@ -51,83 +70,140 @@ export default function MatchmakerScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
+
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backBtn}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          accessibilityLabel="Go back"
+        >
           <MaterialIcons name="arrow-back" size={24} color={theme.colors.heading} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>AI Matchmaker</Text>
+        <View style={styles.headerTitleWrap}>
+          <Text style={styles.headerTitle}>Scholarship Matchmaker</Text>
+          <Text style={styles.headerSubtitle}>
+            {recommendations.length} match{recommendations.length === 1 ? '' : 'es'} found
+          </Text>
+        </View>
+        <TouchableOpacity
+          onPress={() => loadMatches(true)}
+          style={styles.refreshBtn}
+          disabled={refreshing}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <MaterialIcons name="refresh" size={22} color={theme.colors.heading} />
+        </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={styles.aiBanner}>
-          <FontAwesome5 name="robot" size={40} color={theme.colors.primary} />
-          <View style={styles.aiBannerContent}>
-            <Text style={styles.aiBannerTitle}>Smart Suggestions</Text>
-            {!user?.is_pro ? (
-                <TouchableOpacity onPress={() => router.push('/upgrade-pro')}>
-                    <Text style={[styles.aiBannerSub, { color: theme.colors.error, fontWeight: 'bold' }]}>
-                        PRO FEATURE: Upgrade for 100% precision matching & hidden opportunities.
-                    </Text>
-                </TouchableOpacity>
-            ) : (
-                <Text style={styles.aiBannerSub}>NLP model is currently analyzing your deep profile.</Text>
-            )}
-          </View>
-        </View>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scroll,
+          isTablet && styles.scrollTablet
+        ]}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => loadMatches(true)}
+            colors={[theme.colors.primary]}
+          />
+        }
+      >
+        {/* Simple Pro note / banner */}
+        {!user?.is_pro ? (
+          <TouchableOpacity
+            style={styles.proCard}
+            onPress={() => router.push('/upgrade-pro')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.proCardIconWrap}>
+              <MaterialIcons name="auto-awesome" size={20} color={theme.colors.primary} />
+            </View>
+            <View style={styles.proCardTextWrap}>
+              <Text style={styles.proCardTitle}>Upgrade for 100% Precision</Text>
+              <Text style={styles.proCardSub}>Unlock deep AI analysis & hidden matches</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={22} color={theme.colors.primary} />
+          </TouchableOpacity>
+        ) : null}
 
-        <Text style={styles.sectionTitle}>Top Recommendations</Text>
-
+        {/* List of recommendations */}
         {recommendations.length > 0 ? (
-          recommendations.map((item, index) => (
-            <TouchableOpacity
-              key={item.scholarship.id}
-              style={[styles.matchCard, theme.shadows.soft]}
-              onPress={() => router.push(`/scholarships/${item.scholarship.id}`)}
-            >
-              <View style={styles.matchHeader}>
-                <View style={styles.matchScoreBadge}>
-                  <Text style={styles.matchScoreText}>{item.match_score}% Match</Text>
-                </View>
-                {index === 0 && (
-                  <View style={styles.bestMatchBadge}>
-                    <Text style={styles.bestMatchText}>Best Fit</Text>
+          recommendations.map((item, index) => {
+            const score = Math.round(item.match_score || 0);
+            const isBestFit = index === 0 && score >= 70;
+
+            return (
+              <TouchableOpacity
+                key={item.scholarship.id}
+                style={[styles.card, theme.shadows.soft]}
+                activeOpacity={0.7}
+                onPress={() => router.push(`/scholarships/${item.scholarship.id}`)}
+              >
+                {/* Header row: score badge & best fit */}
+                <View style={styles.cardHeaderRow}>
+                  <View style={styles.scoreBadge}>
+                    <Text style={styles.scoreBadgeText}>{score}% Match</Text>
                   </View>
-                )}
-              </View>
-
-              <View style={styles.cardContent}>
-                <View style={styles.scholarshipInfo}>
-                  <Text style={styles.scholarshipTitle}>{item.scholarship.title}</Text>
-                  <Text style={styles.scholarshipProvider}>{item.scholarship.provider}</Text>
-
-                  <View style={styles.tagRow}>
-                    <View style={styles.tag}>
-                      <MaterialIcons name="location-on" size={12} color={theme.colors.textSecondary} />
-                      <Text style={styles.tagText}>{item.scholarship.country}</Text>
+                  {isBestFit && (
+                    <View style={styles.bestFitBadge}>
+                      <MaterialIcons name="star" size={12} color="#fff" />
+                      <Text style={styles.bestFitText}>BEST FIT</Text>
                     </View>
-                    <View style={styles.tag}>
-                      <MaterialIcons name="school" size={12} color={theme.colors.textSecondary} />
-                      <Text style={styles.tagText}>{item.scholarship.level}</Text>
-                    </View>
-                  </View>
+                  )}
                 </View>
-                <MaterialIcons name="chevron-right" size={24} color={theme.colors.divider} />
-              </View>
 
-              <View style={styles.scoreBarContainer}>
-                <View style={[styles.scoreBar, { width: `${item.match_score}%` }]} />
-              </View>
-            </TouchableOpacity>
-          ))
+                {/* Title & Provider */}
+                <Text style={styles.cardTitle} numberOfLines={2}>
+                  {item.scholarship.title}
+                </Text>
+                <Text style={styles.cardProvider} numberOfLines={1}>
+                  {item.scholarship.provider}
+                </Text>
+
+                {/* Details / Tags */}
+                <View style={styles.metaRow}>
+                  {item.scholarship.country ? (
+                    <View style={styles.metaItem}>
+                      <MaterialIcons name="location-on" size={14} color={theme.colors.textSecondary} />
+                      <Text style={styles.metaText} numberOfLines={1}>
+                        {item.scholarship.country}
+                      </Text>
+                    </View>
+                  ) : null}
+                  {item.scholarship.level ? (
+                    <View style={styles.metaItem}>
+                      <MaterialIcons name="school" size={14} color={theme.colors.textSecondary} />
+                      <Text style={styles.metaText} numberOfLines={1}>
+                        {item.scholarship.level}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+
+                {/* Match bar */}
+                <View style={styles.barBg}>
+                  <View style={[styles.barFill, { width: `${Math.min(100, Math.max(5, score))}%` }]} />
+                </View>
+              </TouchableOpacity>
+            );
+          })
         ) : (
-          <View style={styles.emptyContainer}>
-            <MaterialIcons name="search-off" size={64} color={theme.colors.placeholder} />
-            <Text style={styles.emptyText}>No matches found. Try updating your profile details.</Text>
+          <View style={styles.emptyWrap}>
+            <View style={styles.emptyIconWrap}>
+              <MaterialIcons name="search-off" size={40} color={theme.colors.placeholder} />
+            </View>
+            <Text style={styles.emptyTitle}>No Matches Found</Text>
+            <Text style={styles.emptySub}>
+              Update your profile with your education level, GPA, and target countries to get personalized recommendations.
+            </Text>
             <TouchableOpacity
-              style={styles.updateProfileBtn}
+              style={styles.actionBtn}
               onPress={() => router.push('/(tabs)/profile')}
             >
-              <Text style={styles.updateProfileBtnText}>Update Profile</Text>
+              <Text style={styles.actionBtnText}>Update Profile</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -137,48 +213,222 @@ export default function MatchmakerScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' },
-  loadingText: { marginTop: 16, color: theme.colors.textSecondary, fontFamily: theme.typography.fontFamily.medium },
+  container: {
+    flex: 1,
+    backgroundColor: '#F8FAFC'
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 24
+  },
+  loadingTitle: {
+    marginTop: 16,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.heading
+  },
+  loadingText: {
+    marginTop: 4,
+    fontSize: 13,
+    color: theme.colors.textSecondary
+  },
   header: {
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 10 : 50,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 8 : 50,
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0'
+  },
+  backBtn: {
+    padding: 4,
+    marginRight: 8
+  },
+  headerTitleWrap: {
+    flex: 1
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.colors.heading
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    marginTop: 1
+  },
+  refreshBtn: {
+    padding: 6,
+    borderRadius: 8
+  },
+  scroll: {
+    padding: 16,
+    paddingBottom: 36
+  },
+  scrollTablet: {
+    maxWidth: 720,
+    alignSelf: 'center',
+    width: '100%',
+    paddingHorizontal: 24
+  },
+  proCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EEF2FF',
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E0E7FF'
+  },
+  proCardIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10
+  },
+  proCardTextWrap: {
+    flex: 1
+  },
+  proCardTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: theme.colors.primaryDark || '#1E1B4B'
+  },
+  proCardSub: {
+    fontSize: 11,
+    color: theme.colors.textSecondary,
+    marginTop: 2
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0'
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8
+  },
+  scoreBadge: {
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#A7F3D0'
+  },
+  scoreBadgeText: {
+    color: '#065F46',
+    fontSize: 11,
+    fontWeight: '700'
+  },
+  bestFitBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6
+  },
+  bestFitText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.5
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: theme.colors.heading,
+    lineHeight: 20,
+    marginBottom: 4
+  },
+  cardProvider: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    marginBottom: 10
+  },
+  metaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 12
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4
+  },
+  metaText: {
+    fontSize: 11,
+    color: theme.colors.textSecondary
+  },
+  barBg: {
+    height: 4,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 2,
+    overflow: 'hidden'
+  },
+  barFill: {
+    height: '100%',
+    backgroundColor: theme.colors.primary,
+    borderRadius: 2
+  },
+  emptyWrap: {
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 32,
+    marginTop: 20
+  },
+  emptyIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 14
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.heading,
+    marginBottom: 6
+  },
+  emptySub: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 20,
+    maxWidth: 280
+  },
+  actionBtn: {
+    backgroundColor: theme.colors.primary,
     paddingHorizontal: 20,
-    paddingBottom: 15,
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: theme.colors.divider
+    paddingVertical: 10,
+    borderRadius: 10
   },
-  backBtn: { marginRight: 16 },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', color: theme.colors.heading },
-  scroll: { padding: 20 },
-  aiBanner: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: theme.colors.primaryLight,
-    padding: 20, borderRadius: 20, marginBottom: 24
-  },
-  aiBannerContent: { marginLeft: 16, flex: 1 },
-  aiBannerTitle: { fontSize: 18, fontWeight: 'bold', color: theme.colors.primaryDark },
-  aiBannerSub: { fontSize: 13, color: theme.colors.primaryDark, opacity: 0.8 },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: theme.colors.heading, marginBottom: 16 },
-  matchCard: {
-    backgroundColor: '#fff', borderRadius: 20, padding: 16, marginBottom: 16,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.03)'
-  },
-  matchHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-  matchScoreBadge: { backgroundColor: '#E8F5E9', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  matchScoreText: { color: '#2E7D32', fontSize: 12, fontWeight: 'bold' },
-  bestMatchBadge: { backgroundColor: theme.colors.primary, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  bestMatchText: { color: '#fff', fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase' },
-  cardContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  scholarshipInfo: { flex: 1 },
-  scholarshipTitle: { fontSize: 16, fontWeight: 'bold', color: theme.colors.heading, marginBottom: 4 },
-  scholarshipProvider: { fontSize: 13, color: theme.colors.textSecondary, marginBottom: 10 },
-  tagRow: { flexDirection: 'row', gap: 12 },
-  tag: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  tagText: { fontSize: 11, color: theme.colors.textSecondary },
-  scoreBarContainer: { height: 4, backgroundColor: theme.colors.background, borderRadius: 2, marginTop: 16, overflow: 'hidden' },
-  scoreBar: { height: '100%', backgroundColor: theme.colors.primary },
-  emptyContainer: { alignItems: 'center', paddingVertical: 60, gap: 16 },
-  emptyText: { color: theme.colors.placeholder, textAlign: 'center' },
-  updateProfileBtn: { backgroundColor: theme.colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
-  updateProfileBtnText: { color: '#fff', fontWeight: 'bold' }
+  actionBtnText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700'
+  }
 });

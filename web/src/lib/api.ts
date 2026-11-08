@@ -216,6 +216,45 @@ export const apiService = {
     });
   },
 
+  async getBlogPostDetail(id: number | string) {
+    return await safeFetch(`${API_URL}/blog/${id}/`, {
+      method: 'GET',
+      headers: await getHeaders(true),
+    });
+  },
+
+  async createBlogPost(data: FormData | object) {
+    const isFormData = data instanceof FormData;
+    return await safeFetch(`${API_URL}/blog/`, {
+      method: 'POST',
+      headers: await getHeaders(!isFormData),
+      body: isFormData ? (data as FormData) : JSON.stringify(data),
+    });
+  },
+
+  async reactBlogPost(id: number | string, reactionType = 'love') {
+    return await safeFetch(`${API_URL}/blog/${id}/react/`, {
+      method: 'POST',
+      headers: await getHeaders(true),
+      body: JSON.stringify({ reaction_type: reactionType }),
+    });
+  },
+
+  async addBlogComment(id: number | string, content: string) {
+    return await safeFetch(`${API_URL}/blog/${id}/comment/`, {
+      method: 'POST',
+      headers: await getHeaders(true),
+      body: JSON.stringify({ content }),
+    });
+  },
+
+  async getPublicStats() {
+    return await safeFetch(`${API_URL}/scholarships/public-stats/`, {
+      method: 'GET',
+      headers: await getHeaders(false),
+    });
+  },
+
   // --- AI Assistant ---
   async getScholarshipMatches() {
     return await safeFetch(`${API_URL}/ai/matchmaker/`, {

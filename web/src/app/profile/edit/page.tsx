@@ -676,7 +676,7 @@ export default function EditProfilePage() {
               <section className="space-y-6 animate-fadeIn">
                 <div className="border-b border-slate-100 pb-4">
                   <h3 className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                    <Globe size={18} /> Matchmaker Preferences
+                    <Globe size={18} /> Scholarship Matchmaker Preferences
                   </h3>
                   <p className="text-xs text-text-secondary font-medium mt-1">Configure target destinations and study domains.</p>
                 </div>

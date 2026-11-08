@@ -133,7 +133,7 @@ export default function LoginPage() {
 
            <div className="bg-white border border-slate-200 p-8 rounded-[2rem] shadow-sm relative overflow-hidden group">
               <p className="italic text-slate-600 text-sm leading-relaxed relative z-10">
-                "The ScholarAI matchmaker helped me find the perfect scholarship for my Master's in Germany! The process was so much easier than I expected."
+                "The Scholarship Matchmaker helped me find the perfect scholarship for my Master's in Germany! The process was so much easier than I expected."
               </p>
               <div className="mt-6 flex items-center gap-3 relative z-10">
                  <div className="w-10 h-10 bg-primary-light rounded-xl flex items-center justify-center text-primary font-bold text-xs">A</div>

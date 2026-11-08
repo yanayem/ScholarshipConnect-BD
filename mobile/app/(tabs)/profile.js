@@ -456,7 +456,7 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.infoCard}>
-          <Text style={styles.cardTitle}>Preferences (Matchmaker)</Text>
+          <Text style={styles.cardTitle}>Preferences (Scholarship Matchmaker)</Text>
           <View style={styles.infoRow}>
             <MaterialIcons name="public" size={18} color={theme.colors.textSecondary} />
             <View style={styles.infoTextGroup}>

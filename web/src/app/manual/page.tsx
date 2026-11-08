@@ -21,7 +21,7 @@ export default function ManualPage() {
   const sections = [
     { title: 'Getting Started', icon: BookOpen, sub: 'Registration and profile setup' },
     { title: 'Scholarship Search', icon: Search, sub: 'How to use filters and search effectively' },
-    { title: 'Using AI Tools', icon: Cpu, sub: 'Matchmaker, SOP Helper and Eligibility Checker' },
+    { title: 'Using AI Tools', icon: Cpu, sub: 'Scholarship Matchmaker, SOP Helper and Eligibility Checker' },
     { title: 'Mentorship', icon: Users, sub: 'Booking sessions and chatting with mentors' },
     { title: 'Payments & Points', icon: CreditCard, sub: 'Upgrading to Pro and earning ScholarPoints' },
     { title: 'Data Security', icon: ShieldCheck, sub: 'Managing your Doc Vault' }
