@@ -47,6 +47,35 @@ export default function AddScholarshipPage() {
     image_url: '',
   });
 
+  React.useEffect(() => {
+    try {
+      const saved = localStorage.getItem('autofill_scholarship_data');
+      if (saved) {
+        const s = JSON.parse(saved);
+        setFormData(prev => ({
+          ...prev,
+          title: s.title || prev.title,
+          provider: s.provider || prev.provider,
+          country: s.country || prev.country,
+          amount: s.amount || prev.amount,
+          category: s.category || prev.category,
+          level: s.level || prev.level,
+          field: s.field || prev.field,
+          min_cgpa: s.min_cgpa ? String(s.min_cgpa) : prev.min_cgpa,
+          deadline: s.deadline || prev.deadline,
+          description: s.description || prev.description,
+          eligibility: s.eligibility || prev.eligibility,
+          official_link: s.official_link || prev.official_link,
+          image_url: s.image_url || prev.image_url,
+        }));
+        if (s.deadline) setIsOngoing(false);
+        localStorage.removeItem('autofill_scholarship_data');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
   if (authLoading) return null;
   if (!user) {
     router.push('/login');
@@ -206,92 +235,94 @@ export default function AddScholarshipPage() {
             <p className="text-slate-500 text-sm font-medium">Add a new opportunity manually, paste a website link, or auto-fill with AI.</p>
           </header>
 
-          {/* Smart AI Auto-Fill Container (1-Click URL + Raw Notice) */}
-          <div className="mb-10 bg-gradient-to-r from-teal-50/80 via-emerald-50/80 to-cyan-50/80 border border-teal-200 rounded-2xl p-5 sm:p-6 shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary text-white rounded-xl shadow-xs">
-                  <Sparkles size={18} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">Smart AI Auto-Fill</h3>
-                  <p className="text-xs text-slate-600 font-medium">Extract details from an official website link or paste circular text</p>
-                </div>
-              </div>
-
-              {/* Mode Switcher */}
-              <div className="flex items-center p-1 bg-white/80 border border-teal-200/80 rounded-xl text-xs font-bold">
-                <button
-                  type="button"
-                  onClick={() => setAiMode('url')}
-                  className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer ${
-                    aiMode === 'url' ? 'bg-primary text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Globe2 size={13} />
-                  <span>Website URL</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAiMode('text')}
-                  className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer ${
-                    aiMode === 'text' ? 'bg-primary text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <FileText size={13} />
-                  <span>Notice Text</span>
-                </button>
-              </div>
-            </div>
-
-            {aiMode === 'url' ? (
-              <div className="space-y-3">
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <div className="relative flex-1">
-                    <Globe2 className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                    <input
-                      type="url"
-                      placeholder="Paste official scholarship webpage link (e.g. https://www.daad.de/...)"
-                      value={urlInput}
-                      onChange={(e) => setUrlInput(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 bg-white border border-teal-200 rounded-xl text-xs font-medium text-slate-900 placeholder-slate-400 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                    />
+          {/* Smart AI Auto-Fill Container (1-Click URL + Raw Notice) - Commented Out */}
+          {false && (
+            <div className="mb-10 bg-gradient-to-r from-teal-50/80 via-emerald-50/80 to-cyan-50/80 border border-teal-200 rounded-2xl p-5 sm:p-6 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary text-white rounded-xl shadow-xs">
+                    <Sparkles size={18} />
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleUrlExtract}
-                    disabled={aiExtracting || !urlInput.trim()}
-                    className="px-6 py-3 bg-primary text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-xs disabled:opacity-50 cursor-pointer"
-                  >
-                    <Wand2 size={14} />
-                    {aiExtracting ? 'Analyzing Page...' : '1-Click Auto-Fill'}
-                  </button>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">Smart AI Auto-Fill</h3>
+                    <p className="text-xs text-slate-600 font-medium">Extract details from an official website link or paste circular text</p>
+                  </div>
                 </div>
-                <p className="text-[11px] text-slate-500 font-medium">AI will scrape the official page, parse requirements, eligibility, deadlines, and populate the form.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <textarea
-                  rows={3}
-                  placeholder="Paste scholarship circular text, notice details, or official post here..."
-                  value={rawText}
-                  onChange={(e) => setRawText(e.target.value)}
-                  className="w-full p-3.5 bg-white border border-teal-200 rounded-xl text-xs font-medium text-slate-900 placeholder-slate-400 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
-                />
-                <div className="flex justify-end">
+
+                {/* Mode Switcher */}
+                <div className="flex items-center p-1 bg-white/80 border border-teal-200/80 rounded-xl text-xs font-bold">
                   <button
                     type="button"
-                    onClick={handleAiExtract}
-                    disabled={aiExtracting || !rawText.trim()}
-                    className="px-5 py-2.5 bg-primary text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-primary/90 transition-all flex items-center gap-2 shadow-xs disabled:opacity-50 cursor-pointer"
+                    onClick={() => setAiMode('url')}
+                    className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer ${
+                      aiMode === 'url' ? 'bg-primary text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    }`}
                   >
-                    <Wand2 size={14} />
-                    {aiExtracting ? 'Extracting with AI...' : 'Auto-Fill Form'}
+                    <Globe2 size={13} />
+                    <span>Website URL</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAiMode('text')}
+                    className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer ${
+                      aiMode === 'text' ? 'bg-primary text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <FileText size={13} />
+                    <span>Notice Text</span>
                   </button>
                 </div>
               </div>
-            )}
-          </div>
+
+              {aiMode === 'url' ? (
+                <div className="space-y-3">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="relative flex-1">
+                      <Globe2 className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                      <input
+                        type="url"
+                        placeholder="Paste official scholarship webpage link (e.g. https://www.daad.de/...)"
+                        value={urlInput}
+                        onChange={(e) => setUrlInput(e.target.value)}
+                        className="w-full pl-10 pr-4 py-3 bg-white border border-teal-200 rounded-xl text-xs font-medium text-slate-900 placeholder-slate-400 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleUrlExtract}
+                      disabled={aiExtracting || !urlInput.trim()}
+                      className="px-6 py-3 bg-primary text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-xs disabled:opacity-50 cursor-pointer"
+                    >
+                      <Wand2 size={14} />
+                      {aiExtracting ? 'Analyzing Page...' : '1-Click Auto-Fill'}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-slate-500 font-medium">AI will scrape the official page, parse requirements, eligibility, deadlines, and populate the form.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <textarea
+                    rows={3}
+                    placeholder="Paste scholarship circular text, notice details, or official post here..."
+                    value={rawText}
+                    onChange={(e) => setRawText(e.target.value)}
+                    className="w-full p-3.5 bg-white border border-teal-200 rounded-xl text-xs font-medium text-slate-900 placeholder-slate-400 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
+                  />
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={handleAiExtract}
+                      disabled={aiExtracting || !rawText.trim()}
+                      className="px-5 py-2.5 bg-primary text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-primary/90 transition-all flex items-center gap-2 shadow-xs disabled:opacity-50 cursor-pointer"
+                    >
+                      <Wand2 size={14} />
+                      {aiExtracting ? 'Extracting with AI...' : 'Auto-Fill Form'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-10">
             {/* Basic Info */}

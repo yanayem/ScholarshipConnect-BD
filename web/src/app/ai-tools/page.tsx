@@ -30,10 +30,20 @@ export default function AIToolsPage() {
       color: 'bg-amber-50 text-amber-600',
       badge: 'Pro'
     },
+    /*
+    {
+      title: 'Smart AI Auto-Fill',
+      desc: 'Extract and auto-fill scholarship details instantly from webpage links or notice text using AI.',
+      icon: Sparkles,
+      path: '/ai-tools/auto-fill',
+      color: 'bg-emerald-50 text-emerald-600',
+      badge: 'New'
+    },
+    */
     {
       title: 'Eligibility Checker',
       desc: 'Instantly check if you meet the criteria for any scholarship in our database.',
-      icon: Sparkles,
+      icon: Wand2,
       path: '/ai-tools/eligibility',
       color: 'bg-blue-50 text-blue-600',
       badge: 'Free'
