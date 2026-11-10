@@ -1,66 +1,63 @@
-# ScholarshipConnect-BD — Risk Management & Impact Analysis Strategy
+# ScholarshipConnect-BD — Risk Management Strategy
 
-> **Comprehensive Risk Assessment, Threat Modeling, Impact Ranking, and Mitigation Framework for ScholarshipConnectBD.**
+> **Comprehensive Technical & Business Risk Analysis Framework featuring Proactive Mitigation and Reactive Incident Response Strategies.**
 
 ---
 
 ## 📋 Table of Contents
 1. [Executive Summary](#1-executive-summary)
 2. [Risk Evaluation Methodology](#2-risk-evaluation-methodology)
-   - [Likelihood Scale](#likelihood-scale)
-   - [Impact Scale](#impact-scale)
-   - [Risk Matrix & Priority Ranking](#risk-matrix--priority-ranking)
-3. [Master Risk Register (Ranked Overview)](#3-master-risk-register-ranked-overview)
-4. [Detailed Risk Analysis by Category](#4-detailed-risk-analysis-by-category)
-   - [Category A: AI Engine & Third-Party Integration Risks](#category-a-ai-engine--third-party-integration-risks)
-   - [Category B: Security & Authentication Risks](#category-b-security--authentication-risks)
-   - [Category C: Financial & Monetization Risks](#category-c-financial--monetization-risks)
-   - [Category D: Data Privacy & Document Storage Risks](#category-d-data-privacy--document-storage-risks)
-   - [Category E: Infrastructure & Performance Risks](#category-e-infrastructure--performance-risks)
-   - [Category F: Operational & Community Content Risks](#category-f-operational--community-content-risks)
-5. [Contingency & Disaster Recovery Plan](#5-contingency--disaster-recovery-plan)
-6. [Continuous Risk Monitoring & Audit Protocol](#6-continuous-risk-monitoring--audit-protocol)
+   - [Likelihood & Impact Scales](#likelihood--impact-scales)
+   - [Risk Matrix & Score Calculation](#risk-matrix--score-calculation)
+3. [Master Risk Register (Technical vs. Business Taxonomy)](#3-master-risk-register-technical-vs-business-taxonomy)
+4. [Technical Risks: Proactive & Reactive Strategies](#4-technical-risks-proactive--reactive-strategies)
+   - [T-01: Multi-Provider LLM API Outage & Rate Limiting](#t-01-multi-provider-llm-api-outage--rate-limiting)
+   - [T-02: Firebase Service Account Key Leak & Auth Bypass](#t-02-firebase-service-account-key-leak--auth-bypass)
+   - [T-03: Document Vault Authorization Failure & PII Data Leakage](#t-03-document-vault-authorization-failure--pii-data-leakage)
+   - [T-04: Database Degradation & High Latency During Deadline Spikes](#t-04-database-degradation--high-latency-during-deadline-spikes)
+   - [T-05: TF-IDF Cosine Similarity Engine Computation Overhead](#t-05-tf-idf-cosine-similarity-engine-computation-overhead)
+   - [T-06: Firebase Cloud Messaging (FCM) Push Delivery Failure](#t-06-firebase-cloud-messaging-fcm-push-delivery-failure)
+   - [T-07: Cross-Platform UI/UX Layout Shift (Expo Native vs. Web)](#t-07-cross-platform-uiux-layout-shift-expo-native-vs-web)
+   - [T-08: Djongo ORM Translation & MongoDB Aggregation Constraints](#t-08-djongo-orm-translation--mongodb-aggregation-constraints)
+   - [T-09: Native Mobile OS Backward Compatibility & SDK Version Drift](#t-09-native-mobile-os-backward-compatibility--sdk-version-drift)
+5. [Business & Operational Risks: Proactive & Reactive Strategies](#5-business--operational-risks-proactive--reactive-strategies)
+   - [B-01: Payment Gateway Webhook Failure & Pro Upgrade Disruption](#b-01-payment-gateway-webhook-failure--pro-upgrade-disruption)
+   - [B-02: Fraudulent Scholarship Submissions & Point Farming](#b-02-fraudulent-scholarship-submissions--point-farming)
+   - [B-03: Forum & Real-Time Chat Spam, Harassment & Phishing](#b-03-forum--real-time-chat-spam-harassment--phishing)
+   - [B-04: Mentorship Marketplace Disruption & Session Abandonment](#b-04-mentorship-marketplace-disruption--session-abandonment)
+   - [B-05: Regulatory Non-Compliance & Misleading Opportunity Listings](#b-05-regulatory-non-compliance--misleading-opportunity-listings)
+   - [B-06: Mentor Impersonation & Alumni Identity Fraud](#b-06-mentor-impersonation--alumni-identity-fraud)
+   - [B-07: AI Hallucination & Plagiarism / Inaccurate SOP Advisory](#b-07-ai-hallucination--plagiarism--inaccurate-sop-advisory)
+   - [B-08: Timezone Discrepancy (BST vs. Target Country JST/GMT/EST)](#b-08-timezone-discrepancy-bst-vs-target-country-jstgmtest)
+6. [Incident Response & Disaster Recovery Workflow](#6-incident-response--disaster-recovery-workflow)
+7. [Continuous Risk Monitoring & Audit Protocol](#7-continuous-risk-monitoring--audit-protocol)
 
 ---
 
 ## 1. Executive Summary
 
-**ScholarshipConnectBD** is an AI-powered cross-platform mobile and web application designed to connect Bangladeshi students with international scholarship opportunities. Operating a complex architecture comprising React Native (Expo SDK 56), Next.js 16, Django REST Framework, MongoDB Atlas, Firebase Auth/FCM, SSLCommerz payments, and multi-provider LLM integrations introduces varied technical, operational, financial, and security risks.
+**ScholarshipConnectBD** is a cross-platform academic portal designed for Bangladeshi students pursuing international scholarships. The ecosystem combines **React Native (Expo SDK 56)**, **Next.js 16**, **Django REST Framework**, **MongoDB Atlas (via Djongo)**, **Firebase Auth/FCM**, **SSLCommerz payments**, and **Multi-Provider AI Engines (Groq, Gemini, xAI, Pollinations)**.
 
-This document establishes a structured **Risk Management Strategy** to identify, analyze, rank, and mitigate risks that could affect system availability, data integrity, user safety, legal compliance, or financial sustainability.
+To ensure long-term sustainability, user trust, and system stability, this document categorizes potential threats into **Technical Risks** and **Business/Operational Risks**, establishing both **Proactive Strategies** (preventive measures taken *before* occurrence) and **Reactive Strategies** (contingency and remediation actions taken *when* triggered).
 
 ---
 
 ## 2. Risk Evaluation Methodology
 
-Risk evaluation uses a standard **5x5 Matrix** measuring **Likelihood** (the probability of occurrence) against **Impact** (the severity of consequences).
+Risk prioritization uses a standard **5x5 Evaluation Matrix** where:
+$$\text{Risk Score} = \text{Likelihood (1–5)} \times \text{Impact (1–5)}$$
 
-### Likelihood Scale
+### Likelihood & Impact Scales
 
-| Rating | Level | Description | Probability |
-| :---: | :--- | :--- | :---: |
-| **5** | Almost Certain | Expected to occur frequently under normal operating conditions. | > 80% |
-| **4** | Likely | High probability of occurrence during the project lifecycle. | 51% - 80% |
-| **3** | Possible | Might occur at some point during deployment or scaling. | 21% - 50% |
-| **2** | Unlikely | Unlikely but conceivable under specific edge cases. | 6% - 20% |
-| **1** | Rare | Highly unexpected; exceptional circumstances only. | < 5% |
-
-### Impact Scale
-
-| Rating | Level | Technical / Financial / Operational Consequence |
+| Scale | Likelihood Definition | Impact Definition (Technical / Financial / Operational) |
 | :---: | :--- | :--- |
-| **5** | Critical | Complete system outage, major data breach, financial loss, or critical API failure. |
-| **4** | Major | Key feature failure (e.g., payment, AI suite down), core user flow disrupted. |
-| **3** | Moderate | Partial degradation of service, non-critical feature impacted, manageable delay. |
-| **2** | Minor | Cosmetically flawed UI, minor performance lag, isolated user inconvenience. |
-| **1** | Negligible | Imperceptible impact on general operations, quickly self-healing. |
-
----
+| **5** | **Almost Certain** (>80% probability) | **Critical**: Total system downtime, major security breach, severe financial loss. |
+| **4** | **Likely** (51%–80% probability) | **Major**: Core feature outage (Payments down, AI suite offline), compliance breach. |
+| **3** | **Possible** (21%–50% probability) | **Moderate**: Non-critical feature degradation, minor financial leak, user friction. |
+| **2** | **Unlikely** (6%–20% probability) | **Minor**: Isolated UI glitch, localized performance delay, minor spam issue. |
+| **1** | **Rare** (<5% probability) | **Negligible**: Imperceptible system lag, self-healing background glitch. |
 
 ### Risk Matrix & Priority Ranking
-
-The **Risk Score** is calculated as:
-$$\text{Risk Score} = \text{Likelihood (1–5)} \times \text{Impact (1–5)}$$
 
 ```text
                LIKELIHOOD (Probability)
@@ -74,206 +71,314 @@ P 2 (Mn)|    2    |      4     |      6     |     8    |        10         |
         +---------+------------+------------+----------+-------------------+
 ```
 
-| Risk Level | Score Range | Action Required | Escalation & Response Window |
-| :--- | :---: | :--- | :--- |
-| 🔴 **CRITICAL** | **15 – 25** | Immediate mitigation mandatory. Real-time alert required. | Within 1 Hour |
-| 🟠 **HIGH** | **10 – 14** | Active monitoring & mitigation plan in current sprint. | Within 24 Hours |
-| 🟡 **MEDIUM** | **5 – 9** | Mitigate during routine maintenance. Document workarounds. | Next Sprint |
-| 🟢 **LOW** | **1 – 4** | Monitor passively. Accept risk with basic safeguards. | Periodic Review |
+- 🔴 **CRITICAL (15–25)**: Mandatory real-time alerts. Requires immediate mitigation.
+- 🟠 **HIGH (10–14)**: Priority sprint resolution and active automated monitoring.
+- 🟡 **MEDIUM (5–9)**: Standard maintenance mitigation with fallback workarounds.
+- 🟢 **LOW (1–4)**: Passive monitoring with basic defensive coding practices.
 
 ---
 
-## 3. Master Risk Register (Ranked Overview)
+## 3. Master Risk Register (Technical vs. Business Taxonomy)
 
-Below is the prioritized list of identified risks across the ScholarshipConnectBD ecosystem, ordered by **Risk Score (Highest to Lowest)**:
+### 🛠️ Technical Risks (T-Series)
 
-| Rank | Risk ID | Category | Risk Title | Likelihood | Impact | Score | Risk Level |
+| Rank | Risk ID | Technical Category | Risk Title | Likelihood | Impact | Score | Risk Level |
 | :---: | :---: | :--- | :--- | :---: | :---: | :---: | :---: |
-| 🥇 **1** | **R-01** | AI Engine | Multi-Provider LLM Outage & Rate Limiting | 4 | 5 | **20** | 🔴 **CRITICAL** |
-| 🥈 **2** | **R-02** | Payments | SSLCommerz Gateway / Webhook Verification Failure | 3 | 5 | **15** | 🔴 **CRITICAL** |
-| 🥉 **3** | **R-03** | Security | Firebase Service Key Exposure & Admin Access Leak | 3 | 5 | **15** | 🔴 **CRITICAL** |
-| **4** | **R-04** | Operations | Fake Scholarship Submissions & Point Farming | 3 | 4 | **12** | 🟠 **HIGH** |
-| **5** | **R-05** | Infrastructure | DB Bottleneck / High Latency During Deadline Spikes | 3 | 4 | **12** | 🟠 **HIGH** |
-| **6** | **R-06** | Data Privacy | Document Vault Authorization Failure & PII Exposure | 2 | 5 | **10** | 🟠 **HIGH** |
-| **7** | **R-07** | Moderation | Spam, Abuse & Phishing in Forum & Real-Time Chat | 3 | 3 | **9** | 🟡 **MEDIUM** |
-| **8** | **R-08** | Technical | TF-IDF Cosine Similarity Failure on Heavy Profile Load | 2 | 4 | **8** | 🟡 **MEDIUM** |
-| **9** | **R-09** | UI / Frontend | Expo Cross-Platform Layout Inconsistencies | 3 | 2 | **6** | 🟡 **MEDIUM** |
-| **10**| **R-10** | Infrastructure | FCM Push Notification Delivery Failure | 2 | 2 | **4** | 🟢 **LOW** |
+| 🥇 **1** | **T-01** | AI & External APIs | Multi-Provider LLM Outage & Rate Limiting | 4 | 5 | **20** | 🔴 **CRITICAL** |
+| 🥉 **3** | **T-02** | Security & Auth | Firebase Key Exposure & Admin Gate Leak | 3 | 5 | **15** | 🔴 **CRITICAL** |
+| **5** | **T-03** | Data Privacy | Document Vault Authorization & PII Leak | 2 | 5 | **10** | 🟠 **HIGH** |
+| **6** | **T-04** | Infrastructure | DB Bottleneck During Deadline Spikes | 3 | 4 | **12** | 🟠 **HIGH** |
+| **8** | **T-05** | Algorithms | TF-IDF Cosine Similarity CPU Lag | 2 | 4 | **8** | 🟡 **MEDIUM** |
+| **9** | **T-06** | Infrastructure | FCM Push Notification Delivery Failure | 2 | 2 | **4** | 🟢 **LOW** |
+| **10**| **T-07** | Frontend / Web | Expo Native vs. Web Layout Inconsistency | 3 | 2 | **6** | 🟡 **MEDIUM** |
+| **13**| **T-08** | Database ORM | Djongo ORM SQL-to-NoSQL Query Errors | 2 | 4 | **8** | 🟡 **MEDIUM** |
+| **14**| **T-09** | Mobile Compatibility| Expo SDK 56 & Legacy Android Crashes | 2 | 3 | **6** | 🟡 **MEDIUM** |
+
+### 💼 Business & Operational Risks (B-Series)
+
+| Rank | Risk ID | Business Category | Risk Title | Likelihood | Impact | Score | Risk Level |
+| :---: | :---: | :--- | :--- | :---: | :---: | :---: | :---: |
+| 🥈 **2** | **B-01** | Monetization & Finance | Payment Gateway Webhook Verification Failure | 3 | 5 | **15** | 🔴 **CRITICAL** |
+| **4** | **B-02** | Fraud & Operations | Fake Submissions & Gamification Point Farming | 3 | 4 | **12** | 🟠 **HIGH** |
+| **7** | **B-03** | Moderation & Safety | Forum & Chat Spam, Harassment, Phishing | 3 | 3 | **9** | 🟡 **MEDIUM** |
+| **11**| **B-04** | Marketplace Quality | Mentor Session Abandonment & Absence | 2 | 3 | **6** | 🟡 **MEDIUM** |
+| **12**| **B-05** | Legal & Reputation | Unverified Foreign University Ad Listings | 1 | 4 | **4** | 🟢 **LOW** |
+| **15**| **B-06** | Identity Trust | Mentor Identity Fraud & Fake Alumni Profile | 2 | 4 | **8** | 🟡 **MEDIUM** |
+| **16**| **B-07** | Product Quality | AI Hallucination & Plagiarized SOP Advisory | 3 | 3 | **9** | 🟡 **MEDIUM** |
+| **17**| **B-08** | Timezone Operations | Timezone Discrepancy (BST vs JST/GMT/EST) | 3 | 2 | **6** | 🟡 **MEDIUM** |
 
 ---
 
-## 4. Detailed Risk Analysis by Category
+## 4. Technical Risks: Proactive & Reactive Strategies
 
 ---
 
-### Category A: AI Engine & Third-Party Integration Risks
-
-#### Risk R-01: Multi-Provider LLM Outage & Rate Limiting
-- **Category:** AI Engine & External APIs
-- **Description:** The SOP Writer, CV Reviewer, and Community Answer Analyzer depend on external LLMs (xAI Grok, Groq, Google Gemini, Pollinations AI). Rate limits (RPM/TPM quotas) or vendor outages will break core features.
-- **Likelihood:** 4 (Likely) | **Impact:** 5 (Critical) | **Score:** 20 (🔴 CRITICAL) | **Rank:** 1
-- **Root Cause:** Strict rate limits on free/starter tiers of AI providers; cloud outages of LLM vendors.
-- **Mitigation Strategy:**
-  1. **Resilient Multi-Provider Fallback Chain:** System attempts providers in sequence: `Groq (Primary) → Gemini (Secondary) → xAI Grok → Pollinations AI (Fallback) → Local Template Engine`.
-  2. **Rate Limit Tracking & Rotation:** Multi-API key rotation and request logging via `AI_REQUEST_LOG` in Django.
-  3. **Response Caching:** Cache generated SOP drafts and similarity vectors for identical inputs.
-- **Contingency Plan:** Automatically fallback to offline structured templates and prompt users to retry in 60 seconds without throwing 500 errors.
-
----
-
-### Category B: Security & Authentication Risks
-
-#### Risk R-02: Payment Gateway & Webhook Verification Failure
-- **Category:** Financial & Monetization
-- **Description:** Failures during SSLCommerz / bKash transactions (IPN webhook dropped, network timeout in Bangladesh mobile networks) leading to unverified Pro tier upgrades or double charging.
-- **Likelihood:** 3 (Possible) | **Impact:** 5 (Critical) | **Score:** 15 (🔴 CRITICAL) | **Rank:** 2
-- **Root Cause:** Unstable mobile internet connections; unhandled edge cases in IPN webhook verification.
-- **Mitigation Strategy:**
-  1. **Dual-Server Verification:** Verify all IPNs against SSLCommerz Validation API server-side before updating user status to `Pro`.
-  2. **Idempotent Database Transactions:** Wrap payment operations in Django atomic transactions with unique transaction ID constraints (`Payment` model).
-  3. **Manual Override Portal:** Admin dashboard tool to audit pending payment logs and manually grant access upon verification.
-- **Contingency Plan:** Payment status remains `Pending` with auto-recheck cron job running every 15 minutes.
-
-#### Risk R-03: Firebase Service Key Leakage & Admin Gate Compromise
-- **Category:** Security & Authentication
-- **Description:** Accidental leakage of `FIREBASE_SERVICE_ACCOUNT_KEY` or unauthorized elevation of regular user accounts to `is_staff` / `is_superuser`.
-- **Likelihood:** 3 (Possible) | **Impact:** 5 (Critical) | **Score:** 15 (🔴 CRITICAL) | **Rank:** 3
-- **Root Cause:** Key committed to git repo; weak secondary authentication checks.
-- **Mitigation Strategy:**
-  1. **Environment Variable Guarding:** Store credentials strictly in `.env` files protected by `.gitignore` and platform secret managers (Vercel / Cloud).
-  2. **Dual-Layer Admin Gate:** Mobile Admin Portal requires both valid Firebase Auth AND secondary Django Admin token check (`AdminTokenObtainPairView`).
-  3. **Strict Email White-listing:** Automatic staff elevation applies *only* to emails strictly matching the `ADMIN_EMAILS` list.
-- **Contingency Plan:** Instant key revocation via Firebase Console; automated server restart with rotated secrets.
+### T-01: Multi-Provider LLM API Outage & Rate Limiting
+- **Category:** Technical — AI Engine & External APIs
+- **Evaluation:** Likelihood: **4** | Impact: **5** | **Score: 20 (🔴 CRITICAL)** | **Rank: 1**
+- **Description:** SOP Generator, CV Reviewer, and Discussion Solution Analyzer rely on external LLM APIs (Groq, Gemini, xAI, Pollinations AI). Provider rate limits (RPM/TPM) or outages break core user flows.
+- **Proactive Strategy (Preventive):**
+  1. **Multi-Provider Fallback Chain:** System executes LLM requests in sequence: `Groq (Primary) → Gemini (Secondary) → xAI Grok → Pollinations AI (Fallback)`.
+  2. **API Key Rotation & Usage Budgeting:** Maintain key pools per provider in Django; track request logs in `AI_REQUEST_LOG` to prevent quota exhaustion.
+  3. **Response & Embedding Caching:** Cache generated SOP templates and vector embeddings for recurring prompt signatures.
+- **Reactive Strategy (Incident Response):**
+  1. **Automatic Failover Routing:** On HTTP 429/503 from primary vendor, silently route request to secondary vendor within the same request lifecycle.
+  2. **Offline Local Template Degradation:** If all APIs fail, switch to local rule-based template generation and notify user to retry in 60 seconds without throwing 500 errors.
 
 ---
 
-### Category C: Financial & Monetization Risks
-
-#### Risk R-04: Fraudulent Scholarship Submissions & Point Farming
-- **Category:** Operational & Business Model
-- **Description:** Malicious or lazy users submit fake or duplicate scholarship entries to farm **200 ScholarPoints** and unlock `ScholarConnect Pro` without paying 500 BDT.
-- **Likelihood:** 3 (Possible) | **Impact:** 4 (Major) | **Score:** 12 (🟠 HIGH) | **Rank:** 4
-- **Root Cause:** Open crowdsourcing incentive mechanism.
-- **Mitigation Strategy:**
-  1. **Mandatory Admin Review Gate:** Submissions default to `Pending` status and are *never* live or point-rewarded until verified by an Admin.
-  2. **Point Penalty System:** Rejecting an invalid or spam submission deducts **50 ScholarPoints** from the submitter's profile.
-  3. **Submission Throttling:** Limit users to 3 scholarship submissions per 24 hours (`SensitiveActionThrottle`).
-- **Contingency Plan:** Permanent ban of users attempting automated submission spam via rate-limit throttles.
+### T-02: Firebase Service Account Key Leak & Auth Bypass
+- **Category:** Technical — Security & Authentication
+- **Evaluation:** Likelihood: **3** | Impact: **5** | **Score: 15 (🔴 CRITICAL)** | **Rank: 3**
+- **Description:** Accidental committing of `FIREBASE_SERVICE_ACCOUNT_KEY` or privilege elevation allows attackers to bypass backend checks or manipulate user profiles.
+- **Proactive Strategy (Preventive):**
+  1. **Git Secret Scanning & Strict Guarding:** Keep credentials strictly inside `.env`, ignored by `.gitignore`; execute automated pre-commit hook scanning (`git-secrets`).
+  2. **Dual-Gate Admin Verification:** Admin access requires BOTH a valid Firebase token AND a secondary Django Admin credential check (`AdminTokenObtainPairView`).
+  3. **Email White-listing Enforcement:** Backend limits auto-staff privileges to exact emails matched in the `ADMIN_EMAILS` environment variable.
+- **Reactive Strategy (Incident Response):**
+  1. **Instant Key Revocation:** Revoke compromised keys immediately via Firebase Console and issue new credentials.
+  2. **Automated Server Secret Cycle:** Trigger zero-downtime secret rotation on production environment (Vercel / Cloud Host) and audit recent admin activity logs (`ActivityLog`).
 
 ---
 
-### Category D: Data Privacy & Document Storage Risks
-
-#### Risk R-06: Document Vault Authorization Failure & PII Exposure
-- **Category:** Data Privacy & Security
-- **Description:** Users upload sensitive document files (Passports, Academic Transcripts, LORs, Certificates). Unauthorized users or insecure endpoints might access another user's document vault.
-- **Likelihood:** 2 (Unlikely) | **Impact:** 5 (Critical) | **Score:** 10 (🟠 HIGH) | **Rank:** 6
-- **Root Cause:** Missing or misconfigured Django ViewSet permission checks on media endpoints.
-- **Mitigation Strategy:**
-  1. **User Object Level Filtering:** `UserDocumentViewSet.get_queryset()` strictly filters by `request.user`:
+### T-03: Document Vault Authorization Failure & PII Data Leakage
+- **Category:** Technical — Data Privacy & Security
+- **Evaluation:** Likelihood: **2** | Impact: **5** | **Score: 10 (🟠 HIGH)** | **Rank: 5**
+- **Description:** Passports, academic transcripts, and LORs stored in Document Vault accessed by unauthorized third parties due to misconfigured API permissions.
+- **Proactive Strategy (Preventive):**
+  1. **Strict QuerySet Scoping:** Force user-level scoping inside Django ViewSets:
      ```python
      def get_queryset(self):
          return UserDocument.objects.filter(user=self.request.user)
      ```
-  2. **Obfuscated File Naming:** Media files stored with UUID-hashed filenames in `/media/user_docs/` to prevent directory traversal attacks.
-  3. **Tokenized File Serving:** Restrict static media serving through Django view validation rather than exposed public directory links.
-- **Contingency Plan:** Revoke exposed static URLs and notify affected users within compliance requirements.
+  2. **Obfuscated UUID Storage:** Save files on disk with non-predictable UUID hashes (`/media/user_docs/<uuid>.pdf`) to block directory traversal.
+  3. **Tokenized Private Media Access:** Restrict static media serving through Django view validation rather than exposed public URLs.
+- **Reactive Strategy (Incident Response):**
+  1. **Emergency Media Link Revocation:** Block media endpoint access globally upon detecting unauthorized access patterns.
+  2. **User Notification & Audit Trail:** Notify impacted users within 24 hours and supply logs to privacy regulators.
 
 ---
 
-### Category E: Infrastructure & Performance Risks
-
-#### Risk R-05: Database Degradation & High Latency During Deadline Spikes
-- **Category:** Infrastructure & Scalability
-- **Description:** Spike in concurrent requests during major scholarship application deadlines (e.g., MEXT / Chevening closing dates) overloads MongoDB Atlas / Djongo ORM.
-- **Likelihood:** 3 (Possible) | **Impact:** 4 (Major) | **Score:** 12 (🟠 HIGH) | **Rank:** 5
-- **Root Cause:** Heavy database queries, un-indexed filtering on deadline/country fields, lack of response caching.
-- **Mitigation Strategy:**
-  1. **MongoDB Atlas Indexing:** Ensure compound indexes on `(status, deadline, country)` in MongoDB collections.
-  2. **Client-Side Caching:** Utilize `AsyncStorage` (Mobile) and `localStorage` (Web) via `cache.js` to serve cached scholarship lists during offline/slow network states.
-  3. **API Pagination & Field Selection:** Strict pagination limit (max 20 per page) on list endpoints.
-- **Contingency Plan:** Enable read-only fallback mode serving static JSON cache for discovery features during peak loads.
-
-#### Risk R-08: TF-IDF Cosine Similarity Performance Lag
-- **Category:** Technical Engine
-- **Description:** Smart Matchmaker recalculating TF-IDF matrices on every single user request could cause server CPU spikes when scholarship count exceeds thousands.
-- **Likelihood:** 2 (Unlikely) | **Impact:** 4 (Major) | **Score:** 8 (🟡 MEDIUM) | **Rank:** 8
-- **Root Cause:** In-memory vector calculation on un-cached dataset.
-- **Mitigation Strategy:**
-  1. **Pre-Vectorized Corpus:** Pre-compute and cache TF-IDF vectors for active scholarships periodically.
-  2. **Hard Criteria Filtering First:** Filter scholarships by CGPA, Country, and Degree level *before* running Cosine Similarity on the subset.
-- **Contingency Plan:** Soft-degrade matchmaker to hard-criteria rules if vector calculation time exceeds 500ms.
+### T-04: Database Degradation & High Latency During Deadline Spikes
+- **Category:** Technical — Infrastructure & Performance
+- **Evaluation:** Likelihood: **3** | Impact: **4** | **Score: 12 (🟠 HIGH)** | **Rank: 4**
+- **Description:** Peak application periods (e.g., MEXT, Chevening deadlines) create request spikes, slowing MongoDB Atlas / Djongo ORM response times.
+- **Proactive Strategy (Preventive):**
+  1. **MongoDB Atlas Compound Indexing:** Index frequent query fields: `(status, deadline, country)`.
+  2. **Client-Side Caching Layer:** Utilize `AsyncStorage` (Mobile) and `localStorage` (Web) via `cache.js` to serve cached listings offline or under slow networks.
+  3. **API Pagination & Selective Fields:** Enforce strict DRF pagination limits (max 20 records) with payload field filtering.
+- **Reactive Strategy (Incident Response):**
+  1. **Static JSON Fallback Mode:** Dynamically switch the public discovery feed to read-only cached CDN JSON during peak load spikes (>90% CPU usage).
+  2. **Database Auto-Scaling:** Trigger MongoDB Atlas tier scale-up via cloud webhook alerts.
 
 ---
 
-### Category F: Operational & Community Content Risks
-
-#### Risk R-07: Spam, Abuse & Phishing in Forum & Real-Time Messaging
-- **Category:** Community & Content Safety
-- **Description:** User-generated discussions, stories, comments, or direct messaging contain inappropriate content, harassment, or scholarship scam links.
-- **Likelihood:** 3 (Possible) | **Impact:** 3 (Moderate) | **Score:** 9 (🟡 MEDIUM) | **Rank:** 7
-- **Root Cause:** Real-time interactive messaging and open forum features.
-- **Mitigation Strategy:**
-  1. **Admin Moderation Center:** Dedicated moderation UI (`moderation.js`) for reviewing flagged posts, comments, and users.
-  2. **AI Content Analysis:** Utilize LLM to analyze flagged reported posts and automatically assign severity tags.
-  3. **User Reporting System:** Allow users to report discussions or chat messages directly with pre-filled context.
-- **Contingency Plan:** Instant soft-deletion of reported content pending admin review.
-
-#### Risk R-09: Cross-Platform UI Inconsistencies (Mobile vs Expo Web)
-- **Category:** UI / UX Design
-- **Description:** Layout shifts, broken fonts, or modal misalignments on varying Android screen sizes or desktop browsers (Expo Web / Next.js).
-- **Likelihood:** 3 (Possible) | **Impact:** 2 (Minor) | **Score:** 6 (🟡 MEDIUM) | **Rank:** 9
-- **Root Cause:** Differing screen aspect ratios, web vs native component behavior.
-- **Mitigation Strategy:**
-  1. **Dual Theme Engine:** Centralized color and typography system (`theme.js` & Tailwind CSS).
-  2. **Flexbox & Safe Area Layouts:** Standardized container padding using `SafeAreaView`.
-- **Contingency Plan:** Hotfix deployment via Expo OTA updates for mobile and Vercel triggers for web.
-
-#### Risk R-10: FCM Push Notification Delivery Failure
-- **Category:** Communication
-- **Description:** Push notifications for deadline alerts or mentor requests fail to deliver due to invalid FCM tokens or device background restrictions.
-- **Likelihood:** 2 (Unlikely) | **Impact:** 2 (Minor) | **Score:** 4 (🟢 LOW) | **Rank:** 10
-- **Root Cause:** Token expiration, OS battery optimizations.
-- **Mitigation Strategy:**
-  1. **In-App Notification Center:** Maintain a persistent database notifications inbox (`Notification` model) alongside push alerts.
-  2. **FCM Token Refresh:** Auto-renew FCM tokens on every app launch.
-- **Contingency Plan:** Primary user alert relies on the in-app notification bell icon.
+### T-05: TF-IDF Cosine Similarity Engine Computation Overhead
+- **Category:** Technical — Recommendation Engine
+- **Evaluation:** Likelihood: **2** | Impact: **4** | **Score: 8 (🟡 MEDIUM)** | **Rank: 8**
+- **Description:** Recalculating TF-IDF matrices on-the-fly for thousands of users and scholarships causing high CPU utilization on Django servers.
+- **Proactive Strategy (Preventive):**
+  1. **Two-Stage Matchmaking Pipeline:** Filter by hard criteria (CGPA, Country, Degree) *before* running scikit-learn vector calculations on the remaining subset.
+  2. **Pre-Vectorized Corpus Caching:** Periodically pre-compute and store vector matrices in memory instead of building them per request.
+- **Reactive Strategy (Incident Response):**
+  1. **Heuristic Hard-Criteria Fallback:** Temporarily disable NLP similarity and return hard-matching criteria if vector calculation execution time exceeds 500ms.
 
 ---
 
-## 5. Contingency & Disaster Recovery Plan
+### T-06: Firebase Cloud Messaging (FCM) Push Delivery Failure
+- **Category:** Technical — Infrastructure & Communication
+- **Evaluation:** Likelihood: **2** | Impact: **2** | **Score: 4 (🟢 LOW)** | **Rank: 9**
+- **Description:** Push notifications fail due to expired FCM tokens or OS background throttling.
+- **Proactive Strategy (Preventive):**
+  1. **Automatic Token Lifecycle Refresh:** Auto-renew FCM tokens on every app launch and sync with Django backend.
+  2. **Dual Notification Storage:** Save all push alerts into the database `Notification` model alongside FCM transmission.
+- **Reactive Strategy (Incident Response):**
+  1. **In-App Notification Inbox Fallback:** Guarantee user visibility via the persistent in-app bell notification hub even if push messages fail to deliver.
 
-In the event of a critical system failure, the following operational recovery protocols take effect:
+---
+
+### T-07: Cross-Platform UI/UX Layout Shift (Expo Native vs. Web)
+- **Category:** Technical — Frontend & Web Integration
+- **Evaluation:** Likelihood: **3** | Impact: **2** | **Score: 6 (🟡 MEDIUM)** | **Rank: 10**
+- **Description:** Display inconsistencies or broken components when rendering screens across varied Android devices or Next.js desktop web browsers.
+- **Proactive Strategy (Preventive):**
+  1. **Unified Design System:** Shared theme constants (`theme.js` & Tailwind CSS) enforcing consistent spacing, colors, and typography.
+  2. **Safe Area & Flexbox Constraints:** Wrap layouts inside `SafeAreaView` with flex dimensions to prevent overflow across different screen ratios.
+- **Reactive Strategy (Incident Response):**
+  1. **Over-the-Air (OTA) Hotfixes:** Deploy layout hotfixes instantly via Expo EAS Update for mobile and Vercel automated triggers for web.
+
+---
+
+### T-08: Djongo ORM Translation & MongoDB Aggregation Constraints
+- **Category:** Technical — Database ORM Architecture
+- **Evaluation:** Likelihood: **2** | Impact: **4** | **Score: 8 (🟡 MEDIUM)** | **Rank: 13**
+- **Description:** Djongo acts as a SQL-to-NoSQL translator. Complex Django ORM `annotate()`, `aggregate()`, or nested `select_related()` queries can fail or produce unexpected MongoDB query errors.
+- **Proactive Strategy (Preventive):**
+  1. **Avoid Complex SQL Joins in Djongo:** Keep ORM queries simple; handle complex data transformations using native Python data structures or raw PyMongo queries where necessary.
+  2. **Comprehensive Integration Testing:** Test all custom DRF filtering and search endpoints against Djongo in staging environment.
+- **Reactive Strategy (Incident Response):**
+  1. **PyMongo Native Query Fallback:** Fallback to direct PyMongo collection queries if Djongo fails to translate complex SQL clauses during runtime.
+
+---
+
+### T-09: Native Mobile OS Backward Compatibility & SDK Version Drift
+- **Category:** Technical — Mobile OS & Expo Compatibility
+- **Evaluation:** Likelihood: **2** | Impact: **3** | **Score: 6 (🟡 MEDIUM)** | **Rank: 14**
+- **Description:** Using Expo SDK 56 with newer React Native libraries may cause unexpected crashes on legacy Android versions (e.g., Android 8.0/9.0) or low-spec devices.
+- **Proactive Strategy (Preventive):**
+  1. **Explicit Target Device Testing:** Test standalone APK builds on older Android API levels (API 26+) via Android Studio emulators and BrowserStack.
+  2. **Polyfill & Fallback Guards:** Enforce defensive JavaScript null-checks and polyfills for modern ES features.
+- **Reactive Strategy (Incident Response):**
+  1. **Targeted OTA Rollback:** Roll back unstable native builds via EAS Update channels to previous stable release versions.
+
+---
+
+## 5. Business & Operational Risks: Proactive & Reactive Strategies
+
+---
+
+### B-01: Payment Gateway Webhook Failure & Pro Upgrade Disruption
+- **Category:** Business — Monetization & Financial Management
+- **Evaluation:** Likelihood: **3** | Impact: **5** | **Score: 15 (🔴 CRITICAL)** | **Rank: 2**
+- **Description:** Unstable mobile internet connections (bKash/Nagad/Rocket) or dropped SSLCommerz IPN webhooks lead to unpaid upgrades or double-charging.
+- **Proactive Strategy (Preventive):**
+  1. **Server-to-Server IPN Verification:** Validate every transaction against SSLCommerz Validation API server-side before updating status to `Pro`.
+  2. **Atomic DB Transactions:** Wrap payment handling in Django atomic transactions with unique constraint checks on `transaction_id`.
+  3. **Clear Transaction Status Messaging:** Inform users during checkout about verification status and provide immediate support routing.
+- **Reactive Strategy (Incident Response):**
+  1. **Automated Cron Re-verification:** Background cron job re-queries SSLCommerz API every 15 minutes for `Pending` transactions.
+  2. **Manual Admin Override Portal:** Provide admins with an audit console to manually verify payment proofs and grant Pro access instantly.
+
+---
+
+### B-02: Fraudulent Scholarship Submissions & Point Farming
+- **Category:** Business — Operational Fraud & Ecosystem Trust
+- **Evaluation:** Likelihood: **3** | Impact: **4** | **Score: 12 (🟠 HIGH)** | **Rank: 4**
+- **Description:** Users submit fake or duplicate scholarship entries to illegally farm **200 ScholarPoints** and bypass paying 500 BDT for `ScholarConnect Pro`.
+- **Proactive Strategy (Preventive):**
+  1. **Mandatory Admin Review Gate:** User submissions default to `Pending` status and are *never* live or rewarded until manually approved by an Admin.
+  2. **Submission Throttling:** Throttle submission endpoints to max 3 entries per user per 24 hours (`SensitiveActionThrottle`).
+  3. **50-Point Rejection Penalty:** Automatically deduct **50 ScholarPoints** from a user profile if their submission is rejected as fake or spam.
+- **Reactive Strategy (Incident Response):**
+  1. **Point Revocation & Account Freeze:** Revoke illegally obtained Pro status and deduct farmed points upon discovering fraud.
+  2. **User Account Ban:** Blacklist users exhibiting automated submission spam.
+
+---
+
+### B-03: Forum & Real-Time Chat Spam, Harassment & Phishing
+- **Category:** Business — Community Safety & Brand Reputation
+- **Evaluation:** Likelihood: **3** | Impact: **3** | **Score: 9 (🟡 MEDIUM)** | **Rank: 7**
+- **Description:** Malicious links, offensive posts, or scholarship scam messages in public forums, visual stories, or direct chat.
+- **Proactive Strategy (Preventive):**
+  1. **AI Automated Content Screening:** Use LLM filters to analyze text for scam URLs, inappropriate language, and contact info leakage before posting.
+  2. **User Reporting Tools:** Embed direct "Report" buttons on posts, comments, and chat messages.
+- **Reactive Strategy (Incident Response):**
+  1. **Admin Moderation Center Action:** Admins review reported items in `moderation.js` and execute soft-deletions or account warnings.
+  2. **Instant Link Redirection Shield:** Warn users via modal when opening external URLs outside verified scholarship domains.
+
+---
+
+### B-04: Mentorship Marketplace Disruption & Session Abandonment
+- **Category:** Business — Marketplace Quality & Customer Satisfaction
+- **Evaluation:** Likelihood: **2** | Impact: **3** | **Score: 6 (🟡 MEDIUM)** | **Rank: 11**
+- **Description:** Verified mentors accept 1-on-1 guidance sessions but fail to attend or respond, leading to student dissatisfaction.
+- **Proactive Strategy (Preventive):**
+  1. **Strict Mentor Vetting:** Admins manually verify mentor credentials and university admission proofs before approval.
+  2. **Automated Reminders:** Send push notifications and email reminders 24 hours and 1 hour before scheduled sessions.
+- **Reactive Strategy (Incident Response):**
+  1. **Session Rescheduling & Rating Adjustment:** Allow mentees to report no-shows, automatically re-crediting session tokens and lowering mentor responsiveness ratings.
+  2. **Mentor Badge Revocation:** Delist non-responsive mentors after two unexcused absences.
+
+---
+
+### B-05: Regulatory Non-Compliance & Misleading Opportunity Listings
+- **Category:** Business — Legal & Regulatory Compliance
+- **Evaluation:** Likelihood: **1** | Impact: **4** | **Score: 4 (🟢 LOW)** | **Rank: 12**
+- **Description:** Inadvertently listing unauthorized education agencies or fraudulent overseas scholarship programs violating Bangladeshi education policies.
+- **Proactive Strategy (Preventive):**
+  1. **Official Provider Whitelisting:** Cross-reference university opportunities against official government scholarship portals (MEXT, Chevening, DAAD, Fulbright).
+  2. **Legal Disclaimer Footer:** Display explicit disclaimers stating ScholarshipConnectBD provides informational matching and is not a visa agency.
+- **Reactive Strategy (Incident Response):**
+  1. **Immediate Listing Delisting:** Takedown questioned listings within 1 hour of regulatory notice.
+
+---
+
+### B-06: Mentor Impersonation & Alumni Identity Fraud
+- **Category:** Business — Identity Trust & Student Safety
+- **Evaluation:** Likelihood: **2** | Impact: **4** | **Score: 8 (🟡 MEDIUM)** | **Rank: 15**
+- **Description:** Fraudulent actors create fake mentor profiles claiming to be MEXT or Chevening scholars to solicit fees or personal student information outside the platform.
+- **Proactive Strategy (Preventive):**
+  1. **Mandatory Credential Verification:** Require admission offer letters or official university email (`.edu`/`.ac.uk`) verification before issuing a verified Mentor badge.
+  2. **In-App Safety Warnings:** Warn students never to transfer money or personal documents directly outside the ScholarshipConnectBD platform.
+- **Reactive Strategy (Incident Response):**
+  1. **Instant Profile Suspension & Public Warning:** Suspend fraudulent mentor accounts and issue security alerts if phishing occurred.
+
+---
+
+### B-07: AI Hallucination & Plagiarism / Inaccurate SOP Advisory
+- **Category:** Business & Product Quality — User Risk
+- **Evaluation:** Likelihood: **3** | Impact: **3** | **Score: 9 (🟡 MEDIUM)** | **Rank: 16**
+- **Description:** AI SOP generator creates generic, inaccurate, or hallucinated academic details, leading to rejected university applications if students submit without editing.
+- **Proactive Strategy (Preventive):**
+  1. **Explicit AI Disclaimer Banner:** Display clear notice that AI-generated SOPs are structural drafts requiring human customization.
+  2. **Plagiarism & Generic Phrase Warning:** Guide users to personalize specific personal achievements and research interests.
+- **Reactive Strategy (Incident Response):**
+  1. **Prompt Template Tuning:** Dynamically refine system prompts in `ai_assistant/services.py` to enforce academic factual integrity and discourage generic fluff.
+
+---
+
+### B-08: Timezone Discrepancy (BST vs. Target Country JST/GMT/EST)
+- **Category:** Business & Operations — User Experience
+- **Evaluation:** Likelihood: **3** | Impact: **2** | **Score: 6 (🟡 MEDIUM)** | **Rank: 17**
+- **Description:** Scholarship deadlines expressed in foreign timezones (e.g., JST for MEXT Japan, GMT for UK, EST for US) misalign with Bangladesh Standard Time (BST, UTC+6), causing missed applications.
+- **Proactive Strategy (Preventive):**
+  1. **Timezone Normalization Engine:** Convert and display all scholarship deadlines strictly in Bangladesh Standard Time (BST, UTC+6) alongside local target timezone.
+  2. **24-Hour Final Warning Push:** Trigger push alerts 24 hours prior to deadline based on BST calculations.
+- **Reactive Strategy (Incident Response):**
+  1. **Urgent Deadline Alert Banner:** Flag scholarships closing within 12 hours with an amber "Expiring Today" urgency banner in the mobile feed.
+
+---
+
+## 6. Incident Response & Disaster Recovery Workflow
 
 ```text
-+-------------------------------------------------------------------------------+
-|                       CRITICAL INCIDENT PROTOCOL                              |
-+-------------------------------------------------------------------------------+
-| 1. DETECTION    -> Real-time Error Monitoring & Admin Alert Trigger            |
-| 2. ISOLATION    -> Graceful degradation to Read-Only / Cached Data Mode       |
-| 3. FAILOVER     -> Switch to Secondary Providers (e.g. Gemini LLM, Vercel)    |
-| 4. RECOVERY     -> Database Restoration / Hotfix Deployment (Expo OTA)         |
-| 5. POST-MORTEM  -> Root cause analysis & update to Risk Register              |
-+-------------------------------------------------------------------------------+
++-----------------------------------------------------------------------------------+
+|                        INCIDENT RESPONSE LIFECYCLE                                |
++-----------------------------------------------------------------------------------+
+| 1. IDENTIFY     -> Error logging (Sentry/Django logs), Admin alert triggers       |
+| 2. CONTAIN      -> Enable graceful degradation (Read-Only / Static JSON fallback) |
+| 3. ERADICATE    -> Deploy bug fix (EAS OTA / Vercel), rotate compromised secrets  |
+| 4. RECOVER      -> Restore database state from MongoDB Atlas PITR snapshot        |
+| 5. AUDIT        -> Document root cause analysis and update Risk Register          |
++-----------------------------------------------------------------------------------+
 ```
 
-### Data Backup Schedule
-- **Database (MongoDB Atlas):** Continuous automated daily snapshots with point-in-time recovery (PITR) retained for 30 days.
-- **Media Uploads (Document Vault / Images):** Daily cloud storage backup sync.
-- **Environment Configurations:** Encrypted off-site storage of `.env` configurations.
+### Data Backup & Snapshot Matrix
+
+| System Component | Backup Strategy | Frequency | Retention Period | Recovery Time Objective (RTO) |
+| :--- | :--- | :---: | :---: | :---: |
+| **MongoDB Atlas DB** | Continuous Point-in-Time (PITR) | Real-time | 30 Days | < 15 Minutes |
+| **User Document Vault** | Cloud Storage Cross-Region Sync | Daily | 90 Days | < 30 Minutes |
+| **Environment Secrets** | Encrypted Secret Vault | Weekly | Perpetual | < 5 Minutes |
 
 ---
 
-## 6. Continuous Risk Monitoring & Audit Protocol
+## 7. Continuous Risk Monitoring & Audit Protocol
 
-Risk management is an iterative process. The team enforces the following continuous review schedule:
+To ensure continuous risk oversight, the development and management team adheres to the following review schedule:
 
-1. **Sprint Risk Review (Bi-Weekly):** Review newly added features against the Risk Register prior to release.
-2. **Security Audit (Monthly):** Audit Django dependencies (`pip-audit`), Firebase access logs, and API throttles.
-3. **Load Testing (Pre-Season):** Run stress tests on matchmaker and database queries prior to major application seasons (September–November & January–March).
-4. **Log Review (Daily):** Admin inspection of `AI_REQUEST_LOG`, failed payment logs, and reported community items in the Moderation Center.
+```text
++-----------------------------------------------------------------------------------+
+|                       CONTINUOUS AUDIT TIMELINE                                   |
++-----------------------------------------------------------------------------------+
+| Daily (1x/day)   -> Inspect AI_REQUEST_LOG, payment errors & reported posts.      |
+| Bi-Weekly (Sprint)-> Review risk impact of new code additions during sprint.     |
+| Monthly (1x/mo)  -> Run pip-audit, vulnerability scans & Firebase access audit.   |
+| Pre-Season       -> Conduct stress testing prior to peak application cycles.      |
++-----------------------------------------------------------------------------------+
+```
 
 ---
 
-*Last Updated: May 2024*  
+*Document Version: 2.1 (Expanded Technical & Business Risk Analysis)*
 *Maintained by: Team ScholarshipConnectBD (BUBT)*

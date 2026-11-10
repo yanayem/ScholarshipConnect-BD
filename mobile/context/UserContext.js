@@ -98,8 +98,17 @@ export const UserProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
+  const updateUserData = (userData) => {
+    setUser(userData);
+    if (userData) {
+      AsyncStorage.setItem('cached_user_profile', JSON.stringify(userData)).catch(() => {});
+    } else {
+      AsyncStorage.removeItem('cached_user_profile').catch(() => {});
+    }
+  };
+
   return (
-    <UserContext.Provider value={{ user, setUser, fetchProfile, loading }}>
+    <UserContext.Provider value={{ user, setUser: updateUserData, fetchProfile, loading }}>
       {children}
     </UserContext.Provider>
   );

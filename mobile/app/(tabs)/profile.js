@@ -6,7 +6,7 @@ import * as ImagePicker from 'expo-image-picker';
 import Animated, { FadeInRight, SlideInRight, SlideOutRight, FadeIn, Layout } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { theme } from '../../theme';
-import { apiService } from '../../services/api';
+import { apiService, getAvatarUrl } from '../../services/api';
 import { cacheService } from '../../services/cache';
 import { useToast } from '../../components/Toast';
 import { Loader } from '../../components/Loader';
@@ -42,16 +42,66 @@ export default function ProfileScreen() {
 
   const fetchStats = async () => {
     try {
-      const [savedRes, appsRes, docsRes] = await Promise.all([
+      const [savedRes, appRes, docsRes] = await Promise.all([
         apiService.getSavedScholarships(),
         apiService.getApplications(),
         apiService.getDocuments()
       ]);
 
+      let data = [];
+
+      if (appRes?.ok) {
+        const appList = Array.isArray(appRes.data) ? appRes.data : (appRes.data?.results || []);
+        data = data.concat(appList.map(item => ({
+          id: 'a' + item.id,
+          scholarship_id: item.scholarship?.id || item.scholarship,
+          title: item.scholarship_title || item.scholarship_details?.title || 'N/A',
+          status: item.status || 'Applied',
+          is_application: true
+        })));
+      }
+
+      if (savedRes?.ok) {
+        const savedList = Array.isArray(savedRes.data) ? savedRes.data : (savedRes.data?.results || []);
+        data = data.concat(savedList.map(item => ({
+          id: 's' + item.id,
+          scholarship_id: item.scholarship_details?.id || item.scholarship,
+          title: item.scholarship_details?.title || 'N/A',
+          status: 'Saved',
+          is_application: false
+        })));
+      }
+
+      const scholarshipMap = new Map();
+      data.filter(item => item.is_application).forEach(item => {
+        const key = String(item.scholarship_id || item.title).toLowerCase().trim();
+        if (key && key !== 'n/a') {
+          scholarshipMap.set(key, item);
+        } else {
+          scholarshipMap.set(item.id, item);
+        }
+      });
+      data.filter(item => !item.is_application).forEach(item => {
+        const key = String(item.scholarship_id || item.title).toLowerCase().trim();
+        if (key && key !== 'n/a') {
+          if (!scholarshipMap.has(key)) {
+            scholarshipMap.set(key, item);
+          }
+        } else {
+          scholarshipMap.set(item.id, item);
+        }
+      });
+
+      const allItems = Array.from(scholarshipMap.values());
+      const savedCount = allItems.filter(i => (i.status || '').toLowerCase() === 'saved').length;
+      const appliedCount = allItems.filter(i => (i.status || '').toLowerCase() !== 'saved').length;
+
+      const docsList = docsRes?.ok ? (Array.isArray(docsRes.data) ? docsRes.data : (docsRes.data?.results || [])) : [];
+
       const newStats = {
-        saved: savedRes.ok ? savedRes.data.length : 0,
-        applied: appsRes.ok ? appsRes.data.length : 0,
-        documents: docsRes.ok ? docsRes.data.length : 0
+        saved: savedCount,
+        applied: appliedCount,
+        documents: docsList.length
       };
       setStats(newStats);
       await cacheService.set('user_stats', newStats, 10);
@@ -171,6 +221,7 @@ export default function ProfileScreen() {
       const res = await apiService.updateProfile(formData);
       if (res && res.ok) {
         setUser(res.data);
+        await AsyncStorage.setItem('cached_user_profile', JSON.stringify(res.data));
         showToast('Profile photo updated', 'success');
       } else {
         console.log('[UPLOAD FAIL] Server Response:', res.data);
@@ -196,6 +247,7 @@ export default function ProfileScreen() {
             const res = await apiService.updateProfile({ profile_picture: null });
             if (res && res.ok) {
               setUser(res.data);
+              await AsyncStorage.setItem('cached_user_profile', JSON.stringify(res.data));
               showToast('Photo removed', 'info');
             }
           } catch (e) {
@@ -252,9 +304,10 @@ export default function ProfileScreen() {
             <TouchableOpacity style={styles.avatar} onPress={handleImagePick} activeOpacity={0.8}>
               {uploading ? (
                 <ActivityIndicator color="#fff" />
-              ) : (user?.avatar_url || user?.profile_picture) ? (
+              ) : getAvatarUrl(user) ? (
                 <Image
-                  source={{ uri: user?.avatar_url || user?.profile_picture }}
+                  key={getAvatarUrl(user)}
+                  source={{ uri: getAvatarUrl(user) }}
                   style={styles.avatarImage}
                 />
               ) : (
@@ -269,7 +322,7 @@ export default function ProfileScreen() {
               <MaterialIcons name="camera-alt" size={14} color="#fff" />
             </TouchableOpacity>
 
-            {(user?.avatar_url || user?.profile_picture) ? (
+            {getAvatarUrl(user) ? (
               <TouchableOpacity style={styles.removeIconBadge} onPress={handleRemoveImage}>
                 <MaterialIcons name="delete" size={14} color="#fff" />
               </TouchableOpacity>

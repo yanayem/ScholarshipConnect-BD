@@ -215,6 +215,19 @@ Scholarship entries are stored as flexible JSON-like documents:
 
 ---
 
+## Media & Storage Architecture
+ScholarshipConnectBD utilizes a hybrid storage setup supporting both local development and cloud production media:
+
+- **Local Storage**: Served via Django static media handler (`backend/media/` at `/media/`).
+- **Cloudinary Integration**: Dynamic cloud storage via `django-cloudinary-storage` (`MediaCloudinaryStorage` and `RawMediaCloudinaryStorage`).
+
+### Media Directory & Upload Sub-folders
+- 📂 **`documents/`**: Application certificates, resumes, SOPs, and user uploaded documents.
+- 👤 **`profile_pics/`**: Compressed user profile avatars (`profile_pics/user_<id>_avatar.<ext>`).
+- 🎓 **`scholarships/`**: Featured scholarship banners and opportunity images.
+
+---
+
 ## UI & Design Theme
 The application follows a **Premium, Minimal, and Modern** design system focused on clarity and scholar focus.
 
@@ -289,6 +302,9 @@ ScholarshipConnectBD/
 │   ├── blog/                     # Success Stories & Educational Content
 │   ├── notifications/            # Push Notifications & System Broadcasts
 │   ├── media/                    # Secure Storage for User Documents & Media
+│   │   ├── documents/            # Application certificates, resumes & SOP documents
+│   │   ├── profile_pics/         # User profile picture uploads
+│   │   └── scholarships/         # Scholarship banners and opportunity images
 │   ├── docs/                     # System Design & Legacy Documentation
 │   │   ├── diagrams/             # SDLC, DFD, ERD, and Architecture diagrams
 │   │   └── SYSTEM_DESIGN.md      # Detailed system analysis and DFD details

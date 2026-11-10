@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { apiService } from '@/lib/api';
+import { apiService, getAvatarUrl } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import {
@@ -25,7 +25,10 @@ import {
   Mail,
   Code,
   Building,
-  Brain
+  Brain,
+  Camera,
+  Upload,
+  Trash2
 } from 'lucide-react';
 
 interface AutocompleteInputProps {
@@ -172,8 +175,46 @@ export default function EditProfilePage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [generatingBio, setGeneratingBio] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [activeSection, setActiveSection] = useState('personal');
   const [message, setMessage] = useState({ type: '', text: '' });
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingPhoto(true);
+    try {
+      const fd = new FormData();
+      fd.append('profile_picture', file);
+      const res = await apiService.updateProfile(fd);
+      if (res.ok) {
+        await refreshProfile();
+        setMessage({ type: 'success', text: 'Profile picture updated!' });
+      } else {
+        setMessage({ type: 'error', text: 'Failed to upload photo.' });
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Error uploading photo.' });
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    setUploadingPhoto(true);
+    try {
+      const res = await apiService.updateProfile({ profile_picture: null });
+      if (res.ok) {
+        await refreshProfile();
+        setMessage({ type: 'success', text: 'Profile picture removed.' });
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Error removing photo.' });
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   const [formData, setFormData] = useState({
     username: '',
@@ -282,7 +323,16 @@ export default function EditProfilePage() {
         setMessage({ type: 'success', text: 'Profile updated successfully!' });
         setTimeout(() => router.push('/profile'), 1200);
       } else {
-        let errStr = res.data?.message || res.data?.error;
+        let errStr = typeof res.data?.error === 'string' ? res.data.error : (res.data?.message || null);
+
+        // Sanitize raw Python ErrorDetail string if present
+        if (errStr && typeof errStr === 'string' && errStr.includes('ErrorDetail')) {
+          const match = errStr.match(/string=['"]([^'"]+)['"]/);
+          if (match && match[1]) {
+            errStr = match[1];
+          }
+        }
+
         if (!errStr && res.data && typeof res.data === 'object') {
           const firstKey = Object.keys(res.data)[0];
           if (firstKey) {
@@ -396,6 +446,43 @@ export default function EditProfilePage() {
                     <User size={18} /> Personal Details
                   </h3>
                   <p className="text-xs text-text-secondary font-medium mt-1">Basic contact and identity parameters.</p>
+                </div>
+
+                {/* Profile Picture Upload Section */}
+                <div className="flex items-center gap-6 p-4 bg-slate-50 border border-slate-200/80 rounded-2xl">
+                  <div className="w-16 h-16 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center text-primary font-black text-xl overflow-hidden shrink-0 shadow-sm">
+                    {getAvatarUrl(user) ? (
+                      <img src={getAvatarUrl(user)!} className="w-full h-full object-cover" alt="Avatar" />
+                    ) : (
+                      user?.full_name?.charAt(0) || 'U'
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">Profile Picture</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingPhoto}
+                        className="px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary/90 flex items-center gap-1.5 transition-all shadow-sm disabled:opacity-50"
+                      >
+                        {uploadingPhoto ? <Loader2 size={12} className="animate-spin" /> : <Camera size={12} />}
+                        Upload Photo
+                      </button>
+                      {getAvatarUrl(user) && (
+                        <button
+                          type="button"
+                          onClick={handleRemovePhoto}
+                          disabled={uploadingPhoto}
+                          className="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 text-xs font-bold rounded-lg hover:bg-red-100 flex items-center gap-1.5 transition-all disabled:opacity-50"
+                        >
+                          <Trash2 size={12} />
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6">

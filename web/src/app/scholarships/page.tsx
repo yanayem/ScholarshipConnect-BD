@@ -139,7 +139,7 @@ export default function ScholarshipList() {
               <p className="text-slate-500 text-sm font-medium">Find and apply for verified international opportunities.</p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <button
+              {/* <button
                 onClick={handleRunSmartMatchmaker}
                 disabled={isMatching}
                 className="bg-primary text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-wider hover:bg-primary/90 transition-all flex items-center gap-2 shadow-lg shadow-primary/20 active:scale-95 disabled:opacity-50"
@@ -155,12 +155,12 @@ export default function ScholarshipList() {
                     Scholarship Matchmaker
                   </>
                 )}
-              </button>
+              </button> */}
 
-              <Link href="/scholarships/archive" className="bg-slate-100 text-slate-700 px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider hover:bg-slate-200 transition-all flex items-center gap-2 border border-slate-200 shadow-sm">
+              {/* <Link href="/scholarships/archive" className="bg-slate-100 text-slate-700 px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider hover:bg-slate-200 transition-all flex items-center gap-2 border border-slate-200 shadow-sm">
                 <History size={16} className="text-slate-500" />
                 Archive
-              </Link>
+              </Link> */}
 
               <Link href="/scholarships/add" className="bg-slate-900 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-wider hover:bg-slate-800 transition-all flex items-center gap-2 shadow-lg shadow-slate-200">
                  <Plus size={16} />

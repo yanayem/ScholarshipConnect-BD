@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { getAvatarUrl } from '@/lib/api';
 import { ArrowRight, ShieldCheck, User } from 'lucide-react';
 
 export default function AdminTopBar() {
@@ -58,9 +59,9 @@ export default function AdminTopBar() {
 
             {/* Profile Avatar Icon */}
             <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-primary font-bold text-sm overflow-hidden shadow-xs shrink-0">
-              {(user.avatar || (user as any).avatar_url) ? (
+              {getAvatarUrl(user) ? (
                 <img
-                  src={user.avatar || (user as any).avatar_url}
+                  src={getAvatarUrl(user)!}
                   className="w-full h-full object-cover"
                   alt="Admin Avatar"
                 />

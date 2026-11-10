@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useMentorMode } from '@/context/MentorModeContext';
 import { usePathname, useRouter } from 'next/navigation';
+import { apiService, getAvatarUrl } from '@/lib/api';
 import {
   Users,
   GraduationCap,
@@ -41,6 +42,7 @@ export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [headerImgError, setHeaderImgError] = useState(false);
 
   const studentNav = [
     { name: 'Home', href: '/home', icon: HomeIcon },
@@ -118,9 +120,9 @@ export default function Header() {
 
               <Link href="/profile" className="flex items-center gap-2 pl-2 border-l border-slate-100">
                 <div className="w-8 h-8 bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-700 overflow-hidden rounded-none">
-                  {(user.avatar || (user as any).avatar_url) ? (
-                    <img src={user.avatar || (user as any).avatar_url} className="w-full h-full object-cover rounded-none" alt="" />
-                  ) : user.full_name?.charAt(0) || 'A'}
+                  {getAvatarUrl(user) && !headerImgError ? (
+                    <img src={getAvatarUrl(user)!} className="w-full h-full object-cover rounded-none" alt="" onError={() => setHeaderImgError(true)} />
+                  ) : user.full_name?.charAt(0) || user.username?.charAt(0) || 'A'}
                 </div>
               </Link>
             </div>
@@ -233,9 +235,16 @@ export default function Header() {
 
                   <Link href="/profile" className="flex items-center gap-2 border-l border-slate-100 pl-2 sm:pl-4">
                     <div className="w-9 h-9 bg-gray-50 border border-black/5 rounded-xl flex items-center justify-center text-primary text-sm font-bold hover:shadow-md transition-all overflow-hidden">
-                      {(user.avatar || (user as any).avatar_url || (user as any).profile_picture_url) ? (
-                        <img src={user.avatar || (user as any).avatar_url || (user as any).profile_picture_url} className="w-full h-full object-cover rounded-xl" alt="avatar" />
-                      ) : user.full_name?.charAt(0)}
+                      {getAvatarUrl(user) && !headerImgError ? (
+                        <img
+                          src={getAvatarUrl(user)!}
+                          className="w-full h-full object-cover rounded-xl"
+                          alt="avatar"
+                          onError={() => setHeaderImgError(true)}
+                        />
+                      ) : (
+                        user.full_name?.charAt(0) || user.username?.charAt(0) || 'U'
+                      )}
                     </div>
                   </Link>
 

@@ -9,7 +9,7 @@ import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import Animated, { FadeInDown, FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../theme';
-import { apiService } from '../../services/api';
+import { apiService, getAvatarUrl } from '../../services/api';
 import { cacheService } from '../../services/cache';
 import { useToast } from '../../components/Toast';
 import { useMentorMode } from '../../context/MentorModeContext';
@@ -114,11 +114,11 @@ function StudentHome({ user, featured, loading, leaderboard, activeCountries, al
               onPress={() => router.push('/profile')}
               style={styles.profileBtn}
             >
-               {(user?.avatar_url || user?.profile_picture) ? (
+               {getAvatarUrl(user) ? (
                  <Image
-                   source={{ uri: user?.avatar_url || user?.profile_picture }}
+                   source={{ uri: getAvatarUrl(user) }}
                    style={styles.headerAvatarSmall}
-                   key={user?.avatar_url || user?.profile_picture}
+                   key={getAvatarUrl(user)}
                    defaultSource={{ uri: 'https://ui-avatars.com/api/?name=' + initials }}
                  />
                ) : (
@@ -586,8 +586,8 @@ function MentorHome({ user }) {
                        {sessions.some(s => s.status === 'pending') && <View style={styles.notifIndicator} />}
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => router.push('/profile')} style={styles.headerProfileBtn}>
-                        {user?.avatar_url ? (
-                            <Image source={{ uri: user.avatar_url }} style={styles.headerAvatar} />
+                        {getAvatarUrl(user) ? (
+                            <Image source={{ uri: getAvatarUrl(user) }} style={styles.headerAvatar} />
                         ) : (
                             <View style={styles.headerAvatarPlaceholder}>
                                 <Text style={styles.avatarInitial}>{user?.username?.[0].toUpperCase()}</Text>

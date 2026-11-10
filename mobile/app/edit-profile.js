@@ -127,7 +127,15 @@ export default function EditProfileScreen() {
           }
         }, 1000);
       } else {
-        let errStr = res.data?.error || res.data?.message;
+        let errStr = typeof res.data?.error === 'string' ? res.data.error : (res.data?.message || null);
+
+        if (errStr && typeof errStr === 'string' && errStr.includes('ErrorDetail')) {
+          const match = errStr.match(/string=['"]([^'"]+)['"]/);
+          if (match && match[1]) {
+            errStr = match[1];
+          }
+        }
+
         if (!errStr && res.data && typeof res.data === 'object') {
           const firstKey = Object.keys(res.data)[0];
           if (firstKey) {

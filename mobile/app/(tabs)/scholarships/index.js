@@ -237,7 +237,7 @@ export default function ScholarshipsScreen() {
         }
       >
         {/* AI Matchmaker Banner */}
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={styles.aiMatchBanner}
           onPress={() => router.push('/scholarships/matchmaker')}
         >
@@ -251,7 +251,7 @@ export default function ScholarshipsScreen() {
           <View style={styles.matchBadge}>
             <Text style={styles.matchBadgeText}>PRO</Text>
           </View>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         {/* Quick Filters */}
         <View style={styles.quickFilterSection}>

@@ -3,6 +3,46 @@ import { ApiResponse } from '../types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://scholarshipconnectbd.onrender.com/api";
 
+export function getAvatarUrl(u: any): string | null {
+  if (!u) return null;
+  let url = typeof u === 'string' ? u : (u.avatar_url || u.profile_picture_url || u.profile_picture || u.avatar);
+  if (!url || typeof url !== 'string') return null;
+  url = url.trim();
+  if (!url) return null;
+
+  // Convert http to https for remote domains (like Cloudinary), but keep plain http for local dev servers (127.0.0.1 / localhost)
+  if (url.startsWith('http://') && !url.includes('127.0.0.1') && !url.includes('localhost')) {
+    url = 'https://' + url.substring(7);
+  }
+
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    if (!url.startsWith('/')) {
+      url = '/' + url;
+    }
+    const backendBase = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api').replace(/\/api\/?$/, '');
+    url = `${backendBase}${url}`;
+  }
+
+  // Ensure Cloudinary URLs have a valid image extension so Cloudinary does not fail with 401
+  if (url.includes('res.cloudinary.com') && !url.split('?')[0].toLowerCase().match(/\.(jpg|jpeg|png|webp|gif|svg)$/)) {
+    if (url.includes('?')) {
+      const parts = url.split('?');
+      url = `${parts[0]}.jpg?${parts.slice(1).join('?')}`;
+    } else {
+      url = `${url}.jpg`;
+    }
+  }
+
+  if (typeof u === 'object' && u !== null) {
+    const ts = u.updated_at ? new Date(u.updated_at).getTime() : null;
+    if (ts && !isNaN(ts)) {
+      url += (url.includes('?') ? '&' : '?') + `v=${ts}`;
+    }
+  }
+
+  return url;
+}
+
 const handleResponse = async (response: Response) => {
   const contentType = response.headers.get("content-type");
   const text = await response.text();
@@ -110,6 +150,22 @@ export const apiService = {
   },
 
   async updateProfile(profileData: any) {
+    const isFormData = typeof FormData !== 'undefined' && profileData instanceof FormData;
+
+    if (isFormData) {
+      const user = auth.currentUser;
+      const headers: Record<string, string> = {};
+      if (user) {
+        const token = await user.getIdToken();
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      return await safeFetch(`${API_URL}/accounts/profile/`, {
+        method: 'PATCH',
+        headers,
+        body: profileData,
+      });
+    }
+
     return await safeFetch(`${API_URL}/accounts/profile/`, {
       method: 'PATCH',
       headers: await getHeaders(true),

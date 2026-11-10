@@ -4,6 +4,7 @@ from django.utils import timezone
 import datetime
 from core.fields import SafeDecimalField
 from core.utils import compress_image
+from cloudinary_storage.storage import MediaCloudinaryStorage
 
 class Profile(models.Model):
     ACADEMIC_LEVEL_CHOICES = [
@@ -71,6 +72,25 @@ class Profile(models.Model):
                 self.profile_picture = new_image
         super().save(*args, **kwargs)
 
+        # Sync profile_picture_url with the generated storage URL
+        if self.profile_picture:
+            try:
+                url = self.profile_picture.url
+                if url:
+                    if url.startswith('http://'):
+                        url = 'https://' + url[7:]
+                    username = self.user.username if hasattr(self, 'user') and self.user else 'user'
+                    print(f"[MEDIA/CLOUDINARY UPLOAD] Profile picture saved for {username}: {url}")
+                    if self.profile_picture_url != url:
+                        Profile.objects.filter(pk=self.pk).update(profile_picture_url=url)
+                        self.profile_picture_url = url
+            except Exception as e:
+                print(f"[MEDIA/CLOUDINARY ERROR] {e}")
+        else:
+            if self.profile_picture_url and ('profile_pics' in self.profile_picture_url or 'cloudinary' in self.profile_picture_url):
+                Profile.objects.filter(pk=self.pk).update(profile_picture_url="")
+                self.profile_picture_url = ""
+
     @property
     def is_currently_pro(self):
         """
@@ -110,12 +130,24 @@ class Profile(models.Model):
         Safely returns the profile picture URL.
         Priority: 1. Uploaded File, 2. URL Field, 3. Empty String
         """
+        url = ""
         try:
             if self.profile_picture and hasattr(self.profile_picture, 'url'):
-                return self.profile_picture.url
+                url = self.profile_picture.url
         except Exception:
             pass
-        return self.profile_picture_url or ""
+        if not url:
+            url = self.profile_picture_url or ""
+        if url and url.startswith('http://'):
+            url = 'https://' + url[7:]
+        # Ensure Cloudinary URLs have a valid file extension so Cloudinary does not fail with 401 Transformation /
+        if url and 'res.cloudinary.com' in url and not url.split('?')[0].lower().endswith(('.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg')):
+            if '?' in url:
+                base, query = url.split('?', 1)
+                url = f"{base}.jpg?{query}"
+            else:
+                url = f"{url}.jpg"
+        return url
 
 # Monkey-patch User to have a safe way to access profile
 def get_safe_profile(self):

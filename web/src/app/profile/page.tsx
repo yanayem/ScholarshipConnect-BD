@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { apiService } from '@/lib/api';
+import { apiService, getAvatarUrl } from '@/lib/api';
 import {
   MapPin,
   GraduationCap,
@@ -13,6 +13,11 @@ import {
   Settings,
   Edit3,
   Camera,
+  Loader2,
+  Upload,
+  Trash2,
+  Video,
+  X,
   ArrowRight,
   BookOpen,
   Award,
@@ -37,10 +42,119 @@ import Header from '@/components/Header';
 import { useMentorMode } from '@/context/MentorModeContext';
 
 export default function ProfilePage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, refreshProfile, loading: authLoading } = useAuth();
   const { isMentorMode, toggleMentorMode } = useMentorMode();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ saved: 0, applied: 0, documents: 0 });
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [showPhotoOptions, setShowPhotoOptions] = useState(false);
+  const [showWebcamModal, setShowWebcamModal] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [(user as any)?.avatar_url, (user as any)?.profile_picture, (user as any)?.profile_picture_url]);
+
+  const stopWebcam = () => {
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(track => track.stop());
+      mediaStreamRef.current = null;
+    }
+  };
+
+  const handleOpenWebcam = async () => {
+    setShowPhotoOptions(false);
+    setShowWebcamModal(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 640 }, height: { ideal: 640 }, facingMode: "user" },
+        audio: false,
+      });
+      mediaStreamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+    } catch (err) {
+      console.error("Camera access failed", err);
+      alert("Unable to access camera. Please verify camera permissions or upload an image file.");
+      setShowWebcamModal(false);
+    }
+  };
+
+  const handleCaptureWebcam = async () => {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth || 400;
+    canvas.height = video.videoHeight || 400;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+      stopWebcam();
+      setShowWebcamModal(false);
+      const file = new File([blob], `profile_${Date.now()}.jpg`, { type: "image/jpeg" });
+      await uploadProfilePicture(file);
+    }, "image/jpeg", 0.9);
+  };
+
+  const handleCloseWebcam = () => {
+    stopWebcam();
+    setShowWebcamModal(false);
+  };
+
+  const uploadProfilePicture = async (file: File) => {
+    try {
+      setUploadingPhoto(true);
+      const formData = new FormData();
+      formData.append("profile_picture", file);
+      const res = await apiService.updateProfile(formData);
+      if (res.ok) {
+        setImageError(false);
+        await refreshProfile();
+      } else {
+        const errorMsg = (res.data as any)?.profile_picture || (res.data as any)?.error || "Failed to update profile picture";
+        alert(Array.isArray(errorMsg) ? errorMsg[0] : errorMsg);
+      }
+    } catch (err) {
+      console.error("Upload error", err);
+      alert("Connection error occurred while updating profile photo.");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setShowPhotoOptions(false);
+      await uploadProfilePicture(file);
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    if (!window.confirm("Are you sure you want to remove your profile photo?")) return;
+    setShowPhotoOptions(false);
+    try {
+      setUploadingPhoto(true);
+      const res = await apiService.updateProfile({ profile_picture: null });
+      if (res.ok) {
+        await refreshProfile();
+      } else {
+        alert("Failed to remove profile photo");
+      }
+    } catch (err) {
+      alert("Failed to remove photo");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
   const router = useRouter();
   const pathname = usePathname();
 
@@ -61,18 +175,92 @@ export default function ProfilePage() {
   }, [user, authLoading, router]);
 
   useEffect(() => {
+    setImageError(false);
+  }, [user]);
+
+  useEffect(() => {
+    const normalizeStatus = (rawStatus: string) => {
+      if (!rawStatus) return 'Applied';
+      const s = String(rawStatus).trim();
+      const lower = s.toLowerCase();
+      if (lower === 'submitted' || lower === 'applied') return 'Applied';
+      if (lower === 'saved') return 'Saved';
+      if (lower === 'processing') return 'Processing';
+      if (lower === 'under review' || lower === 'under_review') return 'Under Review';
+      if (lower === 'shortlisted') return 'Shortlisted';
+      if (lower === 'accepted') return 'Accepted';
+      if (lower === 'rejected') return 'Rejected';
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    };
+
     const loadStats = async () => {
       try {
-        const [savedRes, appsRes, docsRes] = await Promise.all([
-          apiService.getScholarships('filter=saved'),
-          apiService.getScholarships('filter=applied'),
+        const [savedRes, appRes, docsRes] = await Promise.all([
+          apiService.getSavedScholarships(),
+          apiService.getApplications(),
           apiService.getDocuments()
         ]);
 
+        let data: any[] = [];
+
+        if (appRes?.ok) {
+          const appList = Array.isArray(appRes.data) ? appRes.data : (appRes.data?.results || []);
+          data = data.concat(appList.map((item: any) => ({
+            id: 'a' + item.id,
+            scholarship_id: item.scholarship?.id || item.scholarship,
+            title: item.scholarship_title || item.scholarship_details?.title || 'N/A',
+            status: normalizeStatus(item.status),
+            is_application: true
+          })));
+        }
+
+        if (savedRes?.ok) {
+          const savedList = Array.isArray(savedRes.data) ? savedRes.data : (savedRes.data?.results || []);
+          data = data.concat(savedList.map((item: any) => ({
+            id: 's' + item.id,
+            scholarship_id: item.scholarship_details?.id || item.scholarship,
+            title: item.scholarship_details?.title || 'N/A',
+            status: 'Saved',
+            is_application: false
+          })));
+        }
+
+        // Group by scholarship to prioritize actual application statuses (Applied, Processing, etc.)
+        // while ensuring Saved scholarships without an application explicitly show "Saved" status.
+        const scholarshipMap = new Map();
+
+        // 1. Process actual applications first
+        data.filter(item => item.is_application).forEach(item => {
+          const key = String(item.scholarship_id || item.title).toLowerCase().trim();
+          if (key && key !== 'n/a') {
+            scholarshipMap.set(key, item);
+          } else {
+            scholarshipMap.set(item.id, item);
+          }
+        });
+
+        // 2. Add saved bookmarks ONLY if the user has not submitted an application for it yet
+        data.filter(item => !item.is_application).forEach(item => {
+          const key = String(item.scholarship_id || item.title).toLowerCase().trim();
+          if (key && key !== 'n/a') {
+            if (!scholarshipMap.has(key)) {
+              scholarshipMap.set(key, item);
+            }
+          } else {
+            scholarshipMap.set(item.id, item);
+          }
+        });
+
+        const allItems = Array.from(scholarshipMap.values());
+        const savedCount = allItems.filter(i => i.status === 'Saved').length;
+        const appliedCount = allItems.filter(i => i.status !== 'Saved').length;
+
+        const docsList = Array.isArray(docsRes?.data) ? docsRes.data : (docsRes?.data?.results || []);
+
         setStats({
-          saved: (savedRes.data as any)?.length || 0,
-          applied: (appsRes.data as any)?.length || 0,
-          documents: (docsRes.data as any)?.length || 0
+          saved: savedCount,
+          applied: appliedCount,
+          documents: docsList.length
         });
       } catch (e) {
         console.error("Failed to load stats", e);
@@ -92,6 +280,7 @@ export default function ProfilePage() {
 
   const initials = user.full_name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'U';
   const u = user as any;
+  const avatarSrc = getAvatarUrl(user);
 
   const renderTags = (text: string | undefined) => {
     if (!text) return <span className="text-slate-400 text-[10px] font-bold italic uppercase tracking-wider">Not specified</span>;
@@ -117,8 +306,13 @@ export default function ProfilePage() {
               <div className="absolute top-0 left-0 w-full h-1 bg-primary"></div>
               <div className="flex items-center gap-4 mb-8">
                  <div className="w-12 h-12 bg-slate-100 border border-slate-200 text-primary rounded-xl flex items-center justify-center font-bold text-sm overflow-hidden">
-                    {(user.avatar || u.avatar_url || u.profile_picture_url) ? (
-                      <img src={user.avatar || u.avatar_url || u.profile_picture_url} className="w-full h-full object-cover" alt="Avatar" />
+                    {!imageError && avatarSrc ? (
+                      <img
+                        src={avatarSrc}
+                        className="w-full h-full object-cover"
+                        alt="Avatar"
+                        onError={() => setImageError(true)}
+                      />
                     ) : initials}
                  </div>
                  <div className="min-w-0">
@@ -209,13 +403,71 @@ export default function ProfilePage() {
           <div className="flex flex-col md:flex-row items-center md:items-start gap-10 mb-16">
             <div className="relative shrink-0">
                <div className="w-32 h-32 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-primary text-2xl sm:text-4xl font-bold shadow-xl shadow-primary/5 overflow-hidden">
-                  {(user.avatar || u.avatar_url || u.profile_picture_url) ? (
-                    <img src={user.avatar || u.avatar_url || u.profile_picture_url} className="w-full h-full object-cover rounded-lg" alt="Avatar" />
+                  {!imageError && avatarSrc ? (
+                    <img
+                      src={avatarSrc}
+                      className="w-full h-full object-cover rounded-lg"
+                      alt="Avatar"
+                      onError={() => setImageError(true)}
+                    />
                   ) : initials}
                </div>
-               <button className="absolute -bottom-2 -right-2 bg-white border border-slate-200 p-2.5 rounded-lg shadow-lg text-slate-400 hover:text-primary transition-colors">
-                  <Camera size={18} />
-               </button>
+               <input
+                 type="file"
+                 ref={fileInputRef}
+                 accept="image/*"
+                 className="hidden"
+                 onChange={handleFileChange}
+               />
+               <div className="relative">
+                 <button
+                   type="button"
+                   onClick={() => setShowPhotoOptions(prev => !prev)}
+                   disabled={uploadingPhoto}
+                   title="Change profile picture"
+                   className="absolute -bottom-2 -right-2 bg-white border border-slate-200 p-2.5 rounded-lg shadow-lg text-slate-500 hover:text-primary hover:border-primary transition-all z-10 disabled:opacity-50"
+                 >
+                   {uploadingPhoto ? (
+                     <Loader2 size={18} className="animate-spin text-primary" />
+                   ) : (
+                     <Camera size={18} />
+                   )}
+                 </button>
+
+                 {showPhotoOptions && (
+                   <div className="absolute top-full mt-2 left-0 w-52 bg-white border border-slate-200 rounded-xl shadow-xl z-20 py-1 overflow-hidden animate-fadeIn text-left">
+                     <button
+                       type="button"
+                       onClick={handleOpenWebcam}
+                       className="w-full px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-primary-light hover:text-primary flex items-center gap-2.5 transition-colors"
+                     >
+                       <Video size={15} className="text-primary" />
+                       Take Photo (Webcam)
+                     </button>
+                     <button
+                       type="button"
+                       onClick={() => {
+                         setShowPhotoOptions(false);
+                         fileInputRef.current?.click();
+                       }}
+                       className="w-full px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-primary-light hover:text-primary flex items-center gap-2.5 transition-colors"
+                     >
+                       <Upload size={15} className="text-primary" />
+                       Upload from Device
+                     </button>
+                     {avatarSrc && (
+                       <button
+                         type="button"
+                         onClick={handleRemovePhoto}
+                         className="w-full px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2.5 transition-colors border-t border-slate-100"
+                       >
+                         <Trash2 size={15} />
+                         Remove Photo
+                       </button>
+                     )}
+                   </div>
+                 )}
+               </div>
             </div>
 
             <div className="flex-1 text-center md:text-left space-y-4">
@@ -382,6 +634,58 @@ export default function ProfilePage() {
           </div>
         </div>
       </main>
+
+      {/* Live Web Camera Capture Modal */}
+      {showWebcamModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md overflow-hidden animate-scaleUp">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Camera className="text-primary" size={20} />
+                <h3 className="font-bold text-sm text-slate-900">Take Profile Photo</h3>
+              </div>
+              <button
+                type="button"
+                onClick={handleCloseWebcam}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="p-6 flex flex-col items-center">
+              <div className="w-72 h-72 rounded-full overflow-hidden border-4 border-primary/20 shadow-inner bg-black flex items-center justify-center relative">
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover -scale-x-100"
+                />
+              </div>
+              <p className="text-xs text-slate-500 mt-4 text-center">
+                Center your face and click Capture when you are ready.
+              </p>
+              <div className="flex gap-3 mt-6 w-full">
+                <button
+                  type="button"
+                  onClick={handleCloseWebcam}
+                  className="flex-1 py-2.5 px-4 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCaptureWebcam}
+                  className="flex-1 py-2.5 px-4 text-xs font-bold text-white bg-primary hover:bg-primary/90 rounded-xl shadow-md shadow-primary/20 flex items-center justify-center gap-2 transition-all"
+                >
+                  <Camera size={16} />
+                  Capture & Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <footer className="py-12 border-t border-slate-100 text-center">
          <p className="text-[10px] font-medium text-slate-400 uppercase tracking-[0.3em]">ScholarshipConnectBD Profile v2.5</p>

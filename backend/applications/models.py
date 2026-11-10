@@ -12,6 +12,7 @@ class SavedScholarship(models.Model):
 
     class Meta:
         unique_together = ('user', 'scholarship')
+        ordering = ['-created_at']
 
 class ScholarshipApplication(models.Model):
     STATUS_CHOICES = [
@@ -49,15 +50,20 @@ class ScholarshipApplication(models.Model):
 
     class Meta:
         unique_together = ('user', 'scholarship')
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.full_name} - {self.scholarship.title}"
+
+def user_document_upload_path(instance, filename):
+    user_id = instance.user_id if instance and instance.user_id else 'guest'
+    return f'documents/user_{user_id}/{filename}'
 
 class UserDocument(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='documents')
     name = models.CharField(max_length=255)
     doc_type = models.CharField(max_length=100)
-    file = models.FileField(upload_to='documents/', storage=RawMediaCloudinaryStorage())
+    file = models.FileField(upload_to=user_document_upload_path, storage=RawMediaCloudinaryStorage())
     size = models.CharField(max_length=50, blank=True)
     
     # ENHANCED FEATURES: Expiry Tracking
@@ -67,12 +73,20 @@ class UserDocument(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['-created_at']
+
     def save(self, *args, **kwargs):
         if self.file:
             new_image = compress_image(self.file)
             if new_image:
                 self.file = new_image
         super().save(*args, **kwargs)
+        if self.file:
+            try:
+                print(f"[DOCUMENT UPLOAD] Document saved for {self.user.username}: {self.file.url}")
+            except Exception:
+                pass
 
     def __str__(self):
         return f"{self.name} ({self.user.username})"
