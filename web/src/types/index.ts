@@ -28,9 +28,11 @@ export interface Recommendation {
 export interface User {
   id: number;
   email: string;
+  username?: string;
   full_name: string;
   is_pro: boolean;
   avatar?: string;
+  avatar_url?: string;
   is_staff?: boolean;
   is_mentor?: boolean;
   scholar_points?: number;

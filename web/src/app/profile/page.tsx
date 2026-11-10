@@ -474,7 +474,21 @@ export default function ProfilePage() {
                <div className="space-y-1">
                   <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4">
                      <div>
-                        <h1 className="text-3xl sm:text-2xl sm:text-4xl font-bold text-slate-900 tracking-tight">{user.full_name}</h1>
+                        <div className="flex items-center gap-2 flex-wrap">
+                      <h1 className="text-3xl sm:text-2xl sm:text-4xl font-bold text-slate-900 tracking-tight">{user.full_name}</h1>
+                      {(user as any).is_pro && (
+                        <span title="Pro Verified Account" className="inline-flex items-center gap-1 bg-amber-400 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm shadow-amber-200 select-none">
+                          <svg viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3"><path d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" /></svg>
+                          PRO
+                        </span>
+                      )}
+                      {(user as any).is_mentor && (
+                        <span title="Verified Mentor" className="inline-flex items-center gap-1 bg-primary text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm shadow-primary/20 select-none">
+                          <svg viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3"><path d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" /></svg>
+                          MENTOR
+                        </span>
+                      )}
+                   </div>
                         <p className="text-slate-500 font-medium text-sm tracking-widest mt-1">{user.email}</p>
                      </div>
                      <Link
