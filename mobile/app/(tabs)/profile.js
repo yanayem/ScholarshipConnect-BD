@@ -330,11 +330,11 @@ export default function ProfileScreen() {
           </View>
           <View style={styles.nameRow}>
             <Text style={styles.userName}>{user?.full_name || user?.username || ''}</Text>
-            {user?.is_mentor && (
-              <MaterialIcons name="verified" size={22} color={theme.colors.primary} style={{ marginLeft: 8 }} />
+            {user?.is_pro && (
+              <MaterialIcons name="verified" size={22} color="#1DA1F2" style={{ marginLeft: 8 }} />
             )}
-            {user?.is_pro && !user?.is_mentor && (
-              <MaterialIcons name="verified" size={22} color="#FFD700" style={{ marginLeft: 8 }} />
+            {user?.is_mentor && !user?.is_pro && (
+              <MaterialIcons name="verified" size={22} color={theme.colors.primary} style={{ marginLeft: 8 }} />
             )}
           </View>
 

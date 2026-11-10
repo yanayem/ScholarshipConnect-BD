@@ -63,7 +63,15 @@ export default function MentorsScreen() {
       </View>
 
       <View style={styles.info}>
-        <Text style={styles.name}>{item.full_name || item.username}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' }}>
+          <Text style={styles.name}>{item.full_name || item.username}</Text>
+          {item.is_mentor && (
+            <MaterialIcons name="verified" size={16} color={theme.colors.primary} style={{ marginLeft: 5 }} />
+          )}
+          {item.is_pro && !item.is_mentor && (
+            <MaterialIcons name="verified" size={16} color="#FFD700" style={{ marginLeft: 5 }} />
+          )}
+        </View>
         <Text style={styles.expertise}>{item.expertise_areas || item.major_course || 'General Mentorship'}</Text>
         <Text style={styles.bio} numberOfLines={2}>{item.mentorship_bio || 'I can help you with your applications and SOP.'}</Text>
 
