@@ -66,6 +66,21 @@ export default function UpgradeProScreen() {
     router.push('/checkout');
   };
 
+  const handleDevToggle = async (active) => {
+    setProcessing(true);
+    const res = await apiService.updateProfile({ is_pro: active });
+    if (res.ok) {
+      setUser(prev => ({ ...prev, is_pro: active }));
+      Alert.alert(
+        'Testing Status Updated',
+        active ? 'Pro Membership Activated!' : 'Pro Membership Cancelled!'
+      );
+    } else {
+      Alert.alert('Error', 'Failed to update Pro status.');
+    }
+    setProcessing(false);
+  };
+
   if (loading) return <Loader message="Loading premium offers..." />;
 
   return (

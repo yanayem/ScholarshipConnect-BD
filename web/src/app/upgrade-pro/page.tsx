@@ -37,6 +37,18 @@ export default function UpgradeProPage() {
     return null;
   }
 
+  const handleDevToggle = async (active: boolean) => {
+    setProcessing(true);
+    const res = await apiService.updateProfile({ is_pro: active });
+    if (res.ok) {
+      alert(active ? 'Pro status activated (Testing)!' : 'Pro status cancelled (Testing)!');
+      window.location.reload();
+    } else {
+      alert('Failed to update status');
+    }
+    setProcessing(false);
+  };
+
   const handlePointUpgrade = async () => {
     const cost = 200;
     const userPoints = (user as any).scholar_points || 0;
