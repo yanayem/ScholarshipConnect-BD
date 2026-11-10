@@ -72,13 +72,28 @@ class Profile(models.Model):
                 self.profile_picture = new_image
         super().save(*args, **kwargs)
 
-        # Sync profile_picture_url with the generated storage URL
+        # Sync profile_picture_url with the generated storage URL and ensure extension is correct
         if self.profile_picture:
             try:
                 url = self.profile_picture.url
                 if url:
                     if url.startswith('http://'):
                         url = 'https://' + url[7:]
+                    # If Cloudinary URL lacks a file extension, resolve the real format via API
+                    if 'res.cloudinary.com' in url and not url.split('?')[0].lower().endswith(('.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg')):
+                        try:
+                            import cloudinary.api
+                            public_id = self.profile_picture.name
+                            res = cloudinary.api.resource(public_id)
+                            fmt = res.get('format', 'jpg')
+                            correct_url = res.get('secure_url', url)
+                            correct_name = f"{public_id}.{fmt}"
+                            # Update the name in DB directly to include extension
+                            Profile.objects.filter(pk=self.pk).update(profile_picture=correct_name)
+                            self.profile_picture.name = correct_name
+                            url = correct_url
+                        except Exception as ext_err:
+                            print(f"[CLOUDINARY EXT RESOLVE ERROR] {ext_err}")
                     username = self.user.username if hasattr(self, 'user') and self.user else 'user'
                     print(f"[MEDIA/CLOUDINARY UPLOAD] Profile picture saved for {username}: {url}")
                     if self.profile_picture_url != url:

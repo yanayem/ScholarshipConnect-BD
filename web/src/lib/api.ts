@@ -23,7 +23,7 @@ export function getAvatarUrl(u: any): string | null {
     url = `${backendBase}${url}`;
   }
 
-  // Ensure Cloudinary URLs have a valid image extension so Cloudinary does not fail with 401
+  // Safety net: if Cloudinary URL still lacks a file extension (old data), try .jpg as last resort
   if (url.includes('res.cloudinary.com') && !url.split('?')[0].toLowerCase().match(/\.(jpg|jpeg|png|webp|gif|svg)$/)) {
     if (url.includes('?')) {
       const parts = url.split('?');
