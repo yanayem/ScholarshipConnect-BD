@@ -64,6 +64,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
+        if data.get('email'):
+            data['email'] = data['email'].lower()
         for key in ['profile_picture', 'profile_picture_url', 'avatar_url']:
             val = data.get(key)
             if val and isinstance(val, str) and val.startswith('http://'):
@@ -251,6 +253,12 @@ class UserSerializer(serializers.ModelSerializer):
     def get_profile(self, obj):
         profile, _ = Profile.objects.get_or_create(user=obj)
         return ProfileSerializer(profile, context=self.context).data
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        if rep.get('email'):
+            rep['email'] = rep['email'].lower()
+        return rep
 
 class AdminActivityLogSerializer(serializers.ModelSerializer):
     admin_name = serializers.CharField(source='admin.username', read_only=True)

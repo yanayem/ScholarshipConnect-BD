@@ -107,7 +107,7 @@ export default function MentorsAdmin() {
                         </div>
                         <div className="flex-1 min-w-0">
                             <h3 className="text-xl font-bold text-slate-900 truncate">{app.full_name}</h3>
-                            <p className="text-slate-500 font-medium text-sm mb-2">{app.email}</p>
+                            <p className="text-slate-500 font-medium text-sm mb-2">{(app.email || '').toLowerCase()}</p>
                             <div className="flex flex-wrap gap-2">
                                 <span className="bg-slate-50 text-slate-500 px-3 py-1 rounded-none text-[10px] font-black uppercase tracking-widest border border-slate-100">
                                     {app.university || 'University unknown'}

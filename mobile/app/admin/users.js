@@ -73,7 +73,7 @@ export default function UserAudit() {
           </View>
           <View style={styles.info}>
             <Text style={styles.name}>{name}</Text>
-            <Text style={styles.email}>{item.email}</Text>
+            <Text style={styles.email}>{(item.email || '').toLowerCase()}</Text>
             <View style={styles.meta}>
                 <Text style={styles.joined}>Username: {item.username}</Text>
             </View>

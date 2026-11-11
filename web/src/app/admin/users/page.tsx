@@ -90,7 +90,7 @@ export default function AdminUsersPage() {
                      <h3 className="font-bold text-slate-900 group-hover:text-primary transition-colors">{u.full_name || u.username}</h3>
                      <p className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1.5 tracking-widest">
                         <Mail size={12} />
-                        {u.email || 'no-email@test.com'}
+                        {(u.email || 'no-email@test.com').toLowerCase()}
                      </p>
                   </div>
 

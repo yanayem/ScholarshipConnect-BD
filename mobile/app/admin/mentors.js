@@ -83,7 +83,7 @@ export default function MentorManagement() {
         </View>
         <View style={styles.mainInfo}>
           <Text style={styles.mentorName}>{item.full_name}</Text>
-          <Text style={styles.mentorEmail}>{item.email}</Text>
+          <Text style={styles.mentorEmail}>{(item.email || '').toLowerCase()}</Text>
           <View style={styles.expertiseRow}>
             <FontAwesome5 name="graduation-cap" size={12} color={theme.colors.primary} />
             <Text style={styles.expertiseText}>{item.expertise || 'Scholarship Expert'}</Text>
