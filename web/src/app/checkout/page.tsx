@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import {
   CreditCard,
   Smartphone,
+  QrCode,
   ShieldCheck,
   ArrowLeft,
   ArrowRight,
@@ -12,49 +13,24 @@ import {
   Lock
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { apiService } from '@/lib/api';
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const [method, setMethod] = useState('card');
-  const [processing, setProcessing] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [method, setMethod] = useState('bkash');
 
   const handleSelectMethod = (selectedId: string) => {
     setMethod(selectedId);
-    if (selectedId === 'card') {
-      router.push('/card-payment');
-    }
   };
 
-  const handlePayment = async () => {
-    setErrorMsg('');
-
-    if (method === 'card') {
+  const handleProceedToPayment = () => {
+    if (method === 'bkash') {
+      router.push('/bkash-payment');
+    } else if (method === 'nagad') {
+      router.push('/nagad-payment');
+    } else if (method === 'bangla_qr') {
+      router.push('/bangla-qr-payment');
+    } else if (method === 'card') {
       router.push('/card-payment');
-      return;
-    }
-
-    setProcessing(true);
-    try {
-      let backendMethod = 'DirectCard';
-      if (method === 'bkash') backendMethod = 'bKash';
-      else if (method === 'nagad') backendMethod = 'DirectCard';
-
-      const res = await apiService.initiateCheckout(backendMethod);
-      if (res.ok) {
-        if (res.data?.checkout_url && backendMethod === 'SSLCommerz') {
-          window.location.href = res.data.checkout_url;
-        } else {
-          router.push('/profile');
-        }
-      } else {
-        setErrorMsg(res.data?.error || res.data?.message || 'Payment failed. Please try again.');
-      }
-    } catch (err) {
-      setErrorMsg('An unexpected error occurred during checkout.');
-    } finally {
-      setProcessing(false);
     }
   };
 
@@ -84,7 +60,7 @@ export default function CheckoutPage() {
                   <div className="flex justify-between items-center">
                       <div className="space-y-1">
                         <h4 className="font-bold text-slate-900 text-lg">ScholarConnect Pro</h4>
-                        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">30 Days Membership</p>
+                        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Lifetime Access</p>
                       </div>
                       <span className="font-black text-slate-900 text-xl tracking-tighter">500 BDT</span>
                   </div>
@@ -120,9 +96,10 @@ export default function CheckoutPage() {
 
                 <div className="space-y-4">
                   {[
-                    { id: 'card', name: 'Debit / Credit Card', icon: CreditCard, color: 'text-blue-600', sub: 'Visa, MasterCard, Amex' },
-                    { id: 'bkash', name: 'bKash Checkout', icon: Smartphone, color: 'text-pink-600', sub: 'Fast & Secure' },
-                    { id: 'nagad', name: 'Nagad Pay', icon: Smartphone, color: 'text-orange-600', sub: 'Popular Choice' }
+                    { id: 'bkash', name: 'bKash Checkout', icon: Smartphone, color: 'text-pink-600', sub: 'FAST & SECURE' },
+                    { id: 'nagad', name: 'Nagad Pay', icon: Smartphone, color: 'text-orange-600', sub: 'POPULAR CHOICE' },
+                    { id: 'bangla_qr', name: 'Bangla QR', icon: QrCode, color: 'text-emerald-600', sub: 'INSTANT SCAN' },
+                    { id: 'card', name: 'Debit / Credit Card', icon: CreditCard, color: 'text-blue-600', sub: 'VISA, MASTERCARD, AMEX' }
                   ].map(m => (
                     <button
                       key={m.id}
@@ -145,25 +122,18 @@ export default function CheckoutPage() {
                   ))}
                 </div>
 
-                {errorMsg ? (
-                  <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-xs font-bold text-red-600">
-                    {errorMsg}
-                  </div>
-                ) : null}
-
                 <button
-                  onClick={handlePayment}
-                  disabled={processing}
-                  className="w-full py-5 bg-slate-900 text-white rounded-[1.5rem] font-black text-sm uppercase tracking-[0.2em] hover:bg-slate-800 transition-all flex items-center justify-center gap-4 shadow-2xl shadow-slate-300 disabled:opacity-50"
+                  onClick={handleProceedToPayment}
+                  className="w-full py-5 bg-slate-900 text-white rounded-[1.5rem] font-black text-sm uppercase tracking-[0.2em] hover:bg-slate-800 transition-all flex items-center justify-center gap-4 shadow-2xl shadow-slate-300"
                 >
-                  {processing ? 'Processing Payment...' : 'Proceed to Payment'}
+                  <span>Proceed to Payment</span>
                   <ArrowRight size={20} />
                 </button>
 
-                <div className="flex justify-center gap-6 opacity-30 grayscale hover:opacity-100 hover:grayscale-0 transition-all pt-6">
+                <div className="flex justify-center items-center gap-6 opacity-40 grayscale hover:opacity-100 hover:grayscale-0 transition-all pt-6">
+                  <img src="https://securepay.sslcommerz.com/gw/images/brand-name/bkash.png" className="h-6" alt="bKash" />
                   <img src="https://securepay.sslcommerz.com/gw/images/brand-name/visa.png" className="h-6" alt="Visa" />
                   <img src="https://securepay.sslcommerz.com/gw/images/brand-name/mastercard.png" className="h-6" alt="Master" />
-                  <img src="https://securepay.sslcommerz.com/gw/images/brand-name/bkash.png" className="h-6" alt="bKash" />
                 </div>
             </div>
           </div>

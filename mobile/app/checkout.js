@@ -33,18 +33,6 @@ export default function CheckoutScreen() {
     };
 
     const handlePayment = async () => {
-        if (selectedMethod === 'SSLCommerz') {
-            setProcessing(true);
-            const res = await apiService.initiateCheckout('SSLCommerz');
-            setProcessing(false);
-            if (res.ok && res.data.checkout_url) {
-                await WebBrowser.openBrowserAsync(res.data.checkout_url);
-            } else {
-                Alert.alert('Error', 'Could not initialize gateway.');
-            }
-            return;
-        }
-
         if (selectedMethod === 'DirectCard') {
             router.push('/card-payment');
             return;
@@ -52,6 +40,16 @@ export default function CheckoutScreen() {
 
         if (selectedMethod === 'bKash') {
             router.push('/bkash-payment');
+            return;
+        }
+
+        if (selectedMethod === 'Nagad') {
+            router.push('/nagad-payment');
+            return;
+        }
+
+        if (selectedMethod === 'BanglaQR') {
+            router.push('/bangla-qr-payment');
             return;
         }
     };
@@ -114,28 +112,6 @@ export default function CheckoutScreen() {
                 <Text style={styles.sectionTitle}>Select Payment Method</Text>
 
                 <TouchableOpacity
-                    style={[styles.methodBtn, selectedMethod === 'SSLCommerz' && styles.selectedMethod]}
-                    onPress={() => setSelectedMethod('SSLCommerz')}
-                >
-                    <View style={styles.methodIconBox}>
-                         <Image
-                            source={{ uri: 'https://avatars.githubusercontent.com/u/12984950?s=200&v=4' }}
-                            style={{ width: 34, height: 34 }}
-                            resizeMode="contain"
-                        />
-                    </View>
-                    <View style={styles.methodText}>
-                        <Text style={styles.methodTitle}>SSLCommerz Gateway</Text>
-                        <Text style={styles.methodSub}>Pay via bKash, Cards, Net Banking etc.</Text>
-                    </View>
-                    <Ionicons
-                        name={selectedMethod === 'SSLCommerz' ? "radio-button-on" : "radio-button-off"}
-                        size={22}
-                        color={selectedMethod === 'SSLCommerz' ? theme.colors.primary : theme.colors.placeholder}
-                    />
-                </TouchableOpacity>
-
-                <TouchableOpacity
                     style={[styles.methodBtn, selectedMethod === 'bKash' && styles.selectedMethod]}
                     onPress={() => setSelectedMethod('bKash')}
                 >
@@ -147,13 +123,49 @@ export default function CheckoutScreen() {
                         />
                     </View>
                     <View style={styles.methodText}>
-                        <Text style={styles.methodTitle}>bKash Wallet</Text>
-                        <Text style={styles.methodSub}>Pay using your mobile wallet</Text>
+                        <Text style={styles.methodTitle}>bKash Checkout</Text>
+                        <Text style={styles.methodSub}>FAST & SECURE</Text>
                     </View>
                     <Ionicons
                         name={selectedMethod === 'bKash' ? "radio-button-on" : "radio-button-off"}
                         size={22}
                         color={selectedMethod === 'bKash' ? theme.colors.primary : theme.colors.placeholder}
+                    />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={[styles.methodBtn, selectedMethod === 'Nagad' && styles.selectedMethod]}
+                    onPress={() => setSelectedMethod('Nagad')}
+                >
+                    <View style={styles.methodIconBox}>
+                        <FontAwesome5 name="mobile-alt" size={22} color="#E42229" />
+                    </View>
+                    <View style={styles.methodText}>
+                        <Text style={styles.methodTitle}>Nagad Pay</Text>
+                        <Text style={styles.methodSub}>POPULAR CHOICE</Text>
+                    </View>
+                    <Ionicons
+                        name={selectedMethod === 'Nagad' ? "radio-button-on" : "radio-button-off"}
+                        size={22}
+                        color={selectedMethod === 'Nagad' ? theme.colors.primary : theme.colors.placeholder}
+                    />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={[styles.methodBtn, selectedMethod === 'BanglaQR' && styles.selectedMethod]}
+                    onPress={() => setSelectedMethod('BanglaQR')}
+                >
+                    <View style={styles.methodIconBox}>
+                        <FontAwesome5 name="qrcode" size={22} color="#00965E" />
+                    </View>
+                    <View style={styles.methodText}>
+                        <Text style={styles.methodTitle}>Bangla QR</Text>
+                        <Text style={styles.methodSub}>INSTANT SCAN</Text>
+                    </View>
+                    <Ionicons
+                        name={selectedMethod === 'BanglaQR' ? "radio-button-on" : "radio-button-off"}
+                        size={22}
+                        color={selectedMethod === 'BanglaQR' ? theme.colors.primary : theme.colors.placeholder}
                     />
                 </TouchableOpacity>
 
@@ -165,8 +177,8 @@ export default function CheckoutScreen() {
                         <MaterialIcons name="credit-card" size={24} color={theme.colors.primary} />
                     </View>
                     <View style={styles.methodText}>
-                        <Text style={styles.methodTitle}>Direct Card Entry</Text>
-                        <Text style={styles.methodSub}>Pay using Visa, MasterCard or Amex</Text>
+                        <Text style={styles.methodTitle}>Debit / Credit Card</Text>
+                        <Text style={styles.methodSub}>VISA, MASTERCARD, AMEX</Text>
                     </View>
                     <Ionicons
                         name={selectedMethod === 'DirectCard' ? "radio-button-on" : "radio-button-off"}

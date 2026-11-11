@@ -103,7 +103,7 @@ class CheckoutView(views.APIView):
         
         # Create a payment record
         status_val = 'PENDING'
-        if payment_method == 'DirectCard':
+        if payment_method in ['DirectCard', 'bKash', 'Nagad', 'BanglaQR']:
              status_val = 'COMPLETED'
 
         payment = Payment.objects.create(
@@ -114,21 +114,21 @@ class CheckoutView(views.APIView):
             payment_method=payment_method
         )
 
-        if payment_method == 'DirectCard':
+        if payment_method in ['DirectCard', 'bKash', 'Nagad', 'BanglaQR']:
             profile = Profile.objects.get(user=request.user)
             profile.upgrade_to_pro(None)
             
             send_notification(
                 user=request.user,
-                title="Payment Successful! 💳",
-                message=f"Your card payment of 500 BDT was successful. Enjoy Lifetime access to ScholarConnect Pro!",
+                title=f"{payment_method} Payment Successful! ✅",
+                message=f"Your payment of 500 BDT via {payment_method} was successful. Enjoy Lifetime access to ScholarConnect Pro!",
                 send_email=True
             )
             
             return Response({
                 "status": "success",
                 "transaction_id": transaction_id,
-                "message": "Direct Card Payment Simulated Successfully"
+                "message": f"{payment_method} Payment Simulated Successfully"
             }, status=status.HTTP_201_CREATED)
 
         # SSLCommerz Integration Logic (Simplified for demonstration)
