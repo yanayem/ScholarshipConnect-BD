@@ -146,13 +146,15 @@ export default function SettingsPage() {
             <p className="text-slate-500 text-xs font-medium mt-1">Manage your account credentials, notifications, and preferences.</p>
           </div>
 
-          <button
-            onClick={() => router.push('/upgrade-pro')}
-            className="hidden sm:flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-primary transition-all shadow-sm"
-          >
-            <Zap size={16} className="text-amber-400 fill-current" />
-            <span>{user.is_pro ? 'Pro Active' : 'Upgrade Pro'}</span>
-          </button>
+          {!user.is_pro && (
+            <button
+              onClick={() => router.push('/upgrade-pro')}
+              className="hidden sm:flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-primary/90 transition-all shadow-sm"
+            >
+              <Zap size={16} className="text-amber-400 fill-current" />
+              <span>Upgrade Pro</span>
+            </button>
+          )}
         </div>
 
         {/* Single Page 2-Column Layout */}

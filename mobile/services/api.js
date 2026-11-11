@@ -676,37 +676,51 @@ export const apiService = {
 
   async createDiscussion(data) {
     try {
-      const token = await getToken();
-      const formData = new FormData();
-      if (data.title) formData.append('title', data.title);
-      if (data.content) formData.append('content', data.content);
-      if (data.category) formData.append('category', data.category);
-      if (data.poll_question) formData.append('poll_question', data.poll_question);
-      if (data.image) {
-        if (Platform.OS === 'web') {
-          const response = await fetch(data.image.uri);
-          const blob = await response.blob();
-          formData.append('image', blob, data.image.fileName || `img_${Date.now()}.jpg`);
-        } else {
-          const uri = Platform.OS === 'ios' ? data.image.uri.replace('file://', '') : data.image.uri;
-          formData.append('image', {
-            uri,
-            name: data.image.fileName || `img_${Date.now()}.jpg`,
-            type: data.image.mimeType || 'image/jpeg'
-          });
-        }
-      }
-      if (data.poll_options && data.poll_options.length > 0) {
-        formData.append('poll_options', JSON.stringify(data.poll_options));
-      }
       const headers = await getHeaders(true);
-      delete headers['Content-Type'];
-      headers['Accept'] = 'application/json';
+      let body;
+      const isMultipart = !!data.image;
+
+      if (isMultipart) {
+        const formData = new FormData();
+        if (data.title) formData.append('title', data.title);
+        if (data.content) formData.append('content', data.content);
+        if (data.category) formData.append('category', data.category);
+        if (data.poll_question) formData.append('poll_question', data.poll_question);
+        if (data.image) {
+          if (Platform.OS === 'web') {
+            const response = await fetch(data.image.uri);
+            const blob = await response.blob();
+            formData.append('image', blob, data.image.fileName || `img_${Date.now()}.jpg`);
+          } else {
+            const fileName = data.image.fileName || data.image.uri.split('/').pop() || `img_${Date.now()}.jpg`;
+            const fileType = data.image.mimeType || data.image.type || 'image/jpeg';
+            formData.append('image', {
+              uri: data.image.uri,
+              name: fileName,
+              type: fileType
+            });
+          }
+        }
+        if (data.poll_options && data.poll_options.length > 0) {
+          formData.append('poll_options', JSON.stringify(data.poll_options));
+        }
+        delete headers['Content-Type'];
+        headers['Accept'] = 'application/json';
+        body = formData;
+      } else {
+        body = JSON.stringify({
+          title: data.title,
+          content: data.content,
+          category: data.category || 'General',
+          poll_question: data.poll_question || '',
+          poll_options: data.poll_options || []
+        });
+      }
 
       const response = await fetch(`${API_URL}/community/`, {
         method: 'POST',
         headers: headers,
-        body: formData,
+        body: body,
       });
       return await handleResponse(response);
     } catch (error) {
@@ -726,6 +740,10 @@ export const apiService = {
         if (data.content) formData.append('content', data.content);
         if (data.category) formData.append('category', data.category);
         if (data.is_solved !== undefined) formData.append('is_solved', String(data.is_solved));
+        if (data.poll_question !== undefined) formData.append('poll_question', data.poll_question);
+        if (data.poll_options && data.poll_options.length > 0) {
+          formData.append('poll_options', JSON.stringify(data.poll_options));
+        }
 
         if (data.image) {
           if (Platform.OS === 'web') {
@@ -733,10 +751,12 @@ export const apiService = {
             const blob = await response.blob();
             formData.append('image', blob, data.image.fileName || 'discussion_update.jpg');
           } else {
+            const fileName = data.image.fileName || data.image.uri.split('/').pop() || 'discussion_update.jpg';
+            const fileType = data.image.mimeType || data.image.type || 'image/jpeg';
             formData.append('image', {
-              uri: Platform.OS === 'ios' ? data.image.uri.replace('file://', '') : data.image.uri,
-              name: data.image.fileName || 'discussion_update.jpg',
-              type: data.image.mimeType || 'image/jpeg'
+              uri: data.image.uri,
+              name: fileName,
+              type: fileType
             });
           }
         }

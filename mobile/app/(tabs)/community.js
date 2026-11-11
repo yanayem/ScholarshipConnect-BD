@@ -118,6 +118,25 @@ export default function CommunityScreen() {
     if (!res.ok) loadBlogs();
   };
 
+  const handleStartDiscussion = (autoPickImage = false) => {
+    if (currentUser) {
+      if (autoPickImage) {
+        router.push('/community/create?pickImage=true');
+      } else {
+        router.push('/community/create');
+      }
+    } else {
+      Alert.alert(
+        'Login Required',
+        'Please log in to start a community discussion.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Log In', onPress: () => router.push('/(auth)/login') }
+        ]
+      );
+    }
+  };
+
   const handleMoreActions = (item) => {
     setSelectedPost(item);
     setActionModalVisible(true);
@@ -212,6 +231,9 @@ export default function CommunityScreen() {
       <View style={styles.cardBody}>
         <Text style={styles.discussionTitle}>{item.title}</Text>
         <Text style={styles.discussionContent} numberOfLines={2}>{item.content}</Text>
+        {item.image ? (
+          <Image source={{ uri: item.image }} style={styles.postCardImage} resizeMode="cover" />
+        ) : null}
         {(item.image || item.hasPoll) && (
           <View style={styles.attachmentBadges}>
             {item.image && (
@@ -270,13 +292,13 @@ export default function CommunityScreen() {
             <Ionicons name="chatbubbles" size={18} color={activeTab === 'Discussions' ? '#fff' : theme.colors.textSecondary} />
             <Text style={[styles.tabText, activeTab === 'Discussions' && styles.activeTabText]}>Feed</Text>
           </TouchableOpacity>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={[styles.tabButton, activeTab === 'Mentors' && styles.activeTabButton]}
             onPress={() => setActiveTab('Mentors')}
           >
             <FontAwesome5 name="user-graduate" size={16} color={activeTab === 'Mentors' ? '#fff' : theme.colors.textSecondary} />
             <Text style={[styles.tabText, activeTab === 'Mentors' && styles.activeTabText]}>Mentors</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
 
@@ -354,20 +376,34 @@ export default function CommunityScreen() {
                   </View>
                 )}
                 <TouchableOpacity
-                  style={styles.composeBox}
-                  onPress={() => currentUser ? router.push('/community/create') : Alert.alert('Login Required', 'Please login to post.')}
+                  style={styles.fbHeaderBarCard}
+                  onPress={() => handleStartDiscussion(false)}
+                  activeOpacity={0.85}
                 >
-                  <View style={styles.composeAvatar}>
-                     {currentUser?.avatar_url || currentUser?.profile_picture ? (
-                       <Image source={{ uri: currentUser?.avatar_url || currentUser?.profile_picture }} style={styles.avatarImage} />
-                     ) : (
-                       <Text style={styles.composeAvatarText}>{(currentUser?.full_name || currentUser?.username || 'U')[0].toUpperCase()}</Text>
-                     )}
+                  <View style={styles.fbHeaderAvatarContainer}>
+                    {currentUser?.avatar_url || currentUser?.profile_picture ? (
+                      <Image source={{ uri: currentUser?.avatar_url || currentUser?.profile_picture }} style={styles.avatarImage} />
+                    ) : (
+                      <Text style={styles.composeAvatarText}>
+                        {(currentUser?.full_name || currentUser?.username || 'U')[0].toUpperCase()}
+                      </Text>
+                    )}
                   </View>
-                  <View style={styles.composeInputPlaceholder}>
-                    <Text style={styles.composePlaceholderText}>Have a problem? Ask the community...</Text>
+
+                  <View style={styles.fbHeaderInputPill}>
+                    <Text style={styles.fbHeaderPlaceholderText} numberOfLines={1}>
+                      What's on your mind{currentUser?.full_name ? `, ${currentUser.full_name.split(' ')[0]}` : currentUser?.username ? `, ${currentUser.username}` : ''}?
+                    </Text>
+
+                    <View style={styles.fbHeaderIconsRow}>
+                      <TouchableOpacity onPress={() => handleStartDiscussion(true)} style={styles.fbIconBtn} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
+                        <MaterialIcons name="photo-library" size={22} color="#45BD62" />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => handleStartDiscussion(false)} style={styles.fbIconBtn} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
+                        <MaterialIcons name="sentiment-satisfied-alt" size={22} color="#F7B928" />
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                  <MaterialIcons name="image" size={24} color={theme.colors.primary} />
                 </TouchableOpacity>
               </>
             }
@@ -504,6 +540,18 @@ export default function CommunityScreen() {
         </Pressable>
       </Modal>
 
+      {/* Floating Action Button for Start Discussion (Commented out) */}
+      {/* {activeTab === 'Discussions' && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={handleStartDiscussion}
+          activeOpacity={0.85}
+        >
+          <MaterialIcons name="add" size={24} color="#fff" />
+          <Text style={styles.fabText}>Start Discussion</Text>
+        </TouchableOpacity>
+      )} */}
+
       {ToastComponent}
     </View>
   );
@@ -557,7 +605,61 @@ const styles = StyleSheet.create({
   storyAvatarBorder: { position: 'absolute', bottom: -2, right: -2, width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: theme.colors.surface, backgroundColor: theme.colors.surface, overflow: 'hidden' },
   storyAvatar: { width: '100%', height: '100%', borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   storyUserText: { fontSize: 11, fontFamily: theme.typography.fontFamily.medium, color: theme.colors.textPrimary, textAlign: 'center' },
-  composeBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.surface, padding: theme.spacing.sm, borderRadius: theme.borderRadius.lg, marginBottom: theme.spacing.sm, borderWidth: 1, borderColor: theme.colors.divider },
+  fbHeaderBarCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: theme.colors.divider,
+    ...theme.shadows.soft
+  },
+  fbHeaderAvatarContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    marginRight: 10
+  },
+  fbHeaderInputPill: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: theme.colors.secondaryBackground,
+    borderRadius: 24,
+    paddingLeft: 14,
+    paddingRight: 8,
+    height: 44,
+    borderWidth: 1,
+    borderColor: theme.colors.divider
+  },
+  fbHeaderPlaceholderText: {
+    flex: 1,
+    fontFamily: theme.typography.fontFamily.regular,
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    marginRight: 8
+  },
+  fbHeaderIconsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
+  fbIconBtn: {
+    padding: 2
+  },
+  fbActionVerticalDivider: {
+    width: 1,
+    height: 18,
+    backgroundColor: theme.colors.divider
+  },
   composeAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: theme.colors.primaryLight, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   composeAvatarText: { color: theme.colors.primary, fontFamily: theme.typography.fontFamily.bold },
   composeInputPlaceholder: { flex: 1, marginLeft: theme.spacing.md },
@@ -578,6 +680,7 @@ const styles = StyleSheet.create({
   cardBody: { marginBottom: theme.spacing.sm },
   discussionTitle: { fontFamily: theme.typography.fontFamily.bold, fontSize: 18, color: theme.colors.heading, marginBottom: theme.spacing.xs, lineHeight: 24 },
   discussionContent: { fontFamily: theme.typography.fontFamily.regular, fontSize: 14, color: theme.colors.textPrimary, lineHeight: 22, opacity: 0.8 },
+  postCardImage: { width: '100%', height: 180, borderRadius: 12, marginTop: 10, marginBottom: 4 },
   attachmentBadges: { flexDirection: 'row', gap: 8, marginTop: 10 },
   attachmentBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: theme.colors.primaryLight, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   attachmentBadgeText: { fontSize: 11, fontFamily: theme.typography.fontFamily.bold, color: theme.colors.primary },
@@ -600,5 +703,25 @@ const styles = StyleSheet.create({
   actionIconBox: { width: 44, height: 44, borderRadius: 22, backgroundColor: theme.colors.background, justifyContent: 'center', alignItems: 'center' },
   actionLabel: { fontSize: 16, fontFamily: theme.typography.fontFamily.medium, color: theme.colors.textPrimary },
   sheetCloseBtn: { marginTop: 12, paddingVertical: 16, alignItems: 'center', backgroundColor: theme.colors.background, borderRadius: 16 },
-  sheetCloseText: { fontSize: 16, fontFamily: theme.typography.fontFamily.bold, color: theme.colors.textSecondary }
+  sheetCloseText: { fontSize: 16, fontFamily: theme.typography.fontFamily.bold, color: theme.colors.textSecondary },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 20,
+    backgroundColor: theme.colors.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 30,
+    ...theme.shadows.teal,
+    elevation: 6,
+    zIndex: 100
+  },
+  fabText: {
+    color: '#fff',
+    fontFamily: theme.typography.fontFamily.bold,
+    fontSize: 14,
+    marginLeft: 6
+  }
 });

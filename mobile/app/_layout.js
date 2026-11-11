@@ -82,6 +82,8 @@ export default function RootLayout() {
                 <Stack.Screen name="reminders" />
                 <Stack.Screen name="documents" />
                 <Stack.Screen name="settings" />
+                <Stack.Screen name="community/create" options={{ presentation: 'modal' }} />
+                <Stack.Screen name="community/[id]" />
                 <Stack.Screen name="edit-profile" options={{ presentation: 'modal' }} />
               </Stack>
             </View>

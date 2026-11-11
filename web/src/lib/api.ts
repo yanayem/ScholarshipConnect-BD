@@ -250,10 +250,131 @@ export const apiService = {
     });
   },
 
+  async getDiscussionDetail(id: number | string) {
+    return await safeFetch(`${API_URL}/community/${id}/`, {
+      method: 'GET',
+      headers: await getHeaders(true),
+    });
+  },
+
+  async createDiscussion(data: FormData | object) {
+    const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
+    const headers = await getHeaders(true);
+    if (isFormData) {
+      delete headers['Content-Type'];
+    }
+    return await safeFetch(`${API_URL}/community/`, {
+      method: 'POST',
+      headers: headers,
+      body: isFormData ? (data as FormData) : JSON.stringify(data),
+    });
+  },
+
+  async updateDiscussion(id: number | string, data: FormData | object) {
+    const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
+    const headers = await getHeaders(true);
+    if (isFormData) {
+      delete headers['Content-Type'];
+    }
+    return await safeFetch(`${API_URL}/community/${id}/`, {
+      method: 'PATCH',
+      headers: headers,
+      body: isFormData ? (data as FormData) : JSON.stringify(data),
+    });
+  },
+
+  async deleteDiscussion(id: number | string) {
+    return await safeFetch(`${API_URL}/community/${id}/`, {
+      method: 'DELETE',
+      headers: await getHeaders(true),
+    });
+  },
+
+  async likeDiscussion(id: number | string) {
+    return await safeFetch(`${API_URL}/community/${id}/like/`, {
+      method: 'POST',
+      headers: await getHeaders(true),
+    });
+  },
+
+  async voteDiscussion(id: number | string, optionId: number | string) {
+    return await safeFetch(`${API_URL}/community/${id}/vote/`, {
+      method: 'POST',
+      headers: await getHeaders(true),
+      body: JSON.stringify({ option_id: optionId }),
+    });
+  },
+
+  async commentDiscussion(id: number | string, content: string) {
+    return await safeFetch(`${API_URL}/community/${id}/comment/`, {
+      method: 'POST',
+      headers: await getHeaders(true),
+      body: JSON.stringify({ content }),
+    });
+  },
+
+  async updateDiscussionComment(commentId: number | string, content: string) {
+    return await safeFetch(`${API_URL}/community/comments/${commentId}/`, {
+      method: 'PATCH',
+      headers: await getHeaders(true),
+      body: JSON.stringify({ content }),
+    });
+  },
+
+  async deleteDiscussionComment(commentId: number | string) {
+    return await safeFetch(`${API_URL}/community/comments/${commentId}/`, {
+      method: 'DELETE',
+      headers: await getHeaders(true),
+    });
+  },
+
+  async getStories() {
+    return await safeFetch(`${API_URL}/community/stories/`, {
+      method: 'GET',
+      headers: await getHeaders(true),
+    });
+  },
+
+  async createStory(data: FormData | object) {
+    const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
+    const headers = await getHeaders(true);
+    if (isFormData) {
+      delete headers['Content-Type'];
+    }
+    return await safeFetch(`${API_URL}/community/stories/`, {
+      method: 'POST',
+      headers: headers,
+      body: isFormData ? (data as FormData) : JSON.stringify(data),
+    });
+  },
+
+  async createReport(data: any) {
+    return await safeFetch(`${API_URL}/community/reports/`, {
+      method: 'POST',
+      headers: await getHeaders(true),
+      body: JSON.stringify(data),
+    });
+  },
+
   async getMentors() {
     return await safeFetch(`${API_URL}/community/mentors/`, {
       method: 'GET',
       headers: await getHeaders(true),
+    });
+  },
+
+  async getMentorReviews(mentorId: number | string) {
+    return await safeFetch(`${API_URL}/community/reviews/?mentor=${mentorId}`, {
+      method: 'GET',
+      headers: await getHeaders(true),
+    });
+  },
+
+  async submitMentorReview(mentorId: number | string, rating: number, comment: string) {
+    return await safeFetch(`${API_URL}/community/reviews/`, {
+      method: 'POST',
+      headers: await getHeaders(true),
+      body: JSON.stringify({ mentor: mentorId, rating, comment }),
     });
   },
 

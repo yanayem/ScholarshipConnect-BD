@@ -165,6 +165,35 @@ export default function UpgradeProPage() {
                 <p className="text-[10px] text-center text-slate-400 font-black uppercase tracking-[0.2em] pt-6">
                    Secure 256-bit encryption. SSLCommerz Verified.
                 </p>
+
+                {/* Developer / Testing Controls */}
+                <div className="border border-dashed border-amber-300 rounded-lg p-6 bg-amber-50/50 space-y-3 mt-6">
+                   <p className="text-xs font-bold text-amber-800 flex items-center gap-2">
+                     <Sparkles size={14} /> Developer / Testing Controls
+                   </p>
+                   <p className="text-[11px] text-amber-700">
+                     Current Status: <span className="font-bold">{user.is_pro ? 'Pro Active' : 'Free Plan'}</span>
+                   </p>
+                   <div className="flex gap-3">
+                     {!user.is_pro ? (
+                       <button
+                         onClick={() => handleDevToggle(true)}
+                         disabled={processing}
+                         className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded font-bold text-xs shadow-sm transition-all"
+                       >
+                         Activate Pro (Dev Test)
+                       </button>
+                     ) : (
+                       <button
+                         onClick={() => handleDevToggle(false)}
+                         disabled={processing}
+                         className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded font-bold text-xs shadow-sm transition-all"
+                       >
+                         Cancel Pro Membership (Dev Test)
+                       </button>
+                     )}
+                   </div>
+                </div>
              </div>
           </div>
         </div>

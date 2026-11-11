@@ -354,6 +354,11 @@ export default function ProfileScreen() {
                     <Text style={styles.staffBadgeText}>STAFF</Text>
                 </View>
             )}
+            {user?.is_pro && (
+                <View style={[styles.staffBadge, { backgroundColor: '#7C3AED' }]}>
+                    <Text style={styles.staffBadgeText}>SCHOLAR PRO MEMBER</Text>
+                </View>
+            )}
             {user?.is_mentor && !isMentorMode && (
                 <View style={[styles.staffBadge, { backgroundColor: theme.colors.success }]}>
                     <Text style={styles.staffBadgeText}>MENTOR</Text>

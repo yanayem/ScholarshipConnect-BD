@@ -322,7 +322,9 @@ export default function ProfilePage() {
                          <span className="bg-slate-900 text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded tracking-widest">Staff</span>
                        )}
                     </div>
-                    <p className="text-[10px] font-bold text-primary uppercase tracking-wider">Scholar Pro</p>
+                    {user.is_pro && (
+                      <p className="text-[10px] font-bold text-primary uppercase tracking-wider">Scholar Pro Member</p>
+                    )}
                  </div>
               </div>
 

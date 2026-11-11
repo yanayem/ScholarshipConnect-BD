@@ -1,3 +1,4 @@
+import json
 from rest_framework import serializers
 from .models import Discussion, DiscussionComment, PollOption, PollVote, Story, StoryReaction, MentorshipSession, Report, MentorConnection, ChatMessage, MentorReview
 from django.contrib.auth.models import User
@@ -81,7 +82,7 @@ class DiscussionSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source='author.username', read_only=True)
     title = serializers.CharField(required=False)
     content = serializers.CharField(required=False)
-    category = serializers.ChoiceField(choices=Discussion.CATEGORY_CHOICES, required=False)
+    category = serializers.CharField(required=False, default='General')
     author_full_name = serializers.SerializerMethodField()
     author_email = serializers.CharField(source='author.email', read_only=True)
     author_avatar_url = serializers.SerializerMethodField()
@@ -134,6 +135,45 @@ class DiscussionSerializer(serializers.ModelSerializer):
             vote = obj.poll_votes.filter(user=request.user).first()
             return vote.option.id if vote else None
         return None
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        discussion = super().create(validated_data)
+        
+        if request:
+            poll_options_data = request.data.get('poll_options')
+            if poll_options_data:
+                if isinstance(poll_options_data, str):
+                    try:
+                        poll_options_data = json.loads(poll_options_data)
+                    except Exception:
+                        poll_options_data = [opt.strip() for opt in poll_options_data.split(',') if opt.strip()]
+                
+                if isinstance(poll_options_data, list):
+                    for option_text in poll_options_data:
+                        if isinstance(option_text, str) and option_text.strip():
+                            PollOption.objects.create(discussion=discussion, text=option_text.strip())
+        return discussion
+
+    def update(self, instance, validated_data):
+        request = self.context.get('request')
+        discussion = super().update(instance, validated_data)
+        
+        if request:
+            poll_options_data = request.data.get('poll_options')
+            if poll_options_data is not None:
+                if isinstance(poll_options_data, str):
+                    try:
+                        poll_options_data = json.loads(poll_options_data)
+                    except Exception:
+                        poll_options_data = [opt.strip() for opt in poll_options_data.split(',') if opt.strip()]
+                
+                if isinstance(poll_options_data, list) and len(poll_options_data) > 0:
+                    discussion.poll_options.all().delete()
+                    for option_text in poll_options_data:
+                        if isinstance(option_text, str) and option_text.strip():
+                            PollOption.objects.create(discussion=discussion, text=option_text.strip())
+        return discussion
 
 class StoryReactionSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source='user.username', read_only=True)

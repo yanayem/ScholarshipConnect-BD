@@ -6,6 +6,7 @@ from core.utils import compress_image
 class Discussion(models.Model):
     CATEGORY_CHOICES = [
         ('General', 'General Discussion'),
+        ('Open Problems', 'Open Problems'),
         ('Scholarship Help', 'Scholarship Help'),
         ('Scholarships', 'Scholarships'),
         ('SOP/CV', 'SOP/CV Advice'),
