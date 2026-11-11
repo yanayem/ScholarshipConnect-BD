@@ -165,7 +165,7 @@ function StudentHome({ user, scholarships, leaderboard, loading, search, setSear
         </div>
 
         <div className="w-full min-w-0 lg:col-span-1 space-y-8 md:space-y-10">
-          <div className="w-full max-w-full border border-slate-200 rounded-2xl p-5 sm:p-8 relative overflow-hidden bg-slate-50/50 group">
+          {/* <div className="w-full max-w-full border border-slate-200 rounded-2xl p-5 sm:p-8 relative overflow-hidden bg-slate-50/50 group">
              <h4 className="font-bold text-base text-slate-900 mb-2 relative z-10">Student Stories</h4>
              <p className="text-slate-500 text-[11px] leading-relaxed mb-6 relative z-10 font-medium">
                Read how fellow Bangladeshi students secured their dreams abroad.
@@ -175,9 +175,9 @@ function StudentHome({ user, scholarships, leaderboard, loading, search, setSear
                <ArrowRight size={14} />
              </Link>
              <BookOpen size={80} className="absolute -bottom-4 -right-4 text-slate-100 opacity-50" />
-          </div>
+          </div> */}
 
-          <section className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm">
+          {/* <section className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm">
             <div className="p-6 border-b border-slate-50 bg-slate-50/30">
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Top Scholars</h3>
             </div>
@@ -202,7 +202,7 @@ function StudentHome({ user, scholarships, leaderboard, loading, search, setSear
             <Link href="/community/leaderboard" className="block text-center py-4 bg-slate-50 text-[10px] font-black text-slate-400 hover:text-primary transition-colors border-t border-slate-100 uppercase tracking-widest">
               Full Leaderboard
             </Link>
-          </section>
+          </section> */}
 
           <div className="w-full max-w-full bg-primary/5 border border-primary/10 rounded-2xl p-5 sm:p-8 text-center shadow-sm overflow-hidden">
              <div className="w-12 h-12 bg-primary text-white rounded-xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/20">

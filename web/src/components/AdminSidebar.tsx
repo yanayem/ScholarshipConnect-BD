@@ -23,12 +23,12 @@ const ADMIN_NAV = [
   { name: 'Scholarships', href: '/admin/scholarships', icon: GraduationCap },
   { name: 'Applications', href: '/admin/applications', icon: FileText },
   { name: 'Users', href: '/admin/users', icon: Users },
-  { name: 'Mentors', href: '/admin/mentors', icon: UserCheck },
-  { name: 'Broadcast', href: '/admin/broadcast', icon: Radio },
-  { name: 'Moderation', href: '/admin/moderation', icon: ShieldCheck },
-  { name: 'Analytics', href: '/admin/analytics', icon: Activity },
-  { name: 'Logs', href: '/admin/logs', icon: History },
-  { name: 'Settings', href: '/admin/settings', icon: Settings },
+  // { name: 'Mentors', href: '/admin/mentors', icon: UserCheck },
+  // { name: 'Broadcast', href: '/admin/broadcast', icon: Radio },
+  // { name: 'Moderation', href: '/admin/moderation', icon: ShieldCheck },
+  // { name: 'Analytics', href: '/admin/analytics', icon: Activity },
+  // { name: 'Logs', href: '/admin/logs', icon: History },
+  // { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 
 export default function AdminSidebar() {

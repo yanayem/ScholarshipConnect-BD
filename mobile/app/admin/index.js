@@ -274,15 +274,15 @@ export default function AdminConsole() {
                   <Text style={styles.sidebarItemText}>User Directory</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.sidebarItem} onPress={() => {setMenuVisible(false); router.push('/admin/mentors');}}>
+                {/* <TouchableOpacity style={styles.sidebarItem} onPress={() => {setMenuVisible(false); router.push('/admin/mentors');}}>
                   <MaterialCommunityIcons name="account-tie" size={22} color={theme.colors.success} />
                   <Text style={styles.sidebarItemText}>Mentor Program</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
 
                 <View style={styles.sidebarDivider} />
                 <Text style={styles.sidebarSectionTitle}>System</Text>
 
-                <TouchableOpacity style={styles.sidebarItem} onPress={() => {setMenuVisible(false); router.push('/admin/moderation');}}>
+                {/* <TouchableOpacity style={styles.sidebarItem} onPress={() => {setMenuVisible(false); router.push('/admin/moderation');}}>
                   <MaterialCommunityIcons name="shield-alert" size={22} color={theme.colors.error} />
                   <Text style={styles.sidebarItemText}>Moderation</Text>
                 </TouchableOpacity>
@@ -305,7 +305,7 @@ export default function AdminConsole() {
                 <TouchableOpacity style={styles.sidebarItem} onPress={() => {setMenuVisible(false); router.push('/admin/settings');}}>
                   <MaterialCommunityIcons name="cog" size={22} color={theme.colors.primaryDark} />
                   <Text style={styles.sidebarItemText}>Admin Settings</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
 
                 <View style={styles.sidebarDivider} />
 

@@ -342,27 +342,19 @@ export default function ProfilePage() {
                          <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isMentorMode ? 'right-1' : 'left-1'}`}></div>
                       </button>
                    </div>
-                 ) : (
-                   <button
-                     onClick={handleBecomeMentor}
-                     className="w-full flex items-center gap-3 px-4 py-3 mb-4 bg-primary-light text-primary rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-primary/20 transition-all"
-                   >
-                      <GraduationCap size={18} />
-                      Become a Mentor
-                   </button>
-                 )}
+                 ) : null}
 
                  {[
                    { name: 'Dashboard', icon: Trophy, href: '/profile' },
                    ...((user as any).is_staff ? [{ name: 'Admin Console', icon: ShieldCheck, href: '/admin' }] : []),
                    { name: 'My Applications', icon: Send, href: '/profile/applications' },
                    { name: 'Document Vault', icon: FileText, href: '/profile/documents' },
-                   { name: 'Saved Scholarships', icon: Bookmark, href: '/scholarships?filter=saved' },
-                   { name: 'Leaderboard', icon: Star, href: '/community/leaderboard' },
-                   { name: 'My Insights', icon: LineChart, href: '/profile/progress' },
-                   { name: 'History & Activity', icon: History, href: '/profile/activity' },
-                   { name: 'Find Mentors', icon: Users, href: '/mentorship' },
-                   { name: 'Notifications', icon: Bell, href: '/notifications' },
+                   // { name: 'Saved Scholarships', icon: Bookmark, href: '/scholarships?filter=saved' },
+                   // { name: 'Leaderboard', icon: Star, href: '/community/leaderboard' },
+                   // { name: 'My Insights', icon: LineChart, href: '/profile/progress' },
+                   // { name: 'History & Activity', icon: History, href: '/profile/activity' },
+                   // { name: 'Find Mentors', icon: Users, href: '/mentorship' },
+                   // { name: 'Notifications', icon: Bell, href: '/notifications' },
                    { name: 'Account Settings', icon: Settings, href: '/settings' },
                    { name: 'Privacy Policy', icon: Lock, href: '/privacy' },
                  ].map((item) => (
@@ -389,14 +381,14 @@ export default function ProfilePage() {
               </button>
            </div>
 
-           <div className="bg-primary/5 border border-primary/10 rounded-sm p-6 text-center">
+           {/* <div className="bg-primary/5 border border-primary/10 rounded-sm p-6 text-center">
               <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-3">Community Rank</p>
               <div className="w-16 h-16 bg-white border-2 border-primary/20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
                  <Trophy className="text-yellow-500" size={28} />
               </div>
               <p className="text-xl font-bold text-slate-900">{u.scholar_points || 0}</p>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Scholar Points</p>
-           </div>
+           </div> */}
         </aside>
 
         {/* Main Content Area */}

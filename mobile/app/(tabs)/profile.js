@@ -625,22 +625,11 @@ export default function ProfileScreen() {
                       thumbColor="#fff"
                    />
                 </View>
-              ) : (
-                <TouchableOpacity
-                  style={styles.menuItem}
-                  onPress={() => {
-                    setMenuVisible(false);
-                    handleBecomeMentor();
-                  }}
-                >
-                  <MaterialIcons name="school" size={24} color={theme.colors.primary} />
-                  <Text style={styles.menuText}>Become a Mentor</Text>
-                </TouchableOpacity>
-              )}
+              ) : null}
 
               <View style={styles.menuDivider} />
 
-              <TouchableOpacity
+              {/* <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => {
                   setMenuVisible(false);
@@ -660,7 +649,7 @@ export default function ProfileScreen() {
               >
                 <MaterialIcons name="insights" size={24} color={theme.colors.primary} />
                 <Text style={styles.menuText}>My Insights</Text>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
 
               <TouchableOpacity
                 style={styles.menuItem}
@@ -673,7 +662,7 @@ export default function ProfileScreen() {
                 <Text style={styles.menuText}>Submission Feedback</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
+              {/* <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => {
                   setMenuVisible(false);
@@ -682,7 +671,7 @@ export default function ProfileScreen() {
               >
                 <MaterialIcons name="history" size={24} color={theme.colors.primary} />
                 <Text style={styles.menuText}>History & Activity</Text>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
 
               <TouchableOpacity
                 style={styles.menuItem}
