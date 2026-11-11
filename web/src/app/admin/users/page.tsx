@@ -88,7 +88,7 @@ export default function AdminUsersPage() {
 
                   <div className="space-y-1 mb-6">
                      <h3 className="font-bold text-slate-900 group-hover:text-primary transition-colors">{u.full_name || u.username}</h3>
-                     <p className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1.5 tracking-widest">
+                     <p className="text-[10px] text-slate-400 font-bold lowercase flex items-center gap-1.5 tracking-widest">
                         <Mail size={12} />
                         {(u.email || 'no-email@test.com').toLowerCase()}
                      </p>
