@@ -258,7 +258,8 @@ export default function SettingsScreen() {
             onPress={() => Alert.alert('Font Size', 'Adjust font size for better readability.')}
         />
 
-        <SectionHeader title="Community & Mentorship" />
+        <SectionHeader title="Community" />
+        {/* Mentor options commented out
         <View style={styles.item}>
           <View style={styles.itemLeft}>
             <View style={[styles.iconBox, { backgroundColor: theme.colors.background }]}>
@@ -291,6 +292,7 @@ export default function SettingsScreen() {
                 />
             </>
         )}
+        */}
         <SettingItem
             icon="forum"
             label="My Discussions"
@@ -301,7 +303,7 @@ export default function SettingsScreen() {
         <SettingItem
           icon="notifications-none"
           label="Notifications"
-          subLabel="Scholarship alerts, Mentions, System updates"
+          subLabel="Scholarship alerts, System updates"
           onPress={() => Alert.alert('Notifications', 'Detailed notification settings coming soon.')}
         />
         <SettingItem

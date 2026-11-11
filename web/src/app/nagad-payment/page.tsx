@@ -54,24 +54,24 @@ export default function NagadPaymentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100/70">
+    <div className="min-h-screen bg-background">
       <Header />
 
       <main className="max-w-3xl mx-auto px-3 sm:px-6 py-6 sm:py-12">
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-slate-500 hover:text-orange-600 transition-colors text-xs font-black uppercase tracking-widest mb-8"
+          className="flex items-center gap-2 text-slate-400 hover:text-[#E42229] transition-colors text-xs font-black uppercase tracking-widest mb-8"
         >
           <ArrowLeft size={16} />
           Back to Checkout
         </button>
 
-        {/* Nagad Themed Container */}
-        <div className="bg-gradient-to-r from-[#E42229] to-[#F7921E] rounded-[2.5rem] shadow-2xl overflow-hidden border border-orange-600">
+        {/* Nagad Container with matching main page borders */}
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
           {/* Nagad Header Bar */}
-          <div className="p-6 sm:p-8 border-b border-white/10 flex items-center justify-between text-white">
+          <div className="p-6 sm:p-8 bg-gradient-to-r from-[#E42229] to-[#F7921E] border-b border-orange-600 flex items-center justify-between text-white">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center p-2 shadow-inner">
+              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center p-2 shadow-inner">
                 <span className="font-black text-xl text-[#E42229]">নগদ</span>
               </div>
               <div>
@@ -86,12 +86,12 @@ export default function NagadPaymentPage() {
           </div>
 
           {/* Stepper Progress */}
-          <div className="bg-black/20 px-6 py-3 border-b border-white/10 flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-widest text-orange-100">
-            <span className={step >= 1 ? 'text-white underline decoration-2' : 'opacity-50'}>1. Account</span>
+          <div className="bg-orange-50/50 px-6 py-3 border-b border-orange-100 flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-widest text-orange-800">
+            <span className={step >= 1 ? 'text-[#E42229] underline decoration-2' : 'opacity-50'}>1. Account</span>
             <span className="opacity-30">›</span>
-            <span className={step >= 2 ? 'text-white underline decoration-2' : 'opacity-50'}>2. Verification</span>
+            <span className={step >= 2 ? 'text-[#E42229] underline decoration-2' : 'opacity-50'}>2. Verification</span>
             <span className="opacity-30">›</span>
-            <span className={step >= 3 ? 'text-white underline decoration-2' : 'opacity-50'}>3. PIN</span>
+            <span className={step >= 3 ? 'text-[#E42229] underline decoration-2' : 'opacity-50'}>3. PIN</span>
           </div>
 
           {/* Main Content Form */}
@@ -99,7 +99,7 @@ export default function NagadPaymentPage() {
             <form onSubmit={handleProceed} className="space-y-6 max-w-md mx-auto">
               {step === 1 && (
                 <div className="space-y-4 text-center">
-                  <div className="w-16 h-16 bg-orange-50 text-[#E42229] rounded-3xl flex items-center justify-center mx-auto shadow-inner">
+                  <div className="w-16 h-16 bg-orange-50 text-[#E42229] rounded-2xl border border-orange-100 flex items-center justify-center mx-auto shadow-xs">
                     <Smartphone size={32} />
                   </div>
                   <div>
@@ -114,7 +114,7 @@ export default function NagadPaymentPage() {
                       maxLength={11}
                       value={nagadNumber}
                       onChange={(e) => setNagadNumber(e.target.value.replace(/\D/g, ''))}
-                      className="w-full text-center text-xl font-bold tracking-widest py-4 px-5 border-2 border-slate-200 rounded-2xl focus:border-[#E42229] focus:outline-none focus:ring-4 focus:ring-orange-500/10 transition-all text-slate-900"
+                      className="w-full text-center text-xl font-bold tracking-widest py-4 px-5 border border-slate-200 rounded-xl focus:border-[#E42229] focus:outline-none focus:ring-2 focus:ring-orange-500/10 transition-all text-slate-900"
                       autoFocus
                     />
                   </div>
@@ -123,7 +123,7 @@ export default function NagadPaymentPage() {
 
               {step === 2 && (
                 <div className="space-y-4 text-center">
-                  <div className="w-16 h-16 bg-orange-50 text-[#E42229] rounded-3xl flex items-center justify-center mx-auto shadow-inner">
+                  <div className="w-16 h-16 bg-orange-50 text-[#E42229] rounded-2xl border border-orange-100 flex items-center justify-center mx-auto shadow-xs">
                     <ShieldCheck size={32} />
                   </div>
                   <div>
@@ -140,7 +140,7 @@ export default function NagadPaymentPage() {
                       maxLength={6}
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                      className="w-full text-center text-2xl font-mono font-bold tracking-[0.4em] py-4 px-5 border-2 border-slate-200 rounded-2xl focus:border-[#E42229] focus:outline-none focus:ring-4 focus:ring-orange-500/10 transition-all text-slate-900"
+                      className="w-full text-center text-2xl font-mono font-bold tracking-[0.4em] py-4 px-5 border border-slate-200 rounded-xl focus:border-[#E42229] focus:outline-none focus:ring-2 focus:ring-orange-500/10 transition-all text-slate-900"
                       autoFocus
                     />
                   </div>
@@ -149,7 +149,7 @@ export default function NagadPaymentPage() {
 
               {step === 3 && (
                 <div className="space-y-4 text-center">
-                  <div className="w-16 h-16 bg-orange-50 text-[#E42229] rounded-3xl flex items-center justify-center mx-auto shadow-inner">
+                  <div className="w-16 h-16 bg-orange-50 text-[#E42229] rounded-2xl border border-orange-100 flex items-center justify-center mx-auto shadow-xs">
                     <Lock size={32} />
                   </div>
                   <div>
@@ -164,7 +164,7 @@ export default function NagadPaymentPage() {
                       maxLength={4}
                       value={pin}
                       onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                      className="w-full text-center text-3xl font-mono font-bold tracking-[0.5em] py-4 px-5 border-2 border-slate-200 rounded-2xl focus:border-[#E42229] focus:outline-none focus:ring-4 focus:ring-orange-500/10 transition-all text-slate-900"
+                      className="w-full text-center text-3xl font-mono font-bold tracking-[0.5em] py-4 px-5 border border-slate-200 rounded-xl focus:border-[#E42229] focus:outline-none focus:ring-2 focus:ring-orange-500/10 transition-all text-slate-900"
                       autoFocus
                     />
                   </div>
@@ -181,7 +181,7 @@ export default function NagadPaymentPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-5 bg-gradient-to-r from-[#E42229] to-[#F7921E] text-white rounded-2xl font-black text-sm uppercase tracking-[0.2em] hover:opacity-90 transition-all flex items-center justify-center gap-3 shadow-xl shadow-orange-600/20 disabled:opacity-50"
+                className="w-full py-4 bg-gradient-to-r from-[#E42229] to-[#F7921E] text-white rounded-xl font-black text-xs uppercase tracking-[0.2em] hover:opacity-90 transition-all flex items-center justify-center gap-3 shadow-md disabled:opacity-50"
               >
                 {loading ? (
                   <>

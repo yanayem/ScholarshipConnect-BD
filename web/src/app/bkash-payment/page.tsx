@@ -12,6 +12,7 @@ export default function BKashPaymentPage() {
   const [bkashNumber, setBkashNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [pin, setPin] = useState('');
+  const [paymentID, setPaymentID] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -28,12 +29,10 @@ export default function BKashPaymentPage() {
       setLoading(true);
       try {
         const res = await apiService.createBKashPayment();
-        if (res.ok) {
-          setStep(2);
-        } else {
-          // Fallback if bkash specific API isn't present
-          setStep(2);
+        if (res.ok && res.data?.paymentID) {
+          setPaymentID(res.data.paymentID);
         }
+        setStep(2);
       } catch (err) {
         setStep(2);
       } finally {
@@ -52,7 +51,12 @@ export default function BKashPaymentPage() {
       }
       setLoading(true);
       try {
-        const res = await apiService.initiateCheckout('bKash');
+        let res;
+        if (paymentID) {
+          res = await apiService.executeBKashPayment(paymentID, otp, pin);
+        } else {
+          res = await apiService.initiateCheckout('bKash');
+        }
         if (res.ok) {
           router.push('/profile');
         } else {
@@ -67,24 +71,24 @@ export default function BKashPaymentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100/70">
+    <div className="min-h-screen bg-background">
       <Header />
 
       <main className="max-w-3xl mx-auto px-3 sm:px-6 py-6 sm:py-12">
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-slate-500 hover:text-pink-700 transition-colors text-xs font-black uppercase tracking-widest mb-8"
+          className="flex items-center gap-2 text-slate-400 hover:text-[#D12053] transition-colors text-xs font-black uppercase tracking-widest mb-8"
         >
           <ArrowLeft size={16} />
           Back to Checkout
         </button>
 
-        {/* bKash Themed Container */}
-        <div className="bg-[#D12053] rounded-[2.5rem] shadow-2xl overflow-hidden border border-pink-700">
+        {/* bKash Container with matching main page borders */}
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
           {/* bKash Header Bar */}
-          <div className="p-6 sm:p-8 border-b border-white/10 flex items-center justify-between text-white">
+          <div className="p-6 sm:p-8 bg-[#D12053] border-b border-pink-700 flex items-center justify-between text-white">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center p-2 shadow-inner">
+              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center p-2 shadow-inner">
                 <img
                   src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/BKash_logo.svg/512px-BKash_logo.svg.png"
                   alt="bKash"
@@ -103,12 +107,12 @@ export default function BKashPaymentPage() {
           </div>
 
           {/* Stepper Progress */}
-          <div className="bg-pink-900/30 px-6 py-3 border-b border-white/10 flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-widest text-pink-100">
-            <span className={step >= 1 ? 'text-white underline decoration-2' : 'opacity-50'}>1. Account</span>
+          <div className="bg-pink-50/50 px-6 py-3 border-b border-pink-100 flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-widest text-pink-800">
+            <span className={step >= 1 ? 'text-[#D12053] underline decoration-2' : 'opacity-50'}>1. Account</span>
             <span className="opacity-30">›</span>
-            <span className={step >= 2 ? 'text-white underline decoration-2' : 'opacity-50'}>2. Verification</span>
+            <span className={step >= 2 ? 'text-[#D12053] underline decoration-2' : 'opacity-50'}>2. Verification</span>
             <span className="opacity-30">›</span>
-            <span className={step >= 3 ? 'text-white underline decoration-2' : 'opacity-50'}>3. PIN</span>
+            <span className={step >= 3 ? 'text-[#D12053] underline decoration-2' : 'opacity-50'}>3. PIN</span>
           </div>
 
           {/* Main Content Form */}
@@ -116,7 +120,7 @@ export default function BKashPaymentPage() {
             <form onSubmit={handleProceed} className="space-y-6 max-w-md mx-auto">
               {step === 1 && (
                 <div className="space-y-4 text-center">
-                  <div className="w-16 h-16 bg-pink-50 text-[#D12053] rounded-3xl flex items-center justify-center mx-auto shadow-inner">
+                  <div className="w-16 h-16 bg-pink-50 text-[#D12053] rounded-2xl border border-pink-100 flex items-center justify-center mx-auto shadow-xs">
                     <Smartphone size={32} />
                   </div>
                   <div>
@@ -131,7 +135,7 @@ export default function BKashPaymentPage() {
                       maxLength={11}
                       value={bkashNumber}
                       onChange={(e) => setBkashNumber(e.target.value.replace(/\D/g, ''))}
-                      className="w-full text-center text-xl font-bold tracking-widest py-4 px-5 border-2 border-slate-200 rounded-2xl focus:border-[#D12053] focus:outline-none focus:ring-4 focus:ring-pink-500/10 transition-all text-slate-900"
+                      className="w-full text-center text-xl font-bold tracking-widest py-4 px-5 border border-slate-200 rounded-xl focus:border-[#D12053] focus:outline-none focus:ring-2 focus:ring-pink-500/10 transition-all text-slate-900"
                       autoFocus
                     />
                   </div>
@@ -140,7 +144,7 @@ export default function BKashPaymentPage() {
 
               {step === 2 && (
                 <div className="space-y-4 text-center">
-                  <div className="w-16 h-16 bg-pink-50 text-[#D12053] rounded-3xl flex items-center justify-center mx-auto shadow-inner">
+                  <div className="w-16 h-16 bg-pink-50 text-[#D12053] rounded-2xl border border-pink-100 flex items-center justify-center mx-auto shadow-xs">
                     <ShieldCheck size={32} />
                   </div>
                   <div>
@@ -157,7 +161,7 @@ export default function BKashPaymentPage() {
                       maxLength={6}
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                      className="w-full text-center text-2xl font-mono font-bold tracking-[0.4em] py-4 px-5 border-2 border-slate-200 rounded-2xl focus:border-[#D12053] focus:outline-none focus:ring-4 focus:ring-pink-500/10 transition-all text-slate-900"
+                      className="w-full text-center text-2xl font-mono font-bold tracking-[0.4em] py-4 px-5 border border-slate-200 rounded-xl focus:border-[#D12053] focus:outline-none focus:ring-2 focus:ring-pink-500/10 transition-all text-slate-900"
                       autoFocus
                     />
                   </div>
@@ -166,7 +170,7 @@ export default function BKashPaymentPage() {
 
               {step === 3 && (
                 <div className="space-y-4 text-center">
-                  <div className="w-16 h-16 bg-pink-50 text-[#D12053] rounded-3xl flex items-center justify-center mx-auto shadow-inner">
+                  <div className="w-16 h-16 bg-pink-50 text-[#D12053] rounded-2xl border border-pink-100 flex items-center justify-center mx-auto shadow-xs">
                     <Lock size={32} />
                   </div>
                   <div>
@@ -181,7 +185,7 @@ export default function BKashPaymentPage() {
                       maxLength={5}
                       value={pin}
                       onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                      className="w-full text-center text-3xl font-mono font-bold tracking-[0.5em] py-4 px-5 border-2 border-slate-200 rounded-2xl focus:border-[#D12053] focus:outline-none focus:ring-4 focus:ring-pink-500/10 transition-all text-slate-900"
+                      className="w-full text-center text-3xl font-mono font-bold tracking-[0.5em] py-4 px-5 border border-slate-200 rounded-xl focus:border-[#D12053] focus:outline-none focus:ring-2 focus:ring-pink-500/10 transition-all text-slate-900"
                       autoFocus
                     />
                   </div>
@@ -198,7 +202,7 @@ export default function BKashPaymentPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-5 bg-[#D12053] text-white rounded-2xl font-black text-sm uppercase tracking-[0.2em] hover:bg-[#b51844] transition-all flex items-center justify-center gap-3 shadow-xl shadow-pink-600/20 disabled:opacity-50"
+                className="w-full py-4 bg-[#D12053] text-white rounded-xl font-black text-xs uppercase tracking-[0.2em] hover:bg-[#b51844] transition-all flex items-center justify-center gap-3 shadow-md disabled:opacity-50"
               >
                 {loading ? (
                   <>

@@ -148,6 +148,7 @@ export default function CalendarPage() {
                 )}
              </section>
 
+             {/* Reminder System card
              <div className="border border-slate-200 rounded-2xl p-8 text-slate-900 text-center relative overflow-hidden bg-white shadow-sm">
                 <div className="relative z-10">
                    <AlertCircle className="text-red-500 mx-auto mb-4" size={32} />
@@ -161,6 +162,7 @@ export default function CalendarPage() {
                 </div>
                 <CalendarIcon size={120} className="absolute -bottom-10 -right-10 text-slate-50 rotate-12" />
              </div>
+             */}
           </div>
         </div>
       </main>

@@ -23,7 +23,7 @@ const BENEFITS = [
   { title: 'Unlimited AI Tools', desc: 'SOP Helper, CV Reviewer & Live Support without daily limits.', icon: Zap, color: 'text-blue-600 bg-blue-50 border-blue-100' },
   { title: 'Priority Matching', desc: 'Be the first to know about scholarships tailored to your profile.', icon: Star, color: 'text-amber-600 bg-amber-50 border-amber-100' },
   { title: 'Verified Badge', desc: 'Stand out in the community with a gold ScholarConnect badge.', icon: ShieldCheck, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
-  { title: 'Expert Consultations', desc: 'Direct access to premium mentorship sessions.', icon: Users, color: 'text-purple-600 bg-purple-50 border-purple-100' },
+  // { title: 'Expert Consultations', desc: 'Direct access to premium mentorship sessions.', icon: Users, color: 'text-purple-600 bg-purple-50 border-purple-100' },
 ];
 
 export default function UpgradeProPage() {

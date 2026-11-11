@@ -109,7 +109,7 @@ export default function SettingsPage() {
   const tabs = [
     { id: 'account', label: 'Account & Security', icon: User },
     { id: 'preferences', label: 'Preferences & Notifications', icon: Sliders },
-    { id: 'mentorship', label: 'Mentorship & Community', icon: Users },
+    { id: 'mentorship', label: 'Community Settings', icon: Users },
     { id: 'support', label: 'Support & Legal', icon: HelpCircle },
   ] as const;
 
@@ -377,11 +377,12 @@ export default function SettingsPage() {
               {activeTab === 'mentorship' && (
                 <div className="space-y-6">
                   <div>
-                    <h2 className="text-base font-bold text-slate-900 mb-1">Mentorship & Community</h2>
-                    <p className="text-slate-400 text-xs font-medium">Manage your mentor profile and community role.</p>
+                    <h2 className="text-base font-bold text-slate-900 mb-1">Community Settings</h2>
+                    <p className="text-slate-400 text-xs font-medium">Manage your community role and discussions.</p>
                   </div>
 
                   <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden">
+                    {/* Become a Mentor commented out
                     <div className="flex items-center justify-between p-4 sm:p-5">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
@@ -418,6 +419,7 @@ export default function SettingsPage() {
                         <ChevronRight size={18} className="text-slate-400" />
                       </div>
                     )}
+                    */}
 
                     <div
                       onClick={() => router.push('/community')}

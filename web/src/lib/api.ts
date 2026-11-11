@@ -501,6 +501,21 @@ export const apiService = {
     });
   },
 
+  async createBKashPayment() {
+    return await safeFetch(`${API_URL}/payments/bkash/create/`, {
+      method: 'POST',
+      headers: await getHeaders(true),
+    });
+  },
+
+  async executeBKashPayment(paymentID: string, otp: string, pin: string) {
+    return await safeFetch(`${API_URL}/payments/bkash/execute/`, {
+      method: 'POST',
+      headers: await getHeaders(true),
+      body: JSON.stringify({ paymentID, otp, pin }),
+    });
+  },
+
   async getNotifications() {
     return await safeFetch(`${API_URL}/accounts/notifications/`, {
       method: 'GET',
