@@ -125,6 +125,8 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
                 action_title = 'Approved'
                 scholarship.status = 'active'
             elif action_type == 'reject':
+                if previous_status == 'active':
+                    return Response({"error": "Approved scholarships cannot be rejected."}, status=status.HTTP_400_BAD_REQUEST)
                 action_verb = 'rejected'
                 action_title = 'Rejected'
                 scholarship.status = 'rejected'

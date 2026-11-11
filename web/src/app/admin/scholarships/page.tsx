@@ -331,7 +331,7 @@ export default function AdminScholarshipsPage() {
                             )}
 
                             {/* Reject Button */}
-                            {s.status !== 'rejected' && (
+                            {s.status === 'pending' && (
                               <button
                                 onClick={() => {
                                   setRejectingItem(s);
