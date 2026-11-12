@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 def _call_openrouter(prompt: str) -> Optional[str]:
     """
-    Calls OpenRouter AI API with key rotation and free model fallbacks (DeepSeek R1, Llama 3.3, Gemini, etc.).
+    Calls OpenRouter AI API with key rotation and free model fallbacks.
     """
     raw_keys = [
         os.getenv("OPENROUTER_API_KEY"),
@@ -19,12 +19,12 @@ def _call_openrouter(prompt: str) -> Optional[str]:
         return None
 
     openrouter_models = [
+        "nvidia/nemotron-3.5-lightning:free",
+        "baidu/ernie-5.5-flash-preview:free",
+        "google/gemma-4-31b-it:free",
         "openrouter/auto",
-        "mistralai/mistral-7b-instruct:free",
-        "google/gemma-2-9b-it:free",
-        "meta-llama/llama-3.1-8b-instruct:free",
-        "qwen/qwen-2-7b-instruct:free",
-        "nousresearch/hermes-3-llama-3.1-405b:free",
+        "dots-studio/dots-3-note-preview:free",
+        "liquid/lfm-2.5-2.6b:free",
     ]
 
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -41,7 +41,7 @@ def _call_openrouter(prompt: str) -> Optional[str]:
                     "messages": [
                         {
                             "role": "system",
-                            "content": "You are ScholarAI, an expert scholarship consultant for Bangladeshi students. Be encouraging, precise, and concise."
+                            "content": "You are ScholarAI, an expert higher education and scholarship advisor for Bangladeshi students. Write rich, thorough, full-length academic statements of purpose and comprehensive guidance."
                         },
                         {
                             "role": "user",
@@ -50,7 +50,7 @@ def _call_openrouter(prompt: str) -> Optional[str]:
                     ],
                     "model": model,
                     "temperature": 0.6,
-                    "max_tokens": 2048
+                    "max_tokens": 4096
                 }
                 res = requests.post(url, json=payload, headers=headers, timeout=15)
                 if res.status_code == 200:
@@ -103,7 +103,7 @@ def _call_xai(prompt: str) -> Optional[str]:
                     "messages": [
                         {
                             "role": "system",
-                            "content": "You are ScholarAI, an expert scholarship consultant for Bangladeshi students. Be encouraging, precise, and concise."
+                            "content": "You are ScholarAI, an expert higher education and scholarship advisor for Bangladeshi students. Write rich, thorough, full-length academic statements of purpose and comprehensive guidance."
                         },
                         {
                             "role": "user",
@@ -112,7 +112,7 @@ def _call_xai(prompt: str) -> Optional[str]:
                     ],
                     "model": model,
                     "temperature": 0.6,
-                    "max_tokens": 2048
+                    "max_tokens": 4096
                 }
                 res = requests.post(url, json=payload, headers=headers, timeout=15)
                 if res.status_code == 200:
@@ -149,13 +149,13 @@ def _call_groq(prompt: str) -> Optional[str]:
     if not valid_keys:
         return None
 
-    # Active supported Groq models ordered for free & paid tiers
+    # Active supported Groq models
     models = [
-        "llama-3.1-8b-instant",
-        "llama-3.3-70b-versatile",
-        "llama-3.2-3b-preview",
-        "llama-3.2-1b-preview",
-        "llama-3.2-11b-vision-preview",
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b",
+        "qwen/qwen3.8-27b",
+        "allam-2-7b",
+        "canopylabs/orpheus-v1-english",
     ]
 
     # Method 1: Direct HTTP REST Request (Fast, no SDK dependency)
@@ -171,7 +171,7 @@ def _call_groq(prompt: str) -> Optional[str]:
                     "messages": [
                         {
                             "role": "system",
-                            "content": "You are ScholarAI, an expert scholarship consultant for Bangladeshi students. Be encouraging, precise, and concise."
+                            "content": "You are ScholarAI, an expert higher education and scholarship advisor for Bangladeshi students. Write rich, thorough, full-length academic statements of purpose and comprehensive guidance."
                         },
                         {
                             "role": "user",
@@ -180,7 +180,7 @@ def _call_groq(prompt: str) -> Optional[str]:
                     ],
                     "model": model,
                     "temperature": 0.6,
-                    "max_tokens": 2048
+                    "max_tokens": 4096
                 }
                 res = requests.post(url, json=payload, headers=headers, timeout=12)
                 if res.status_code == 200:
@@ -210,7 +210,7 @@ def _call_groq(prompt: str) -> Optional[str]:
                         messages=[
                             {
                                 "role": "system",
-                                "content": "You are ScholarAI, an expert scholarship consultant for Bangladeshi students. Be encouraging, precise, and concise."
+                                "content": "You are ScholarAI, an expert higher education and scholarship advisor for Bangladeshi students. Write rich, thorough, full-length academic statements of purpose and comprehensive guidance."
                             },
                             {
                                 "role": "user",
@@ -219,7 +219,7 @@ def _call_groq(prompt: str) -> Optional[str]:
                         ],
                         model=model,
                         temperature=0.6,
-                        max_tokens=2048,
+                        max_tokens=4096,
                     )
                     response_text = chat_completion.choices[0].message.content
                     if response_text:
@@ -250,11 +250,10 @@ def _call_gemini(prompt: str) -> Optional[str]:
 
     # (API_VERSION, MODEL_NAME) pairs for full compatibility
     gemini_configs = [
-        ("v1beta", "gemini-1.5-flash"),
-        ("v1beta", "gemini-2.0-flash"),
         ("v1beta", "gemini-2.5-flash"),
-        ("v1beta", "gemini-1.5-pro"),
-        ("v1beta", "gemini-2.0-flash-lite"),
+        ("v1beta", "gemini-2.5-flash-lite"),
+        ("v1beta", "gemini-flash-latest"),
+        ("v1beta", "gemini-pro-latest"),
     ]
 
     # Method 1: Direct HTTP REST request (Zero SDK dependency, fast, robust)
@@ -268,7 +267,7 @@ def _call_gemini(prompt: str) -> Optional[str]:
                     }],
                     "generationConfig": {
                         "temperature": 0.7,
-                        "maxOutputTokens": 2048
+                        "maxOutputTokens": 4096
                     }
                 }
                 res = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=12)
@@ -331,30 +330,18 @@ def _call_pollinations(prompt: str) -> Optional[str]:
             "messages": [
                 {
                     "role": "user",
-                    "content": prompt[:1500]
+                    "content": prompt
                 }
             ]
         }
         res = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=15)
         if res.status_code == 200 and res.text:
             cleaned = res.text.strip()
-            if cleaned and len(cleaned) > 10:
+            if cleaned and len(cleaned) > 20:
                 logger.info("[Pollinations] Fallback successful.")
                 return cleaned
     except Exception as e:
         logger.warning(f"[Pollinations] Fallback error: {e}")
-
-    try:
-        # GET fallback if POST times out
-        url_get = f"https://text.pollinations.ai/{requests.utils.quote(prompt[:400])}"
-        res_get = requests.get(url_get, timeout=12)
-        if res_get.status_code == 200 and res_get.text:
-            cleaned = res_get.text.strip()
-            if cleaned and len(cleaned) > 10:
-                logger.info("[Pollinations GET] Fallback successful.")
-                return cleaned
-    except Exception:
-        pass
 
     return None
 
@@ -362,23 +349,23 @@ def _call_pollinations(prompt: str) -> Optional[str]:
 class AIService:
     @classmethod
     def _call_ai(cls, prompt: str) -> str:
-        # Step 1: OpenRouter (if OPENROUTER_API_KEY configured)
-        result = _call_openrouter(prompt)
-        if result:
-            return re.sub(r'<think>.*?</think>', '', result, flags=re.DOTALL).strip()
-
-        # Step 2: xAI Grok (if XAI_API_KEY / XAI_GROK_API_KEY configured)
-        result = _call_xai(prompt)
-        if result:
-            return re.sub(r'<think>.*?</think>', '', result, flags=re.DOTALL).strip()
-
-        # Step 3: Groq AI (Multi-key + Multi-model)
+        # Step 1: Groq AI (Multi-key + Multi-model) - Extremely fast & high performance
         result = _call_groq(prompt)
         if result:
             return re.sub(r'<think>.*?</think>', '', result, flags=re.DOTALL).strip()
 
-        # Step 4: Gemini AI (Multi-key + Multi-model + REST)
+        # Step 2: Gemini AI (Multi-key + Multi-model + REST)
         result = _call_gemini(prompt)
+        if result:
+            return re.sub(r'<think>.*?</think>', '', result, flags=re.DOTALL).strip()
+
+        # Step 3: OpenRouter (if OPENROUTER_API_KEY configured)
+        result = _call_openrouter(prompt)
+        if result:
+            return re.sub(r'<think>.*?</think>', '', result, flags=re.DOTALL).strip()
+
+        # Step 4: xAI Grok (if XAI_API_KEY / XAI_GROK_API_KEY configured)
+        result = _call_xai(prompt)
         if result:
             return re.sub(r'<think>.*?</think>', '', result, flags=re.DOTALL).strip()
 
@@ -418,10 +405,15 @@ class AIService:
     def _clean_sop_text(cls, text: str) -> str:
         if not text:
             return ""
-        # Remove raw markdown bold/italic stars (***, **)
-        text = re.sub(r'\*{2,3}(.*?)\*{2,3}', r'\1', text)
+        # Remove raw markdown bold/italic stars (***, **, *)
+        text = re.sub(r'\*{1,3}(.*?)\*{1,3}', r'\1', text)
         # Remove leading headers (### Title -> Title)
         text = re.sub(r'^\s*#{1,6}\s*', '', text, flags=re.MULTILINE)
+        # Remove explicit paragraph/section headers (e.g., "Paragraph 1:", "Section 1:", "Paragraph 1 - ")
+        text = re.sub(r'^\s*(Paragraph|Section|Part)\s*\d+\s*[:\-–—]?\s*', '', text, flags=re.MULTILINE | re.IGNORECASE)
+        # Remove explicit word count notes (e.g. "Word Count: 750", "(750 words)")
+        text = re.sub(r'\(?\s*Word\s*count\s*[:\-–—]?\s*\d+\s*(words)?\s*\)?', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'^\s*Word\s*count\s*[:\-–—]?\s*\d+.*$', '', text, flags=re.MULTILINE | re.IGNORECASE)
         return text.strip()
 
     @classmethod
@@ -430,20 +422,34 @@ class AIService:
         cgpa_str = f"{user_cgpa} out of 4.00" if user_cgpa else "N/A"
 
         prompt = (
-            f"Write a formal, comprehensive, and highly professional Statement of Purpose (SOP) for a Bangladeshi student applying for higher education.\n\n"
+            f"Write a full-length, comprehensive, and highly detailed academic Statement of Purpose (SOP) essay (MINIMUM 1200+ WORDS, target 1200–1600 words) for a Bangladeshi student applying for higher education abroad.\n\n"
             f"Applicant Information:\n"
             f"- Full Name: {getattr(user_profile, 'full_name', 'Student')}\n"
             f"- Major/Course: {getattr(user_profile, 'major_course', 'N/A')}\n"
             f"- CGPA: {cgpa_str}\n"
             f"- Research/Academic Interests: {getattr(user_profile, 'research_interests', 'N/A')}\n"
-            f"- Target Scholarship: {scholarship_details.get('title', 'Scholarship')}\n"
+            f"- Target Scholarship/Program: {scholarship_details.get('title', 'Scholarship')}\n"
             f"- Field of Study: {scholarship_details.get('field', 'General')}\n"
             f"- Target Country: {scholarship_details.get('country', 'Abroad')}\n\n"
-            "CRITICAL WRITING & FORMATTING RULES:\n"
-            "1. Write in a formal, elegant academic essay prose style for university admissions committees.\n"
-            "2. DO NOT use raw markdown formatting symbols such as **, ***, or ### anywhere in the text.\n"
-            "3. DO NOT output bullet points with raw labels like '**CGPA of 3.74 out of 4.00**'. Seamlessly integrate all academic credentials and CGPA naturally into complete formal sentences (e.g., 'Throughout my undergraduate studies, I demonstrated strong academic dedication, achieving a CGPA of 3.74 out of 4.00.').\n"
-            "4. Structure the SOP cleanly into logical paragraphs: Statement of Interest, Academic & Research Background, Motivation & Alignment with Target Scholarship, Career Goals, and Conclusion."
+            "MANDATORY ESSAY LENGTH REQUIREMENT: MINIMUM 1200+ WORDS\n"
+            "Do NOT write brief overviews or short essays. Thoroughly elaborate on every single paragraph in deep detail to achieve at least 1,200 words.\n\n"
+            "REQUIRED EXTENDED 7-PARAGRAPH ACADEMIC STRUCTURE:\n"
+            "1. PARAGRAPH 1 (Purpose & Intellectual Motivation - min 200 words): Hook statement, background context in Bangladesh, academic drive, and clear motivation for graduate study.\n"
+            "2. PARAGRAPH 2 (Undergraduate Coursework & Theoretical Rigor - min 250 words): Deep dive into undergraduate education, CGPA context, foundational subjects, laboratory training, analytical tools (e.g. Python, MATLAB, R, SPSS, Stata, GIS), and academic discipline.\n"
+            "3. PARAGRAPH 3 (Research Thesis & Capstone Project Analysis - min 250 words): Extensive technical discussion of undergraduate thesis or major research project. Detail problem formulation, research methodologies, data collection, analytical findings, and technical challenges overcome.\n"
+            "4. PARAGRAPH 4 (Professional Experience & Co-Curricular Leadership - min 200 words): Industry internships, work experience, teaching assistantships, leadership in university clubs, workshops, or academic competitions.\n"
+            "5. PARAGRAPH 5 (Research Motivation & Societal Impact - min 150 words): Fundamental socio-economic or technological challenges facing Bangladesh/global society, and why advanced degree training is necessary to solve them.\n"
+            "6. PARAGRAPH 6 (Target University & Faculty Alignment - min 200 words): Specific alignment with the target scholarship, host country, faculty research labs, curriculum electives, and institutional ecosystem.\n"
+            "7. PARAGRAPH 7 (Long-Term Career Goals & Return Contribution - min 150 words): Clear 5–10 year career roadmap (academia, industry R&D, or policy leadership), and final vision for contributing to Bangladesh's national development or global science.\n\n"
+            "STRICT FORMAL ACADEMIC & TURNITIN ANTI-AI RULES:\n"
+            "1. CLEAN ESSAY ONLY: DO NOT include section titles, paragraph numbers, word count labels, meta comments, or word count markers (such as 'Paragraph 1:', 'Word Count:', or '(200 words)'). Output ONLY clean, natural, continuous academic prose ready for submission.\n"
+            "2. NO CONTRACTIONS: Maintain formal academic grammar (use 'do not', 'cannot', 'it is' instead of 'don't', 'can't', 'it's').\n"
+            "3. REDUCE NOMINALIZATION: Prefer strong active verbs over heavy noun phrases.\n"
+            "4. DIRECT SVO OPENINGS: Avoid starting sentences with heavy prepositional phrases or -ing participle phrases.\n"
+            "5. HIGH BURSTINESS & PERPLEXITY: Mix short direct simple sentences with longer analytical ones for a natural human academic cadence.\n"
+            "6. BAN AI TRANSITIONS & BUZZWORDS: Strictly avoid 'Moreover', 'Furthermore', 'In conclusion', 'Additionally', 'Indeed', 'delve', 'crucial', 'realm', 'tapestry', 'testament', 'beacon', 'paramount', 'pivotal', 'underscore'.\n"
+            "7. ACADEMIC HEDGING: Use natural academic hedging ('suggests', 'indicates', 'appears to', 'may contribute to').\n"
+            "8. NO MARKDOWN: DO NOT use raw markdown formatting symbols such as **, ***, or ### anywhere in the text."
         )
         raw_sop = cls._call_ai(prompt)
         return cls._clean_sop_text(raw_sop)
@@ -451,12 +457,34 @@ class AIService:
     @classmethod
     def review_sop(cls, sop_text: str) -> str:
         prompt = (
-            "Review the following Statement of Purpose (SOP) for a scholarship application. "
-            "Evaluate tone, structure, academic justification, and clarity. "
-            "Provide key strengths, areas for improvement, and an overall score out of 10.\n\n"
+            "Review the following Statement of Purpose (SOP) for a graduate program / scholarship application. "
+            "Evaluate it against key academic criteria:\n"
+            "1. Does it provide context and demonstrate impact rather than just repeating the CV?\n"
+            "2. Is the purpose and intellectual motivation clearly articulated?\n"
+            "3. Are program/university alignment and career goals well-justified?\n"
+            "4. Are tone, structure, burstiness, and academic hedging appropriate?\n\n"
+            "Provide key strengths, areas for improvement, an overall score out of 10, and actionable recommendations.\n\n"
             f"SOP Text:\n{sop_text}"
         )
         return cls._call_ai(prompt)
+
+    @classmethod
+    def paraphrase_sop(cls, sop_text: str, style: str = "academic") -> str:
+        prompt = (
+            f"Rewrite and paraphrase the following Statement of Purpose (SOP) text into a full-length, comprehensive {style} academic essay (retaining all facts and elaborating thoroughly for Turnitin compliance).\n\n"
+            "STRICT TURNITIN ACADEMIC ANTI-AI RULES:\n"
+            "1. RETAIN FULL LENGTH: Do NOT condense or shorten the text. Retain all details, experiences, and academic context.\n"
+            "2. NO CONTRACTIONS: Maintain formal academic standards. Do NOT use contractions (e.g., use 'do not', 'cannot', 'it is' instead of 'don't', 'can't', 'it's').\n"
+            "3. REDUCE NOMINALIZATION: Use strong active verbs instead of heavy noun phrases.\n"
+            "4. DIRECT SVO OPENINGS: Avoid introductory -ing participle phrases or long prepositional fillers.\n"
+            "5. HIGH BURSTINESS & PERPLEXITY: Combine short, direct declarative simple sentences with longer analytical ones.\n"
+            "6. ZERO AI BUZZWORDS & TRANSITIONS: Strictly avoid 'delve', 'underscore', 'pivotal', 'tapestry', 'realm', 'testament', 'beacon', 'paramount', 'moreover', 'furthermore', 'in conclusion', 'additionally'.\n"
+            "7. ACADEMIC HEDGING: Use measured academic verbs ('suggests', 'indicates', 'appears to', 'may contribute to') where appropriate.\n"
+            "8. NO MARKDOWN: DO NOT use raw markdown formatting symbols such as **, ***, or ### anywhere in the output.\n\n"
+            f"Original SOP Text:\n{sop_text}"
+        )
+        raw_sop = cls._call_ai(prompt)
+        return cls._clean_sop_text(raw_sop)
 
     @classmethod
     def review_cv(cls, cv_text: str) -> str:

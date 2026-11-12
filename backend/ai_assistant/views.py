@@ -75,6 +75,26 @@ class AIReviewSOPView(APIView):
         result = AIService.review_sop(sop_text)
         return Response({'feedback': result, 'usage': profile.ai_usage_count})
 
+class AIParaphraseSOPView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        profile = request.user.profile
+        allowed, limit = check_ai_limit(profile)
+        if not allowed:
+            return Response(
+                {"error": f"Daily AI limit reached ({limit}/day). Upgrade to Pro for unlimited access."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        sop_text = request.data.get('sop_text')
+        style = request.data.get('style', 'academic')
+        if not sop_text or len(sop_text.strip()) < 20:
+            return Response({'error': 'SOP text (minimum 20 characters) is required for paraphrasing'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        result = AIService.paraphrase_sop(sop_text, style=style)
+        return Response({'paraphrased_sop': result, 'usage': profile.ai_usage_count, 'limit': limit})
+
 class AIReviewCVView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 

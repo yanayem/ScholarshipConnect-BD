@@ -2,6 +2,7 @@ from django.urls import path
 from .views import (
     AIWriteSOPView, 
     AIReviewSOPView, 
+    AIParaphraseSOPView,
     AIReviewCVView, 
     AICheckEligibilityView,
     AIImprovePostView,
@@ -15,6 +16,7 @@ from .views import (
 urlpatterns = [
     path('write-sop/', AIWriteSOPView.as_view(), name='ai-write-sop'),
     path('review-sop/', AIReviewSOPView.as_view(), name='ai-review-sop'),
+    path('paraphrase-sop/', AIParaphraseSOPView.as_view(), name='ai-paraphrase-sop'),
     path('review-cv/', AIReviewCVView.as_view(), name='ai-review-cv'),
     path('check-eligibility/', AICheckEligibilityView.as_view(), name='ai-check-eligibility'),
     path('improve-post/', AIImprovePostView.as_view(), name='ai-improve-post'),
