@@ -582,6 +582,14 @@ export const apiService = {
     });
   },
 
+  async aiParaphraseSOP(sopText: string, style: string = 'academic') {
+    return await safeFetch(`${API_URL}/ai/paraphrase-sop/`, {
+      method: 'POST',
+      headers: await getHeaders(true),
+      body: JSON.stringify({ sop_text: sopText, style }),
+    });
+  },
+
   async aiCheckEligibility(scholarshipId: number) {
     return await safeFetch(`${API_URL}/ai/check-eligibility/`, {
       method: 'POST',
