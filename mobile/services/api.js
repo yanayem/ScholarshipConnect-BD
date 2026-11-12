@@ -1162,6 +1162,32 @@ export const apiService = {
     }
   },
 
+  async aiReviewSOP(sopText) {
+    try {
+      const response = await fetch(`${API_URL}/ai/review-sop/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify({ sop_text: sopText }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'AI Review SOP');
+    }
+  },
+
+  async aiParaphraseSOP(sopText, style = 'academic') {
+    try {
+      const response = await fetch(`${API_URL}/ai/paraphrase-sop/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify({ sop_text: sopText, style }),
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      return networkError(error, 'AI Paraphrase SOP');
+    }
+  },
+
   async aiCheckEligibility(scholarshipId) {
     try {
       const response = await fetch(`${API_URL}/ai/check-eligibility/`, {
