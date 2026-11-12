@@ -481,7 +481,7 @@ export default function CommunityPage() {
               </div>
 
               {/* Leaderboard Callout Card */}
-              <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 text-white text-center shadow-lg relative overflow-hidden group">
+              {/* <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 text-white text-center shadow-lg relative overflow-hidden group">
                 <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-primary/20 rounded-full blur-xl group-hover:scale-150 transition-transform"></div>
                 <Trophy size={40} className="mx-auto mb-3 text-amber-400 opacity-90 group-hover:scale-110 transition-transform" />
                 <h4 className="font-extrabold text-sm mb-1">Scholar Leaderboard</h4>
@@ -494,7 +494,7 @@ export default function CommunityPage() {
                 >
                   View Rankings
                 </Link>
-              </div>
+              </div> */}
             </div>
 
             {/* Main Feed Content Column */}
