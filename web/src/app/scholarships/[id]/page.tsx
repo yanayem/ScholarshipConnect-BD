@@ -104,7 +104,37 @@ export default function ScholarshipDetail() {
     </div>
   );
 
-  if (!scholarship) return <div>Scholarship not found.</div>;
+  if (!scholarship) return (
+    <div className="min-h-screen bg-slate-50/50">
+      <Header />
+      <main className="max-w-4xl mx-auto px-4 py-16 sm:py-24 text-center">
+        <div className="bg-white border border-slate-200 rounded-3xl p-8 sm:p-12 shadow-sm space-y-6">
+          <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto border border-amber-100">
+            <GraduationCap size={32} />
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Scholarship Not Found</h1>
+          <p className="text-slate-500 text-xs sm:text-sm font-medium max-w-md mx-auto leading-relaxed">
+            The scholarship you requested (ID: {id}) could not be found. It may have expired, been updated, or removed from our database.
+          </p>
+          <div className="pt-4 flex flex-col sm:flex-row justify-center gap-3">
+            <button
+              onClick={() => router.push('/scholarships')}
+              className="px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
+            >
+              <ArrowLeft size={16} />
+              Browse Active Scholarships
+            </button>
+            <button
+              onClick={() => router.back()}
+              className="px-6 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs uppercase tracking-widest rounded-xl transition-all border border-slate-200"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background">
