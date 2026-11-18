@@ -215,13 +215,25 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
-    new_password = serializers.CharField(required=True, min_length=6)
+    new_password = serializers.CharField(required=True, min_length=8)
+    confirm_password = serializers.CharField(required=False)
 
     def validate_old_password(self, value):
         user = self.context['request'].user
-        if not user.check_password(value):
-            raise serializers.ValidationError("Old password is not correct")
+        if user and not user.check_password(value):
+            raise serializers.ValidationError("Incorrect password.")
         return value
+
+    def validate(self, attrs):
+        old_password = attrs.get('old_password')
+        new_password = attrs.get('new_password')
+        confirm_password = attrs.get('confirm_password')
+
+        if confirm_password and new_password != confirm_password:
+            raise serializers.ValidationError({"confirm_password": ["The two password fields didn't match."]})
+        if old_password and new_password and old_password == new_password:
+            raise serializers.ValidationError({"new_password": ["New password must be different from old password."]})
+        return attrs
 
 class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(source='profile.full_name', read_only=True)

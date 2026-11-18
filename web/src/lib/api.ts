@@ -180,6 +180,14 @@ export const apiService = {
     });
   },
 
+  async changePassword(passwordData: { old_password: string; new_password: string; confirm_password?: string }) {
+    return await safeFetch(`${API_URL}/accounts/change-password/`, {
+      method: 'PUT',
+      headers: await getHeaders(true),
+      body: JSON.stringify(passwordData),
+    });
+  },
+
   // --- Scholarships ---
   async getScholarships(params = '') {
     const url = `${API_URL}/scholarships/${params ? '?' + params : ''}`;

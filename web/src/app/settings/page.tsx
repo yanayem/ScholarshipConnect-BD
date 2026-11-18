@@ -24,7 +24,12 @@ import {
   ArrowLeft,
   Settings as SettingsIcon,
   Sliders,
-  Users
+  Users,
+  Eye,
+  EyeOff,
+  KeyRound,
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -43,6 +48,17 @@ export default function SettingsPage() {
   const [selectedLang, setSelectedLang] = useState('English');
   const [updating, setUpdating] = useState(false);
   const [toastMsg, setToastMsg] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
+
+  // Password Change Form States
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
 
   const showToast = (text: string, type: 'success' | 'error' | 'info' = 'info') => {
     setToastMsg({ text, type });
@@ -67,6 +83,67 @@ export default function SettingsPage() {
       showToast(err.message || 'Failed to send password reset email', 'error');
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleChangePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError(null);
+    setPasswordSuccess(null);
+
+    if (!oldPassword) {
+      setPasswordError('Current password is required.');
+      return;
+    }
+    if (!newPassword || newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters long.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Confirm password does not match new password.');
+      return;
+    }
+    if (oldPassword === newPassword) {
+      setPasswordError('New password must be different from current password.');
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      const res = await apiService.changePassword({
+        old_password: oldPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword,
+      });
+
+      if (res.ok) {
+        setPasswordSuccess('Password updated successfully!');
+        showToast('Password updated successfully!', 'success');
+        setOldPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        const data = res.data;
+        let errMsg = 'Failed to update password.';
+        if (data?.old_password) {
+          errMsg = Array.isArray(data.old_password) ? data.old_password[0] : data.old_password;
+        } else if (data?.new_password) {
+          errMsg = Array.isArray(data.new_password) ? data.new_password[0] : data.new_password;
+        } else if (data?.confirm_password) {
+          errMsg = Array.isArray(data.confirm_password) ? data.confirm_password[0] : data.confirm_password;
+        } else if (data?.non_field_errors) {
+          errMsg = Array.isArray(data.non_field_errors) ? data.non_field_errors[0] : data.non_field_errors;
+        } else if (data?.detail) {
+          errMsg = data.detail;
+        } else if (data?.error) {
+          errMsg = data.error;
+        }
+        setPasswordError(errMsg);
+      }
+    } catch (err: any) {
+      setPasswordError(err.message || 'An error occurred while changing password.');
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -146,7 +223,7 @@ export default function SettingsPage() {
             <p className="text-slate-500 text-xs font-medium mt-1">Manage your account credentials, notifications, and preferences.</p>
           </div>
 
-          {!user.is_pro && (
+          {/* {!user.is_pro && (
             <button
               onClick={() => router.push('/upgrade-pro')}
               className="hidden sm:flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-primary/90 transition-all shadow-sm"
@@ -154,7 +231,7 @@ export default function SettingsPage() {
               <Zap size={16} className="text-amber-400 fill-current" />
               <span>Upgrade Pro</span>
             </button>
-          )}
+          )} */}
         </div>
 
         {/* Single Page 2-Column Layout */}
@@ -210,7 +287,7 @@ export default function SettingsPage() {
                     <p className="text-slate-400 text-xs font-medium">Manage your profile information and authentication credentials.</p>
                   </div>
 
-                  <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden">
+                  <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden mb-6">
                     <div
                       onClick={() => router.push('/profile/edit')}
                       className="flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 transition-all cursor-pointer"
@@ -222,22 +299,6 @@ export default function SettingsPage() {
                         <div>
                           <p className="text-sm font-bold text-slate-900">Personal Details</p>
                           <p className="text-xs text-slate-400 font-medium">{user.email}</p>
-                        </div>
-                      </div>
-                      <ChevronRight size={18} className="text-slate-400" />
-                    </div>
-
-                    <div
-                      onClick={handlePasswordReset}
-                      className="flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 transition-all cursor-pointer"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
-                          <Lock size={20} />
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-slate-900">Security Password</p>
-                          <p className="text-xs text-slate-400 font-medium">Click to send password reset link to your email</p>
                         </div>
                       </div>
                       <ChevronRight size={18} className="text-slate-400" />
@@ -256,7 +317,7 @@ export default function SettingsPage() {
                       <span className="text-[10px] bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full font-bold border border-emerald-100 uppercase">Verified</span>
                     </div>
 
-                    <div
+                    {/* <div
                       onClick={() => router.push('/upgrade-pro')}
                       className="flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 transition-all cursor-pointer"
                     >
@@ -270,7 +331,175 @@ export default function SettingsPage() {
                         </div>
                       </div>
                       <ChevronRight size={18} className="text-slate-400" />
+                    </div> */}
+                  </div>
+
+                  {/* SECTION 1: Forgot Password (If completely forgotten) */}
+                  <div className="border border-amber-200/80 rounded-2xl p-5 sm:p-6 bg-amber-50/40 space-y-3 mb-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200">
+                          <Mail size={20} />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-bold text-slate-900">Forgot Password? (Reset via Email)</h3>
+                          <p className="text-xs text-slate-500 font-medium">If you completely forgot your password, request a reset link sent to your registered email.</p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-bold uppercase shrink-0 border border-amber-200">Option 1</span>
                     </div>
+
+                    <div className="pt-2 flex items-center justify-end border-t border-amber-200/60">
+                      <button
+                        type="button"
+                        disabled={updating}
+                        onClick={handlePasswordReset}
+                        className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {updating ? (
+                          <>
+                            <Loader2 size={14} className="animate-spin" />
+                            <span>Sending Link...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Mail size={14} />
+                            <span>Send Password Reset Link</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* SECTION 2: Change Password Form (If current password is known) */}
+                  <div className="border border-slate-200 rounded-2xl p-5 sm:p-6 bg-slate-50/60 space-y-4">
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
+                          <Lock size={20} />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-bold text-slate-900">Change Password Form</h3>
+                          <p className="text-xs text-slate-500 font-medium">If you know your current password, update it directly below.</p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-bold uppercase border border-slate-300">Option 2</span>
+                    </div>
+
+                    {passwordError && (
+                      <div className="p-3.5 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs font-bold flex items-center gap-2">
+                        <AlertCircle size={16} className="shrink-0" />
+                        <span>{passwordError}</span>
+                      </div>
+                    )}
+
+                    {passwordSuccess && (
+                      <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-xs font-bold flex items-center gap-2">
+                        <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
+                        <span>{passwordSuccess}</span>
+                      </div>
+                    )}
+
+                    <form onSubmit={handleChangePasswordSubmit} className="space-y-4">
+                      {/* Field 1: Current Password (old_password) */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
+                          <span>Current Password</span>
+                          <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showOldPassword ? "text" : "password"}
+                            value={oldPassword}
+                            onChange={(e) => { setOldPassword(e.target.value); setPasswordError(null); }}
+                            placeholder="Enter current password"
+                            required
+                            className="w-full px-3.5 py-2.5 pr-10 text-xs font-medium bg-white border border-slate-200 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-slate-900"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowOldPassword(!showOldPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                          >
+                            {showOldPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Field 2: New Password (new_password) */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
+                          <span className="flex items-center gap-1">
+                            <span>New Password</span>
+                            <span className="text-red-500">*</span>
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-normal">(Min. 8 characters)</span>
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showNewPassword ? "text" : "password"}
+                            value={newPassword}
+                            onChange={(e) => { setNewPassword(e.target.value); setPasswordError(null); }}
+                            placeholder="Enter new password (min. 8 characters)"
+                            required
+                            minLength={8}
+                            className="w-full px-3.5 py-2.5 pr-10 text-xs font-medium bg-white border border-slate-200 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-slate-900"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                          >
+                            {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Field 3: Confirm New Password (confirm_password) */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
+                          <span>Confirm New Password</span>
+                          <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showConfirmPassword ? "text" : "password"}
+                            value={confirmPassword}
+                            onChange={(e) => { setConfirmPassword(e.target.value); setPasswordError(null); }}
+                            placeholder="Re-enter new password"
+                            required
+                            className="w-full px-3.5 py-2.5 pr-10 text-xs font-medium bg-white border border-slate-200 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-slate-900"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                          >
+                            {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 flex items-center justify-end">
+                        <button
+                          type="submit"
+                          disabled={changingPassword}
+                          className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 disabled:opacity-50"
+                        >
+                          {changingPassword ? (
+                            <>
+                              <Loader2 size={14} className="animate-spin" />
+                              <span>Updating Password...</span>
+                            </>
+                          ) : (
+                            <>
+                              <KeyRound size={14} />
+                              <span>Update Password</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </form>
                   </div>
                 </div>
               )}
@@ -382,45 +611,6 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden">
-                    {/* Become a Mentor commented out
-                    <div className="flex items-center justify-between p-4 sm:p-5">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
-                          <Award size={20} />
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-slate-900">Become a Mentor</p>
-                          <p className="text-xs text-slate-400 font-medium">Guide fellow applicants with SOPs and scholarships</p>
-                        </div>
-                      </div>
-                      <button
-                        disabled={updating}
-                        onClick={() => toggleMentorStatus(!user.is_mentor)}
-                        className={`w-12 h-6 rounded-full relative transition-all ${user.is_mentor ? 'bg-primary' : 'bg-slate-200'} ${updating ? 'opacity-50' : ''}`}
-                      >
-                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${user.is_mentor ? 'right-1' : 'left-1'}`}></div>
-                      </button>
-                    </div>
-
-                    {user.is_mentor && (
-                      <div
-                        onClick={() => router.push('/profile/edit')}
-                        className="flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 transition-all cursor-pointer"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
-                            <Info size={20} />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-slate-900">Mentorship Expertise & Bio</p>
-                            <p className="text-xs text-slate-400 font-medium">Configure your university, expertise, and target countries</p>
-                          </div>
-                        </div>
-                        <ChevronRight size={18} className="text-slate-400" />
-                      </div>
-                    )}
-                    */}
-
                     <div
                       onClick={() => router.push('/community')}
                       className="flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 transition-all cursor-pointer"
