@@ -254,6 +254,19 @@ export default function SettingsPage() {
                 </button>
               ))}
 
+              {!user.is_pro && (
+                <button
+                  onClick={() => router.push('/upgrade-pro')}
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-sm transition-all text-left mt-2"
+                >
+                  <div className="flex items-center gap-3">
+                    <Zap size={18} className="text-amber-300 fill-current" />
+                    <span>Upgrade Pro</span>
+                  </div>
+                  <ChevronRight size={16} className="text-white/80" />
+                </button>
+              )}
+
               {user.is_staff && (
                 <button
                   onClick={() => router.push('/admin')}
