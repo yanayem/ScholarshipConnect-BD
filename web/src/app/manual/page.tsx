@@ -244,10 +244,10 @@ export default function ManualPage() {
         </div>
 
         {/* Category Filter Chips */}
-        <div className="flex overflow-x-auto gap-2 pb-4 mb-6 scrollbar-none">
+        <div className="flex flex-wrap items-center gap-2 mb-8">
           <button
             onClick={() => setSelectedCategory('all')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
               selectedCategory === 'all'
                 ? 'bg-primary text-white shadow-md'
                 : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -259,13 +259,13 @@ export default function ManualPage() {
             <button
               key={sec.id}
               onClick={() => setSelectedCategory(sec.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 selectedCategory === sec.id
                   ? 'bg-primary text-white shadow-md'
                   : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
               }`}
             >
-              <sec.icon size={14} />
+              <sec.icon size={15} />
               <span>{sec.category}</span>
             </button>
           ))}
