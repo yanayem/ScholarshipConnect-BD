@@ -78,6 +78,8 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
         status_param = self.request.query_params.get('status')
         country_param = self.request.query_params.get('country')
         level_param = self.request.query_params.get('level')
+        category_param = self.request.query_params.get('category')
+        min_cgpa_param = self.request.query_params.get('min_cgpa')
         
         queryset = Scholarship.objects.all()
         
@@ -99,6 +101,44 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
 
             if level_param and level_param.lower() != 'all':
                 queryset = queryset.filter(level__icontains=level_param)
+
+            # Module 4: Category Filter (e.g. Undergraduate, Postgraduate, Ph.D., Postdoc)
+            if category_param and category_param.lower() != 'all':
+                cat_lower = category_param.strip().lower()
+                # Expand synonymous academic terms (e.g. Postgraduate -> Masters / PhD)
+                synonyms = [cat_lower]
+                if 'postgraduate' in cat_lower or 'master' in cat_lower:
+                    synonyms.extend(['master', 'postgraduate', 'ms', 'msc'])
+                elif 'undergraduate' in cat_lower or 'bachelor' in cat_lower:
+                    synonyms.extend(['undergrad', 'bachelor', 'undergraduate'])
+                elif 'phd' in cat_lower or 'ph.d' in cat_lower or 'doctor' in cat_lower:
+                    synonyms.extend(['phd', 'ph.d', 'doctoral'])
+
+                from django.db.models import Q
+                cat_filter = Q()
+                for term in synonyms:
+                    cat_filter |= Q(category__icontains=term) | Q(level__icontains=term)
+                queryset = queryset.filter(cat_filter)
+
+            # Module 4: Min CGPA Filter (0.00 <= min_cgpa <= 4.00)
+            if min_cgpa_param is not None and min_cgpa_param != '':
+                try:
+                    cgpa_val = float(min_cgpa_param)
+                    if cgpa_val > 4.00 or cgpa_val < 0.00:
+                        # IEC4-2: Out-of-bounds float -> returns empty queryset
+                        queryset = queryset.none()
+                    else:
+                        # Note: Djongo has known serialization issues with DecimalField comparisons in MongoDB queries.
+                        # We evaluate eligible IDs safely in Python.
+                        matched_ids = [
+                            s.id for s in queryset
+                            if s.min_cgpa is None or float(s.min_cgpa) <= cgpa_val
+                        ]
+                        queryset = queryset.filter(id__in=matched_ids)
+                except (ValueError, TypeError):
+                    from rest_framework.exceptions import ValidationError
+                    # IEC4-3: Non-numeric CGPA -> HTTP 400 Bad Request
+                    raise ValidationError({'min_cgpa': ['Enter a number.']})
             
         return queryset
 
