@@ -34,7 +34,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { apiService } from '@/lib/api';
-import { sendPasswordResetEmail } from 'firebase/auth';
+import { sendPasswordResetEmail, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
 export default function SettingsPage() {
@@ -76,8 +76,13 @@ export default function SettingsPage() {
     if (!user?.email) return;
     try {
       setUpdating(true);
-      await sendPasswordResetEmail(auth, user.email);
-      showToast(`Password reset link sent to ${user.email}`, 'success');
+      const res = await apiService.forgotPassword(user.email);
+      if (res.ok) {
+        showToast(`A unique temporary password has been sent to ${user.email}. Check your inbox!`, 'success');
+      } else {
+        await sendPasswordResetEmail(auth, user.email);
+        showToast(`Password reset link sent to ${user.email}. Please check your inbox or spam folder.`, 'success');
+      }
     } catch (err: any) {
       console.error(err);
       showToast(err.message || 'Failed to send password reset email', 'error');
@@ -110,6 +115,37 @@ export default function SettingsPage() {
 
     setChangingPassword(true);
     try {
+      // Step 1: Verify current password & update password in Firebase Auth if signed in via Firebase
+      const firebaseUser = auth.currentUser;
+      if (firebaseUser && firebaseUser.email) {
+        try {
+          const credential = EmailAuthProvider.credential(firebaseUser.email, oldPassword);
+          await reauthenticateWithCredential(firebaseUser, credential);
+        } catch (authErr: any) {
+          console.error('[Firebase Reauth Error]', authErr);
+          if (
+            authErr.code === 'auth/wrong-password' ||
+            authErr.code === 'auth/invalid-credential' ||
+            authErr.code === 'auth/invalid-password'
+          ) {
+            setPasswordError('Current password is incorrect.');
+            setChangingPassword(false);
+            return;
+          } else if (authErr.code === 'auth/too-many-requests') {
+            setPasswordError('Too many failed attempts. Please try again later or use Email Reset.');
+            setChangingPassword(false);
+            return;
+          } else {
+            setPasswordError(authErr.message || 'Current password verification failed.');
+            setChangingPassword(false);
+            return;
+          }
+        }
+
+        await updatePassword(firebaseUser, newPassword);
+      }
+
+      // Step 2: Update password in Django Backend DB
       const res = await apiService.changePassword({
         old_password: oldPassword,
         new_password: newPassword,
@@ -117,11 +153,15 @@ export default function SettingsPage() {
       });
 
       if (res.ok) {
-        setPasswordSuccess('Password updated successfully!');
-        showToast('Password updated successfully!', 'success');
+        setPasswordSuccess('Password updated successfully! Signing out to verify new password...');
+        showToast('Password updated! Signing out...', 'success');
         setOldPassword('');
         setNewPassword('');
         setConfirmPassword('');
+        setTimeout(async () => {
+          await apiService.logout();
+          router.push('/login?reset=success');
+        }, 1500);
       } else {
         const data = res.data;
         let errMsg = 'Failed to update password.';
@@ -356,10 +396,9 @@ export default function SettingsPage() {
                         </div>
                         <div>
                           <h3 className="text-sm font-bold text-slate-900">Forgot Password? (Reset via Email)</h3>
-                          <p className="text-xs text-slate-500 font-medium">If you completely forgot your password, request a reset link sent to your registered email.</p>
+                          <p className="text-xs text-slate-500 font-medium">Request a unique, mixed temporary password sent directly to your registered email ({user.email}).</p>
                         </div>
                       </div>
-                      <span className="text-[10px] bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-bold uppercase shrink-0 border border-amber-200">Option 1</span>
                     </div>
 
                     <div className="pt-2 flex items-center justify-end border-t border-amber-200/60">
@@ -372,12 +411,12 @@ export default function SettingsPage() {
                         {updating ? (
                           <>
                             <Loader2 size={14} className="animate-spin" />
-                            <span>Sending Link...</span>
+                            <span>Sending Password...</span>
                           </>
                         ) : (
                           <>
                             <Mail size={14} />
-                            <span>Send Password Reset Link</span>
+                            <span>Send Temporary Password</span>
                           </>
                         )}
                       </button>
@@ -396,7 +435,6 @@ export default function SettingsPage() {
                           <p className="text-xs text-slate-500 font-medium">If you know your current password, update it directly below.</p>
                         </div>
                       </div>
-                      <span className="text-[10px] bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-bold uppercase border border-slate-300">Option 2</span>
                     </div>
 
                     {passwordError && (

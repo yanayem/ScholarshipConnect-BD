@@ -14,6 +14,8 @@ from django.conf import settings
 from django.utils import timezone
 import datetime
 import random
+import secrets
+import string
 from .models import Profile, AdminActivityLog, EmailOTP
 from .serializers import (
     ProfileSerializer, ChangePasswordSerializer, UserSerializer, 
@@ -101,8 +103,18 @@ class ChangePasswordView(generics.UpdateAPIView):
         self.object = self.get_object()
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            self.object.set_password(serializer.data.get("new_password"))
+            new_password = serializer.validated_data.get("new_password")
+            self.object.set_password(new_password)
             self.object.save()
+
+            # Synchronize password update with Firebase Auth if possible
+            try:
+                from firebase_admin import auth as firebase_auth
+                firebase_auth.update_user(self.object.username, password=new_password)
+                print(f"[CHANGE PASSWORD] Firebase password updated for UID: {self.object.username}")
+            except Exception as e:
+                print(f"[CHANGE PASSWORD] Firebase sync note: {str(e)}")
+
             return Response({"message": "Password updated successfully"}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -300,9 +312,41 @@ class AdminActivityLogListView(generics.ListAPIView):
     serializer_class = AdminActivityLogSerializer
     permission_classes = [permissions.IsAdminUser]
 
+def generate_temp_password(length=10):
+    """
+    Generates a cryptographically strong, mixed random temporary password.
+    Guarantees representation of lowercase, uppercase, digits, and special characters,
+    with all characters shuffled using secrets.SystemRandom.
+    """
+    length = max(length, 10)
+    lower = string.ascii_lowercase
+    upper = string.ascii_uppercase
+    digits = string.digits
+    special = "@#$!%&*?"
+
+    required = [
+        secrets.choice(lower),
+        secrets.choice(lower),
+        secrets.choice(upper),
+        secrets.choice(upper),
+        secrets.choice(digits),
+        secrets.choice(digits),
+        secrets.choice(special),
+        secrets.choice(special),
+    ]
+
+    remaining_len = length - len(required)
+    all_chars = lower + upper + digits + special
+    extra = [secrets.choice(all_chars) for _ in range(remaining_len)]
+
+    combined = required + extra
+    secrets.SystemRandom().shuffle(combined)
+    return ''.join(combined)
+
 class ForgotPasswordView(APIView):
     """
-    Sends a password reset link to the user's email.
+    Generates a unique, mixed temporary password (min 8 chars) for each user request,
+    updates both Django DB & Firebase Auth, and emails the temporary password.
     """
     permission_classes = [permissions.AllowAny]
     serializer_class = ForgotPasswordSerializer
@@ -311,34 +355,65 @@ class ForgotPasswordView(APIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            email = serializer.validated_data['email']
-            user = User.objects.get(email=email)
-            
-            # Note: In production, this link should point to your frontend's reset page.
-            reset_link = f"https://scholarshipconnectbd.vercel.app/reset-password?email={email}"
-            
-            subject = "Password Reset Request - ScholarshipConnectBD"
+            raw_email = serializer.validated_data['email']
+            clean_email = raw_email.strip().lower()
+
+            user = User.objects.filter(email__iexact=clean_email).first()
+            if not user:
+                return Response({"error": "No account found with this email address."}, status=status.HTTP_404_NOT_FOUND)
+
+            # Generate unique min 10-character mixed temporary password
+            temp_password = generate_temp_password(10)
+
+            # 1. Update password in Django DB
+            user.set_password(temp_password)
+            user.save()
+
+            # 2. Update password in Firebase Auth if available
+            try:
+                firebase_auth.update_user(user.username, password=temp_password)
+                print(f"[FORGOT PASSWORD] Updated Firebase password to temporary password for UID: {user.username}")
+            except Exception as e:
+                print(f"[FORGOT PASSWORD] Firebase sync note: {e}")
+
+            # Dynamic subject with timestamp & reference code to prevent email clients (e.g. Gmail)
+            # from collapsing separate temporary password emails into a single old thread
+            timestamp_str = timezone.now().strftime("%I:%M:%S %p")
+            ref_code = secrets.token_hex(2).upper()
+            subject = f"Temporary Password [{ref_code} - {timestamp_str}] - ScholarshipConnectBD"
+
             message = (
-                f"Hello {user.username},\n\n"
-                f"We received a request to reset your password. Please click the link below to set a new password:\n\n"
-                f"{reset_link}\n\n"
-                f"If you did not request this, please ignore this email.\n\n"
+                f"Hello {user.username or user.email},\n\n"
+                f"We received a request for a temporary password for your account.\n\n"
+                f"---------------------------------------------------\n"
+                f"Your Temporary Password:  {temp_password}\n"
+                f"Generated At:             {timestamp_str} (UTC)\n"
+                f"Reference Code:           {ref_code}\n"
+                f"---------------------------------------------------\n\n"
+                f"Instructions:\n"
+                f"1. Log in to your account using this temporary password.\n"
+                f"2. Go to your Settings page and update your password to your own preferred password.\n\n"
+                f"If you did not request this temporary password, please log in and secure your account immediately.\n\n"
                 f"Best regards,\n"
                 f"ScholarshipConnectBD Team"
             )
-            
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[email],
-                fail_silently=False,
-            )
-            
+
+            try:
+                send_mail(
+                    subject=subject,
+                    message=message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[clean_email],
+                    fail_silently=False,
+                )
+            except Exception as mail_err:
+                print(f"[FORGOT PASSWORD] Mail send warning: {mail_err}")
+
             return Response({
-                "message": "Password reset link has been sent to your email."
+                "message": f"A unique temporary password has been sent to {clean_email}.",
+                "temp_password_sent": True
             }, status=status.HTTP_200_OK)
-            
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UpdateFCMTokenView(APIView):

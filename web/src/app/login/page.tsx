@@ -1,26 +1,36 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, fetchSignInMethodsForEmail } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Lock, Mail, ArrowRight, Loader2, Sparkles, GraduationCap, Eye, EyeOff, AlertCircle, AlertTriangle, CheckCircle2, X } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' | 'warning' } | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const showToast = (message: string, type: 'error' | 'success' | 'warning' = 'error') => {
     setToast({ message, type });
     setTimeout(() => {
       setToast(null);
-    }, 4000);
+    }, 4500);
   };
+
+  useEffect(() => {
+    const reset = searchParams.get('reset');
+    if (reset === 'sent') {
+      showToast('Password reset link sent to your email. Your session has been expired. Please check your inbox and log in with your new password.', 'success');
+    } else if (reset === 'success') {
+      showToast('Password updated successfully! Your previous session has been expired. Please log in with your new password.', 'success');
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -236,5 +246,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="animate-spin text-primary" size={32} />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

@@ -11,7 +11,7 @@ from accounts.models import Profile
 from notifications.utils import send_notification
 
 # Configure Stripe
-stripe.api_key = "sk_test_placeholder" # Use env in production
+stripe.api_key = getattr(settings, 'STRIPE_SECRET_KEY', None) or "sk_test_placeholder"
 
 class StripePaymentIntentView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]

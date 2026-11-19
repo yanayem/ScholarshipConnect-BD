@@ -10,6 +10,7 @@ import { theme } from '../../theme';
 import CustomInput from '../../components/CustomInput';
 import { useToast } from '../../components/Toast';
 import { firebaseAuth } from '../../services/firebase';
+import { apiService } from '../../services/api';
 
 const { width, height } = Dimensions.get('window');
 
@@ -32,14 +33,24 @@ export default function ForgotPasswordScreen() {
 
     setLoading(true);
     try {
-      console.log('[FORGOT PASSWORD] Sending reset email to:', email.trim());
-      await firebaseAuth.sendPasswordReset(email.trim().toLowerCase());
+      const cleanEmail = email.trim().toLowerCase();
+      console.log('[FORGOT PASSWORD] Sending reset/temp password to:', cleanEmail);
 
-      Alert.alert(
-        "Email Sent",
-        "A password reset link has been sent to your email address. Please check your inbox or spam folder.",
-        [{ text: "Back to Login", onPress: () => router.back() }]
-      );
+      const res = await apiService.forgotPassword(cleanEmail);
+      if (res.ok) {
+        Alert.alert(
+          "Temporary Password Sent",
+          `A unique temporary password has been sent to ${cleanEmail}. Please check your inbox to get your temporary password and log in.`,
+          [{ text: "Back to Login", onPress: () => router.back() }]
+        );
+      } else {
+        await firebaseAuth.sendPasswordReset(cleanEmail);
+        Alert.alert(
+          "Email Sent",
+          "A password reset link has been sent to your email address. Please check your inbox or spam folder.",
+          [{ text: "Back to Login", onPress: () => router.back() }]
+        );
+      }
     } catch (error) {
       console.log('[FORGOT PASSWORD ERROR]:', error);
       let errorMsg = 'Failed to send reset email.';

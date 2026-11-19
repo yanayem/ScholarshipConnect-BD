@@ -188,6 +188,16 @@ export const apiService = {
     });
   },
 
+  async forgotPassword(email: string) {
+    return await safeFetch(`${API_URL}/accounts/forgot-password/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+  },
+
   // --- Scholarships ---
   async getScholarships(params = '') {
     const url = `${API_URL}/scholarships/${params ? '?' + params : ''}`;

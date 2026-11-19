@@ -43,6 +43,7 @@ export default function CheckoutScreen() {
             return;
         }
 
+        /*
         if (selectedMethod === 'Nagad') {
             router.push('/nagad-payment');
             return;
@@ -52,6 +53,7 @@ export default function CheckoutScreen() {
             router.push('/bangla-qr-payment');
             return;
         }
+        */
     };
 
     if (loading) return <Loader message="Preparing your checkout..." />;
@@ -133,6 +135,7 @@ export default function CheckoutScreen() {
                     />
                 </TouchableOpacity>
 
+                {/*
                 <TouchableOpacity
                     style={[styles.methodBtn, selectedMethod === 'Nagad' && styles.selectedMethod]}
                     onPress={() => setSelectedMethod('Nagad')}
@@ -168,6 +171,7 @@ export default function CheckoutScreen() {
                         color={selectedMethod === 'BanglaQR' ? theme.colors.primary : theme.colors.placeholder}
                     />
                 </TouchableOpacity>
+                */}
 
                 <TouchableOpacity
                     style={[styles.methodBtn, selectedMethod === 'DirectCard' && styles.selectedMethod]}

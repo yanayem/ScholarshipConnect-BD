@@ -63,7 +63,7 @@ Inputs are partitioned into two major types of classes:
 | Attribute | Details |
 | :--- | :--- |
 | **System Under Test (SUT)** | ScholarshipConnect BD Platform |
-| **Backend Framework** | Django REST Framework (Python 3.10) |
+| **Backend Framework** | Django REST Framework (Python 3.10) & Firebase Auth |
 | **Frontend Clients** | Expo / React Native Mobile App & Next.js Web Portal |
 | **Payment Gateways** | Mobile Financial Services (bKash, Nagad), Bangla QR & Stripe Card Payment API |
 | **API Testing Tool** | Postman v10.x / Django REST Test Client |
@@ -77,67 +77,71 @@ The target project **ScholarshipConnect BD** is a Django REST & Next.js/Expo cro
 
 ---
 
-#### 4.1 For Module 1: AI Statement of Purpose (SOP) Paraphraser & Reviewer (`AIParaphraseSOPView`)
-This module processes user-submitted SOP draft text, applies specified stylistic modifications, and enforces daily rate limits for free tier accounts.
+#### 4.1 For Module 1: AI Statement of Purpose (SOP) Assistant (`AIWriteSOPView` / `AIParaphraseSOPView`)
+This module provides complete AI-driven SOP assistance for students. In **"Write / Generate" mode**, the user does **not** need to manually input test text—clicking **"Generate AI Draft"** automatically synthesizes an SOP using the student's profile and active scholarship context. In **"Paraphrase & Polish" mode**, the system accepts draft text, modifies tone, and enforces daily usage quotas.
 
-* **Input Field 1: SOP Draft Text (`sop_text`)**
+* **Input Field 1: Target Scholarship Context (`scholarship_id`) [Write/Generate Mode]**
+  * Type: Integer / Query Context
+  * Rule: Must provide a valid, active scholarship ID. No manual text input is required by the user—the draft is auto-generated on click.
+* **Input Field 2: SOP Text to Paraphrase (`sop_text`) [Paraphrase Mode]**
   * Type: String
-  * Rule: Must be non-empty with a minimum length of 20 characters.
-* **Input Field 2: Paraphrasing Tone/Style (`style`)**
+  * Rule: Optional in Generate mode; in Paraphrase mode, must be non-empty with length $\ge 20$ characters.
+* **Input Field 3: Paraphrasing Tone/Style (`style`)**
   * Type: String (Enumerated)
   * Rule: Must be one of `['academic', 'formal', 'concise', 'creative']`. Default is `'academic'`.
-* **Input Field 3: Daily User AI Limit Counter (`ai_usage_count`)**
+* **Input Field 4: Daily User AI Limit Counter (`ai_usage_count`)**
   * Type: Integer
   * Rule: Free tier users allow $0 \le \text{count} < 5$ per day. Pro users (`is_currently_pro = True`) have unlimited operations.
 
 | Input Condition | Valid Equivalence Class (VEC) | Invalid Equivalence Class (IEC) |
 | :--- | :--- | :--- |
-| **SOP Text Length (`sop_text`)** | **VEC1-1:** Length $\ge 20$ chars (e.g., 50-word paragraph) | **IEC1-1:** Empty / Null string<br>**IEC1-2:** Length $< 20$ chars |
-| **Style Option (`style`)** | **VEC1-2:** `"academic"`, `"formal"`, `"concise"`, `"creative"` | **IEC1-3:** Unsupported style (e.g., `"slang"`, `"1234"`) |
-| **Daily AI Limit (`ai_usage_count`)** | **VEC1-3:** Free user count $< 5$<br>**VEC1-4:** Pro user (`is_currently_pro = True`) | **IEC1-4:** Free user count $\ge 5$ (Limit reached) |
+| **Scholarship Context (`scholarship_id`) [Generate Mode]** | **VEC1-1:** Valid active `scholarship_id` present (No text input required, auto-generated on click) | **IEC1-1:** Missing scholarship context (e.g. `scholarship_id = null`) |
+| **SOP Draft Text (`sop_text`) [Paraphrase Mode]** | **VEC1-2:** Length $\ge 20$ chars (e.g., 50-word text) | **IEC1-2:** Empty / Null string<br>**IEC1-3:** Length $< 20$ chars |
+| **Style Option (`style`)** | **VEC1-3:** `"academic"`, `"formal"`, `"concise"`, `"creative"` | **IEC1-4:** Unsupported style (e.g., `"slang"`, `"1234"`) |
+| **Daily AI Limit (`ai_usage_count`)** | **VEC1-4:** Free user count $< 5$<br>**VEC1-5:** Pro user (`is_currently_pro = True`) | **IEC1-5:** Free user count $\ge 5$ (Limit reached) |
 
 ---
 
-#### 4.2 For Module 2: NLP Scholarship Eligibility Matcher (`check_eligibility`)
-This module evaluates student eligibility against target scholarship requirements using CGPA score comparison, academic level matching, and field-of-study keyword analysis.
+#### 4.2 For Module 2: Automated NLP Profile Matchmaker (`GET /api/scholarships/matchmaker/`)
+This module automatically fetches the logged-in student's profile attributes (`cgpa`, `academic_level`, `target_countries`, `major_course`), runs an automated hybrid NLP matching engine against active scholarships, and returns personalized compatibility recommendations.
 
-* **Input Field 1: Cumulative Grade Point Average (`cgpa`)**
-  * Type: Float
-  * Rule: Must be a numeric value between $0.00$ and $4.00$.
-* **Input Field 2: Current Academic Level (`academic_level`)**
+* **Input Context 1: Authenticated User Profile (`request.user.profile`)**
+  * Type: Profile Object
+  * Rule: Must belong to an authenticated active student user.
+* **Input Parameter 2: Student CGPA Attribute (`profile.cgpa`)**
+  * Type: Float / Numeric String
+  * Rule: Valid range between $0.00$ and $4.00$.
+* **Input Parameter 3: Academic Level & Major (`profile.academic_level`, `profile.major_course`)**
   * Type: String
-  * Rule: Standard levels: `"Bachelors"`, `"Masters"`, `"PhD"`.
-* **Input Field 3: Major / Field of Study (`major_course`)**
-  * Type: String
-  * Rule: Non-empty string containing academic major keywords (e.g., `"Computer Science"`).
+  * Rule: Standard academic levels (`"Bachelors"`, `"Masters"`, `"PhD"`).
 
 | Input Condition | Valid Equivalence Class (VEC) | Invalid Equivalence Class (IEC) |
 | :--- | :--- | :--- |
-| **Student CGPA Value (`cgpa`)** | **VEC2-1:** $0.00 \le \text{CGPA} \le 4.00$ | **IEC2-1:** $\text{CGPA} < 0.00$<br>**IEC2-2:** $\text{CGPA} > 4.00$<br>**IEC2-3:** Non-numeric input (e.g., `"Three point Five"`) |
-| **Academic Level (`academic_level`)** | **VEC2-2:** Matches standard levels (`"Bachelors"`, `"Masters"`, `"PhD"`) | **IEC2-4:** Empty / Null level<br>**IEC2-5:** Unrecognized level string (e.g., `"High School"`) |
-| **Major Field (`major_course`)** | **VEC2-3:** Valid academic discipline string | **IEC2-6:** Empty / Blank string |
+| **User Authentication (`request.user`)** | **VEC2-1:** Authenticated student user | **IEC2-1:** Unauthenticated anonymous request (`401 Unauthorized`) |
+| **Profile CGPA Score (`profile.cgpa`)** | **VEC2-2:** Valid numeric CGPA $0.00 \le \text{CGPA} \le 4.00$ | **IEC2-2:** Out of bounds CGPA ($<0.00$ or $>4.00$)<br>**IEC2-3:** Null / Unset CGPA profile attribute |
+| **Academic Level Matching (`academic_level`)** | **VEC2-3:** Valid level (`"Bachelors"`, `"Masters"`, `"PhD"`) | **IEC2-4:** Unrecognized or empty academic level string |
 
 ---
 
-#### 4.3 For Module 3: Profile Management, Student Info Updates & Password Security (`ProfileView` & `ChangePasswordView`)
-This module manages user profile information updates (full name, phone, university, academic scores) and authenticated password security updates.
+#### 4.3 For Module 3: Account Security, Forgot Password Email Reset & Change Password (`ForgotPasswordView` & `ChangePasswordView`)
+This module manages security credentials including requesting email password reset links (Option 1) and updating existing passwords directly (Option 2).
 
-* **Input Field 1: Profile Information Fields (`full_name`, `phone_number`, `university`, `department`)**
-  * Type: String / Form-Data
-  * Rule: Alphanumeric details, phone must be valid string, text fields sanitized.
+* **Input Field 1: Reset Email Address (`email`)**
+  * Type: String (Email)
+  * Rule: Must be a valid email format and registered in the database.
 * **Input Field 2: Current & New Password (`old_password`, `new_password`)**
   * Type: String
-  * Rule: `old_password` must match active database hash; `new_password` minimum 8 characters long.
+  * Rule: `old_password` must match active database password; `new_password` minimum 8 characters.
 * **Input Field 3: Confirm New Password (`confirm_password`)**
   * Type: String
   * Rule: Must match `new_password` exactly.
 
 | Input Condition | Valid Equivalence Class (VEC) | Invalid Equivalence Class (IEC) |
 | :--- | :--- | :--- |
-| **Profile Info Update (`full_name`, `university`)** | **VEC3-1:** Valid text strings and standard phone format | **IEC3-1:** Null / Empty required profile parameters |
-| **Current Password Verification (`old_password`)** | **VEC3-2:** Matches active user password in database | **IEC3-2:** Incorrect password<br>**IEC3-3:** Empty string |
-| **New Password Constraints (`new_password`)** | **VEC3-3:** Length $\ge 8$ chars and differs from old password | **IEC3-4:** Length $< 8$ chars<br>**IEC3-5:** Same as old password |
-| **Password Confirmation (`confirm_password`)** | **VEC3-4:** Exactly matches `new_password` | **IEC3-6:** Differs from `new_password` |
+| **Forgot Password Email (`email`)** | **VEC3-1:** Valid email registered in database | **IEC3-1:** Non-existent email in DB<br>**IEC3-2:** Invalid email string format |
+| **Current Password Verification (`old_password`)** | **VEC3-2:** Matches active user password | **IEC3-3:** Incorrect current password<br>**IEC3-4:** Empty password string |
+| **New Password Range (`new_password`)** | **VEC3-3:** Length $\ge 8$ chars & differs from old password | **IEC3-5:** Length $< 8$ chars<br>**IEC3-6:** Same as old password |
+| **Password Confirmation (`confirm_password`)** | **VEC3-4:** Exactly matches `new_password` | **IEC3-7:** Differs from `new_password` |
 
 ---
 
@@ -265,58 +269,59 @@ This module processes multi-channel payment verification across bKash MFS, Nagad
 
 ---
 
-#### 5.1 For Module 1: AI Statement of Purpose (SOP) Paraphraser & Reviewer
+#### 5.1 For Module 1: AI Statement of Purpose (SOP) Assistant (`AIWriteSOPView` / `AIParaphraseSOPView`)
 
-* **Input Conditions:** `sop_text`, `style`, `ai_usage_count`
-* **Identified Valid Equivalence Classes:** VEC1-1, VEC1-2, VEC1-3, VEC1-4
-* **Identified Invalid Equivalence Classes:** IEC1-1, IEC1-2, IEC1-3, IEC1-4
+* **Input Conditions:** `scholarship_id`, `sop_text`, `style`, `ai_usage_count`
+* **Identified Valid Equivalence Classes:** VEC1-1, VEC1-2, VEC1-3, VEC1-4, VEC1-5
+* **Identified Invalid Equivalence Classes:** IEC1-1, IEC1-2, IEC1-3, IEC1-4, IEC1-5
 
 ##### Test Case Execution Table (Module 1)
 | Test ID | Input Condition | Class Tested | Test Inputs | Expected Output | Actual Output | Result |
 | :---: | :--- | :---: | :--- | :--- | :--- | :---: |
-| **TC-M1-01** | Standard SOP Text & Style | VEC1-1,<br>VEC1-2,<br>VEC1-3 | `sop_text`: "I am applying for M.Sc. in CS because of my strong interest in AI research." (78 chars)<br>`style`: "academic"<br>`ai_usage_count`: 2 | HTTP 200 OK<br>JSON containing paraphrased SOP text. | HTTP 200 OK<br>JSON returned with academic SOP draft. | **PASS** |
-| **TC-M1-02** | Text Length Too Short | IEC1-2 | `sop_text`: "I want SOP." (11 chars)<br>`style`: "academic" | HTTP 400 Bad Request<br>`{"error": "SOP text (minimum 20 characters) is required..."}` | HTTP 400 Bad Request<br>Error message matched expected length restriction. | **PASS** |
-| **TC-M1-03** | Empty SOP Text | IEC1-1 | `sop_text`: ""<br>`style`: "formal" | HTTP 400 Bad Request<br>Error indicating SOP text is required. | HTTP 400 Bad Request<br>`{"error": "SOP text (minimum 20 characters) is required..."}` | **PASS** |
-| **TC-M1-04** | Exceeded Daily AI Limit (Free Tier) | IEC1-4 | User: Free Tier<br>`ai_usage_count`: 5<br>`sop_text`: Valid 100-char string | HTTP 403 Forbidden<br>`{"error": "Daily AI limit reached (5/day). Upgrade to Pro..."}` | HTTP 403 Forbidden<br>`{"error": "Daily AI limit reached (5/day)..."}` | **PASS** |
-| **TC-M1-05** | Pro User Unlimited Access | VEC1-4 | User: Pro Tier<br>`ai_usage_count`: 12<br>`sop_text`: Valid 100-char string | HTTP 200 OK<br>AI generates paraphrased text without rate limit block. | HTTP 200 OK<br>Paraphrased SOP generated successfully. | **PASS** |
+| **TC-M1-01** | One-Click AI SOP Generation (No Manual Text Input) | VEC1-1,<br>VEC1-4 | Mode: Write / Generate<br>`scholarship_id`: 14<br>Manual Text Input: None<br>`ai_usage_count`: 1 | HTTP 200 OK<br>Full personalized SOP draft generated and populated into editor on click. | HTTP 200 OK<br>AI synthesized draft from profile & scholarship context automatically. | **PASS** |
+| **TC-M1-02** | Generate Draft with Missing Scholarship Context | IEC1-1 | Mode: Write / Generate<br>`scholarship_id`: null<br>Click: "Generate AI Draft" | UI Toast Error: "Scholarship context missing"<br>Aborts generation request gracefully. | UI Toast displayed error without crashing; input area maintained. | **PASS** |
+| **TC-M1-03** | Paraphrase Standard Draft Text & Style | VEC1-2,<br>VEC1-3 | Mode: Paraphrase<br>`sop_text`: "I am applying for M.Sc. in CS because of my strong interest in AI research." (78 chars)<br>`style`: "academic" | HTTP 200 OK<br>JSON containing paraphrased academic SOP text. | HTTP 200 OK<br>Academic SOP draft returned successfully. | **PASS** |
+| **TC-M1-04** | Paraphrase Input Length Too Short | IEC1-3 | Mode: Paraphrase<br>`sop_text`: "I want SOP." (11 chars)<br>`style`: "academic" | HTTP 400 Bad Request / UI Warning<br>`{"error": "SOP text (minimum 20 characters) is required..."}` | HTTP 400 Bad Request<br>Rejected due to insufficient character count. | **PASS** |
+| **TC-M1-05** | Exceeded Daily AI Quota (Free Tier) | IEC1-5 | User: Free Tier<br>`ai_usage_count`: 5<br>Click: "Generate AI Draft" | HTTP 403 Forbidden<br>`{"error": "Daily AI limit reached (5/day). Upgrade to Pro..."}` | HTTP 403 Forbidden<br>Quota enforced; prompt to upgrade to Pro displayed. | **PASS** |
+| **TC-M1-06** | Pro User Unlimited Access | VEC1-5 | User: Pro Tier<br>`ai_usage_count`: 12<br>Click: "Generate AI Draft" | HTTP 200 OK<br>AI generates SOP without daily rate limit block. | HTTP 200 OK<br>SOP generated successfully. | **PASS** |
 
 ---
 
-#### 5.2 For Module 2: NLP Scholarship Eligibility Matcher
+#### 5.2 For Module 2: Automated NLP Profile Matchmaker (`GET /api/scholarships/matchmaker/`)
 
-* **Input Conditions:** `cgpa`, `academic_level`, `major_course`
+* **Input Conditions:** `request.user.profile` (`cgpa`, `academic_level`, `major_course`)
 * **Identified Valid Equivalence Classes:** VEC2-1, VEC2-2, VEC2-3
 * **Identified Invalid Equivalence Classes:** IEC2-1, IEC2-2, IEC2-3, IEC2-4, IEC2-5, IEC2-6
 
 ##### Test Case Execution Table (Module 2)
 | Test ID | Input Condition | Class Tested | Test Inputs | Expected Output | Actual Output | Result |
 | :---: | :--- | :---: | :--- | :--- | :--- | :---: |
-| **TC-M2-01** | Valid Matching Parameters | VEC2-1,<br>VEC2-2,<br>VEC2-3 | `cgpa`: 3.75<br>`academic_level`: "Bachelors"<br>`major_course`: "Computer Science"<br>Target Scholarship Required CGPA: 3.20 | NLP Report with Compatibility Score (e.g. 85-95%) & "Strong Alignment" status. | Compatibility Score: 95%, "Strong Alignment" status returned. | **PASS** |
-| **TC-M2-02** | Invalid Negative CGPA | IEC2-1 | `cgpa`: -1.50<br>`academic_level`: "Bachelors"<br>`major_course`: "CSE" | CGPA evaluated as 0.00; score calculated on valid bounds without server crash. | System safely defaulted invalid CGPA to 0.00 with "Below target threshold". | **PASS** |
-| **TC-M2-03** | CGPA Exceeds Max Range | IEC2-2 | `cgpa`: 5.00<br>`academic_level`: "Bachelors"<br>`major_course`: "EEE" | Scores clamped to maximum 100% compatibility limit. | Overall compatibility capped gracefully at 100%. | **PASS** |
-| **TC-M2-04** | Non-Numeric CGPA Data | IEC2-3 | `cgpa`: "Three point Five"<br>`academic_level`: "Bachelors" | Exception caught, fallbacks to 0.00 CGPA with no HTTP 500 error. | System returned compatibility report handling non-numeric gracefully. | **PASS** |
-| **TC-M2-05** | Academic Level Mismatch | IEC2-5 | `cgpa`: 3.80<br>`academic_level`: "Bachelors"<br>Scholarship Target: "PhD" | Report outputs "Level Mismatch" and applies score penalty. | Report output: "Academic Level: Bachelors vs Program Level (Phd) -> Level Mismatch". | **PASS** |
+| **TC-M2-01** | Valid Profile Matching Execution | VEC2-1,<br>VEC2-2,<br>VEC2-3 | Active User Profile:<br>`cgpa`: 3.75<br>`academic_level`: "Bachelors"<br>`major_course`: "Computer Science"<br>Target Scholarship Required CGPA: 3.20 | HTTP 200 OK<br>NLP Report with Compatibility Score (e.g. 85-95%) & "Strong Alignment" status. | HTTP 200 OK<br>Compatibility Score: 95%, "Strong Alignment" status returned automatically. | **PASS** |
+| **TC-M2-02** | Invalid Negative CGPA in Profile | IEC2-1 | Profile CGPA: -1.50<br>`academic_level`: "Bachelors"<br>`major_course`: "CSE" | CGPA evaluated as 0.00; score calculated on valid bounds without server crash. | System safely defaulted invalid CGPA to 0.00 with "Below target threshold". | **PASS** |
+| **TC-M2-03** | Profile CGPA Exceeds Max Range | IEC2-2 | Profile CGPA: 5.00<br>`academic_level`: "Bachelors"<br>`major_course`: "EEE" | Scores clamped to maximum 100% compatibility limit. | Overall compatibility capped gracefully at 100%. | **PASS** |
+| **TC-M2-04** | Non-Numeric CGPA Data in Profile | IEC2-3 | Profile CGPA: "Three point Five"<br>`academic_level`: "Bachelors" | Exception caught, fallbacks to 0.00 CGPA with no HTTP 500 error. | System returned compatibility report handling non-numeric gracefully. | **PASS** |
+| **TC-M2-05** | Academic Level Mismatch | IEC2-5 | Profile Level: "Bachelors"<br>Scholarship Target: "PhD" | Report outputs "Level Mismatch" and applies score penalty. | Report output: "Academic Level: Bachelors vs Program Level (Phd) -> Level Mismatch". | **PASS** |
 
 ---
 
-#### 5.3 For Module 3: Profile Management & Password Security
+#### 5.3 For Module 3: Account Security, Forgot Password Email Reset & Change Password (`ForgotPasswordView` & `ChangePasswordView`)
 
-* **Input Conditions:** `full_name`, `phone_number`, `university`, `old_password`, `new_password`, `confirm_password`
+* **Input Conditions:** `email`, `old_password`, `new_password`, `confirm_password`
 * **Identified Valid Equivalence Classes:** VEC3-1, VEC3-2, VEC3-3, VEC3-4
-* **Identified Invalid Equivalence Classes:** IEC3-1, IEC3-2, IEC3-3, IEC3-4, IEC3-5, IEC3-6
+* **Identified Invalid Equivalence Classes:** IEC3-1, IEC3-2, IEC3-3, IEC3-4, IEC3-5, IEC3-6, IEC3-7
 
 ##### Test Case Execution Table (Module 3)
 | Test ID | Input Condition | Class Tested | Test Inputs | Expected Output | Actual Output | Result |
 | :---: | :--- | :---: | :--- | :--- | :--- | :---: |
-| **TC-M3-01** | Valid Profile Information Update | VEC3-1 | `full_name`: "Abdur Rahman"<br>`university`: "Dhaka University"<br>`phone_number`: "+8801700000000" | HTTP 200 OK<br>JSON representation of updated profile information. | HTTP 200 OK<br>Profile updated successfully in database. | **PASS** |
-| **TC-M3-02** | Valid Password Update | VEC3-2,<br>VEC3-3,<br>VEC3-4 | `old_password`: "CurrentPass123"<br>`new_password`: "NewSecurePass456"<br>`confirm_password`: "NewSecurePass456" | HTTP 200 OK<br>`{"detail": "Password updated successfully."}` | HTTP 200 OK<br>Password successfully updated in database. | **PASS** |
-| **TC-M3-03** | Incorrect Old Password | IEC3-2 | `old_password`: "WrongPass123"<br>`new_password`: "NewSecurePass456"<br>`confirm_password`: "NewSecurePass456" | HTTP 400 Bad Request<br>`{"old_password": ["Incorrect password."]}` | HTTP 400 Bad Request<br>`{"old_password": ["Incorrect password."]}` | **PASS** |
-| **TC-M3-04** | Short New Password | IEC3-4 | `old_password`: "CurrentPass123"<br>`new_password`: "Pass1"<br>`confirm_password`: "Pass1" | HTTP 400 Bad Request<br>`{"new_password": ["This password is too short. It must contain at least 8 characters."]}` | HTTP 400 Bad Request<br>Validation error returned for short password. | **PASS** |
-| **TC-M3-05** | Password Confirmation Mismatch | IEC3-6 | `old_password`: "CurrentPass123"<br>`new_password`: "NewSecurePass456"<br>`confirm_password`: "DifferentPass789" | HTTP 400 Bad Request<br>`{"non_field_errors": ["The two password fields didn't match."]}` | HTTP 400 Bad Request<br>Mismatch validation error triggered. | **PASS** |
+| **TC-M3-01** | Valid Password Reset Link Request (Option 1) | VEC3-1 | `email`: "student@scholarshipconnect.bd" | HTTP 200 OK<br>`{"message": "Password reset link has been sent to your email."}` | HTTP 200 OK<br>Reset link email dispatched successfully. | **PASS** |
+| **TC-M3-02** | Non-Existent Email Address Request | IEC3-1 | `email`: "notfound@gmail.com" | HTTP 400 Bad Request<br>`{"email": ["No user found with this email address."]}` | HTTP 400 Bad Request<br>`{"email": ["No user found with this email address."]}` | **PASS** |
+| **TC-M3-03** | Invalid Email Syntax Format | IEC3-2 | `email`: "invalid-email-format" | HTTP 400 Bad Request<br>`{"email": ["Enter a valid email address."]}` | HTTP 400 Bad Request<br>Email syntax validation triggered. | **PASS** |
+| **TC-M3-04** | Valid Password Change (Option 2) | VEC3-2,<br>VEC3-3,<br>VEC3-4 | `old_password`: "CurrentPass123"<br>`new_password`: "NewSecurePass456"<br>`confirm_password`: "NewSecurePass456" | HTTP 200 OK<br>`{"detail": "Password updated successfully."}` | HTTP 200 OK<br>Password successfully updated in database. | **PASS** |
+| **TC-M3-05** | Incorrect Current Password | IEC3-3 | `old_password`: "WrongPass123"<br>`new_password`: "NewSecurePass456"<br>`confirm_password`: "NewSecurePass456" | HTTP 400 Bad Request<br>`{"old_password": ["Incorrect password."]}` | HTTP 400 Bad Request<br>`{"old_password": ["Incorrect password."]}` | **PASS** |
 
 ---
 
-#### 5.4 For Module 4: Scholarship Search & Multi-Filter API
+#### 5.4 For Module 4: Scholarship Search & Multi-Filter API (`ScholarshipViewSet`)
 
 * **Input Conditions:** `search`, `min_cgpa`, `category`
 * **Identified Valid Equivalence Classes:** VEC4-1, VEC4-2, VEC4-3
@@ -333,7 +338,7 @@ This module processes multi-channel payment verification across bKash MFS, Nagad
 
 ---
 
-#### 5.5 For Module 5: Community Discussion Post Creation
+#### 5.5 For Module 5: Community Discussion Post Creation (`DiscussionListCreateView`)
 
 * **Input Conditions:** `title`, `content`, `category`
 * **Identified Valid Equivalence Classes:** VEC5-1, VEC5-2, VEC5-3
@@ -423,8 +428,8 @@ This module processes multi-channel payment verification across bKash MFS, Nagad
 | Metric | Count / Status |
 | :--- | :---: |
 | **Total Target Modules Tested** | **9 Modules** |
-| **Total Test Cases Executed** | **45 Test Cases** |
-| **Total Test Cases Passed** | **45 Test Cases** |
+| **Total Test Cases Executed** | **46 Test Cases** |
+| **Total Test Cases Passed** | **46 Test Cases** |
 | **Total Test Cases Failed** | **0 Test Cases** |
 | **Test Execution Pass Rate** | **100%** |
 | **Input Equivalence Classes Covered** | **100% (VEC & IEC)** |
@@ -435,6 +440,6 @@ This module processes multi-channel payment verification across bKash MFS, Nagad
 
 This lab experiment provided practical experience in applying the **Equivalence Partitioning** Black Box Testing technique to real-world backend modules in the **ScholarshipConnect BD** platform. By systematically categorizing input domains into Valid and Invalid Equivalence Classes across 9 key modules:
 
-1. High test coverage was achieved across AI Services, NLP Matchmaking, Account Security, Scholarship Filtering, Community Forums, Application Submissions, Admin Verification / Accept-Reject Workflows, AI Live Support Chatbots, and Multi-Gateway Payment Gateways (bKash, Nagad, Bangla QR, Card) using a minimal set of representative test cases (45 test cases total).
-2. Boundary and edge conditions (such as character limits, numerical range bounds, usage quotas, authorization rules, duplicate submission prevention, payment verification, and invalid data types) were thoroughly evaluated.
+1. High test coverage was achieved across AI Services (One-Click SOP Generation & Paraphrasing), NLP Matchmaking, Account Security & Password Reset, Scholarship Filtering, Community Forums, Application Submissions, Admin Verification / Accept-Reject Workflows, AI Live Support Chatbots, and Multi-Gateway Payment Gateways (bKash, Nagad, Bangla QR, Card) using a minimal set of representative test cases (46 test cases total).
+2. Boundary and edge conditions (such as character limits, numerical range bounds, usage quotas, authorization rules, duplicate submission prevention, payment verification, email reset validation, and invalid data types) were thoroughly evaluated.
 3. The test execution confirmed that the system correctly processes valid operational inputs while gracefully catching invalid data through standardized API error responses (HTTP 400 Bad Request / HTTP 401 Unauthorized / HTTP 403 Forbidden / HTTP 404 Not Found).

@@ -25,10 +25,12 @@ export default function CheckoutPage() {
   const handleProceedToPayment = () => {
     if (method === 'bkash') {
       router.push('/bkash-payment');
+    /*
     } else if (method === 'nagad') {
       router.push('/nagad-payment');
     } else if (method === 'bangla_qr') {
       router.push('/bangla-qr-payment');
+    */
     } else if (method === 'card') {
       router.push('/card-payment');
     }
@@ -97,8 +99,8 @@ export default function CheckoutPage() {
                 <div className="space-y-3.5">
                   {[
                     { id: 'bkash', name: 'bKash Checkout', icon: Smartphone, color: 'text-pink-600', sub: 'FAST & SECURE' },
-                    { id: 'nagad', name: 'Nagad Pay', icon: Smartphone, color: 'text-orange-600', sub: 'POPULAR CHOICE' },
-                    { id: 'bangla_qr', name: 'Bangla QR', icon: QrCode, color: 'text-emerald-600', sub: 'INSTANT SCAN' },
+                    // { id: 'nagad', name: 'Nagad Pay', icon: Smartphone, color: 'text-orange-600', sub: 'POPULAR CHOICE' },
+                    // { id: 'bangla_qr', name: 'Bangla QR', icon: QrCode, color: 'text-emerald-600', sub: 'INSTANT SCAN' },
                     { id: 'card', name: 'Debit / Credit Card', icon: CreditCard, color: 'text-blue-600', sub: 'VISA, MASTERCARD, AMEX' }
                   ].map(m => (
                     <button
