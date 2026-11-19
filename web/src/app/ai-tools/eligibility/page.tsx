@@ -16,7 +16,8 @@ import {
   User,
   Sliders,
   ExternalLink,
-  Cpu
+  Cpu,
+  Globe
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -34,6 +35,26 @@ export default function EligibilityPage() {
   const [customLevel, setCustomLevel] = useState<string>('');
   const [customMajor, setCustomMajor] = useState<string>('');
   const [suggestedMajors, setSuggestedMajors] = useState<string[]>([]);
+  const [customTargetCountries, setCustomTargetCountries] = useState<string>('');
+  const [suggestedCountries, setSuggestedCountries] = useState<string[]>([]);
+  const normalizeAcademicLevel = (val: string): string => {
+    if (!val) return '';
+    const clean = val.trim().toLowerCase();
+    if (clean.includes('hsc') || clean.includes('high school') || clean.includes('a-level')) return 'Bachelors';
+    if (clean.includes('bachelor') || clean.includes('undergrad')) return 'Bachelors';
+    if (clean.includes('master') || clean.includes('grad')) return 'Masters';
+    if (clean.includes('phd') || clean.includes('doctor')) return 'PhD';
+    if (clean.includes('postdoc')) return 'Postdoc';
+    return val;
+  };
+  const [savedProfile, setSavedProfile] = useState<any>(null);
+
+  const [toastMsg, setToastMsg] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
+
+  const showToast = (text: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToastMsg({ text, type });
+    setTimeout(() => setToastMsg(null), 3500);
+  };
 
   const [dataLoading, setDataLoading] = useState<boolean>(true);
   const [checking, setChecking] = useState<boolean>(false);
@@ -41,8 +62,10 @@ export default function EligibilityPage() {
   const [quickResult, setQuickResult] = useState<{
     score: number;
     cgpaPass: boolean;
+    cgpaInvalid: boolean;
     levelPass: boolean;
     fieldPass: boolean;
+    countryPass: boolean;
     minCgpaReq: number;
   } | null>(null);
 
@@ -60,13 +83,15 @@ export default function EligibilityPage() {
   const loadInitialData = async () => {
     setDataLoading(true);
     try {
-      const [scholarRes, profileRes, autocompleteRes] = await Promise.all([
+      const [scholarRes, profileRes, autocompleteRes, countryAutocompleteRes] = await Promise.all([
         apiService.getScholarships(),
         apiService.getProfile(),
-        apiService.getAutocomplete('field')
+        apiService.getAutocomplete('field'),
+        apiService.getAutocomplete('country')
       ]);
 
       const majorsSet = new Set<string>();
+      const countriesSet = new Set<string>();
 
       // 1. Load majors/fields from Database Autocomplete endpoint
       if (autocompleteRes.ok && Array.isArray(autocompleteRes.data)) {
@@ -75,7 +100,14 @@ export default function EligibilityPage() {
         });
       }
 
-      // 2. Extract fields from active scholarships in database
+      // Load countries from Database Autocomplete endpoint
+      if (countryAutocompleteRes.ok && Array.isArray(countryAutocompleteRes.data)) {
+        countryAutocompleteRes.data.forEach((c: string) => {
+          if (c && c.trim()) countriesSet.add(c.trim());
+        });
+      }
+
+      // 2. Extract fields and countries from active scholarships in database
       if (scholarRes.ok && Array.isArray(scholarRes.data)) {
         setScholarships(scholarRes.data);
         if (scholarRes.data.length > 0) {
@@ -87,6 +119,12 @@ export default function EligibilityPage() {
             s.field.split(',').forEach((f: string) => {
               const clean = f.trim();
               if (clean) majorsSet.add(clean);
+            });
+          }
+          if (s.country && s.country.trim()) {
+            s.country.split(',').forEach((c: string) => {
+              const clean = c.replace(/[\(\)]/g, '').trim();
+              if (clean && clean.length > 1) countriesSet.add(clean);
             });
           }
         });
@@ -102,14 +140,20 @@ export default function EligibilityPage() {
       ];
       defaultMajors.forEach(m => majorsSet.add(m));
 
-      setSuggestedMajors(Array.from(majorsSet).sort());
+      const defaultCountries = [
+        'USA', 'United States', 'United Kingdom', 'Canada', 'Germany',
+        'Australia', 'Japan', 'South Korea', 'Netherlands', 'Sweden',
+        'Switzerland', 'France', 'Hungary', 'Norway', 'Finland'
+      ];
+      defaultCountries.forEach(c => countriesSet.add(c));
 
-      // 3. Populate current user profile criteria
+      setSuggestedMajors(Array.from(majorsSet).sort());
+      setSuggestedCountries(Array.from(countriesSet).sort());
+
+      // Candidate criteria fields start empty by default as requested.
+      // User can optionally import from their saved profile via the "Load My Profile" button.
       if (profileRes.ok && profileRes.data) {
-        const p = profileRes.data;
-        if (p.cgpa) setCustomCgpa(p.cgpa.toString());
-        if (p.academic_level) setCustomLevel(p.academic_level);
-        if (p.major_course) setCustomMajor(p.major_course);
+        setSavedProfile(profileRes.data);
       }
     } catch (err) {
       console.error('[EligibilityPage] Error loading data:', err);
@@ -130,14 +174,17 @@ export default function EligibilityPage() {
     setQuickResult(null);
 
     // 1. Rule-Based NLP Threshold Match
-    const hasCgpa: boolean = Boolean(customCgpa && !isNaN(parseFloat(customCgpa)) && parseFloat(customCgpa) > 0);
-    const userCgpaNum = hasCgpa ? parseFloat(customCgpa) : 0;
+    const parsedCgpa = parseFloat(customCgpa);
+    const hasCgpa: boolean = Boolean(customCgpa && !isNaN(parsedCgpa) && parsedCgpa > 0);
+    const cgpaInvalid: boolean = Boolean(hasCgpa && (parsedCgpa > 4.0 || parsedCgpa < 0));
+    const userCgpaNum = hasCgpa ? parsedCgpa : 0;
 
     const eligText = selectedScholarship.eligibility || selectedScholarship.description || '';
     const matchCgpa = eligText.match(/CGPA\s*[:>=]?\s*(\d+(\.\d+)?)/i);
     const minCgpaReq = matchCgpa ? parseFloat(matchCgpa[1]) : (selectedScholarship.min_cgpa || 3.0);
 
-    const cgpaPass: boolean = hasCgpa && userCgpaNum >= minCgpaReq;
+    // CGPA pass is only true if valid and meets threshold
+    const cgpaPass: boolean = hasCgpa && !cgpaInvalid && userCgpaNum >= minCgpaReq;
     const levelPass: boolean = Boolean(
       customLevel && selectedScholarship.level && (
         selectedScholarship.level.toLowerCase().includes(customLevel.toLowerCase()) ||
@@ -151,25 +198,42 @@ export default function EligibilityPage() {
       )
     );
 
+    // Country criteria match
+    const userCountries = customTargetCountries
+      .split(',')
+      .map(c => c.trim().toLowerCase())
+      .filter(Boolean);
+    const schCountry = (selectedScholarship.country || '').toLowerCase();
+
+    const countryPass: boolean = Boolean(
+      userCountries.length > 0 && schCountry && (
+        userCountries.some(uc => schCountry.includes(uc) || uc.includes(schCountry))
+      )
+    );
+
     // Calculate realistic score based on filled criteria
     let matchScore = 0;
-    if (!hasCgpa && !customLevel && !customMajor) {
+    if (!hasCgpa && !customLevel && !customMajor && userCountries.length === 0) {
       matchScore = 0; // Profile is completely empty
     } else {
       let totalCriteria = 0;
       let matchedCriteria = 0;
 
       if (hasCgpa) {
-        totalCriteria += 40;
-        if (cgpaPass) matchedCriteria += 40;
+        totalCriteria += 30;
+        if (cgpaPass) matchedCriteria += 30;
       }
       if (customLevel) {
-        totalCriteria += 30;
-        if (levelPass) matchedCriteria += 30;
+        totalCriteria += 25;
+        if (levelPass) matchedCriteria += 25;
       }
       if (customMajor) {
-        totalCriteria += 30;
-        if (fieldPass) matchedCriteria += 30;
+        totalCriteria += 25;
+        if (fieldPass) matchedCriteria += 25;
+      }
+      if (userCountries.length > 0) {
+        totalCriteria += 20;
+        if (countryPass) matchedCriteria += 20;
       }
 
       matchScore = totalCriteria > 0 ? Math.round((matchedCriteria / totalCriteria) * 100) : 0;
@@ -178,8 +242,10 @@ export default function EligibilityPage() {
     setQuickResult({
       score: matchScore,
       cgpaPass,
+      cgpaInvalid,
       levelPass,
       fieldPass,
+      countryPass,
       minCgpaReq
     });
 
@@ -214,6 +280,20 @@ export default function EligibilityPage() {
   return (
     <div className="min-h-screen bg-slate-50/50">
       <Header />
+
+      {/* Floating Toast Notification */}
+      {toastMsg && (
+        <div className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl shadow-xl text-white text-xs font-bold transition-all animate-in fade-in slide-in-from-top-4 duration-200 ${
+          toastMsg.type === 'success' ? 'bg-emerald-600' : toastMsg.type === 'error' ? 'bg-red-600' : 'bg-slate-900'
+        }`}>
+          {toastMsg.type === 'success' ? (
+            <CheckCircle2 size={18} className="shrink-0" />
+          ) : (
+            <AlertCircle size={18} className="shrink-0" />
+          )}
+          <span>{toastMsg.text}</span>
+        </div>
+      )}
 
       <main className="max-w-5xl mx-auto px-4 sm:px-3 sm:px-6 py-5 sm:py-8 sm:py-12">
         {/* Page Banner Header */}
@@ -254,14 +334,41 @@ export default function EligibilityPage() {
 
             {/* Profile Info Summary Card */}
             <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                <Sliders size={14} className="text-emerald-600" />
-                Candidate Criteria
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                  <Sliders size={14} className="text-emerald-600" />
+                  Candidate Criteria
+                </h3>
+                {savedProfile && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (savedProfile.cgpa) setCustomCgpa(savedProfile.cgpa.toString());
+                      const lvl = savedProfile.academic_level || savedProfile.current_level || savedProfile.degree_level;
+                      if (lvl) {
+                        setCustomLevel(normalizeAcademicLevel(lvl));
+                      }
+                      if (savedProfile.major_course) setCustomMajor(savedProfile.major_course);
+                      if (savedProfile.target_countries) setCustomTargetCountries(savedProfile.target_countries);
+                      showToast('Filled criteria from your profile!', 'success');
+                    }}
+                    className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg transition-all"
+                  >
+                    Load My Profile
+                  </button>
+                )}
+              </div>
 
               <div className="space-y-4 text-xs font-medium">
                 <div>
-                  <label className="block text-slate-400 font-bold mb-1">CGPA (out of 4.00)</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-slate-400 font-bold">CGPA (out of 4.00)</label>
+                    {customCgpa && (parseFloat(customCgpa) > 4.0 || parseFloat(customCgpa) < 0) && (
+                      <span className="text-[10px] text-red-500 font-bold flex items-center gap-1">
+                        <AlertCircle size={10} /> Max 4.00
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="number"
                     step="0.01"
@@ -269,9 +376,25 @@ export default function EligibilityPage() {
                     max="4.0"
                     placeholder="e.g. 3.50"
                     value={customCgpa}
-                    onChange={(e) => setCustomCgpa(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-slate-900"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setCustomCgpa(val);
+                      const num = parseFloat(val);
+                      if (val && !isNaN(num) && (num > 4.0 || num < 0)) {
+                        showToast('Invalid CGPA! CGPA must be between 0.00 and 4.00', 'error');
+                      }
+                    }}
+                    className={`w-full px-4 py-2.5 bg-slate-50 border rounded-xl outline-none font-bold text-slate-900 transition-all ${
+                      customCgpa && (parseFloat(customCgpa) > 4.0 || parseFloat(customCgpa) < 0)
+                        ? 'border-red-400 focus:ring-2 focus:ring-red-400/20 focus:border-red-500 bg-red-50/30'
+                        : 'border-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500'
+                    }`}
                   />
+                  {customCgpa && (parseFloat(customCgpa) > 4.0 || parseFloat(customCgpa) < 0) && (
+                    <p className="text-[10px] text-red-500 font-medium mt-1">
+                      ⚠️ Invalid CGPA entered ({customCgpa}). Please enter a valid CGPA between 0.00 and 4.00.
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -282,6 +405,7 @@ export default function EligibilityPage() {
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-slate-900 shadow-sm"
                   >
                     <option value="">Select Level...</option>
+                    <option value="HSC">HSC / A-Level / High School</option>
                     <option value="Bachelors">Bachelors (Undergraduate)</option>
                     <option value="Masters">Masters (Graduate)</option>
                     <option value="PhD">PhD (Doctorate)</option>
@@ -326,6 +450,57 @@ export default function EligibilityPage() {
                   </div>
                   <p className="text-[10px] text-slate-400 font-medium mt-1">
                     Pick from the database dropdown or type your major above.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-slate-400 font-bold mb-1 flex items-center gap-1.5">
+                    <Globe size={13} className="text-emerald-600" />
+                    Target Countries
+                  </label>
+
+                  {/* Quick Select from Available Countries */}
+                  <select
+                    value=""
+                    onChange={(e) => {
+                      const selectedVal = e.target.value;
+                      if (!selectedVal) return;
+                      const existing = customTargetCountries
+                        ? customTargetCountries.split(',').map(c => c.trim()).filter(Boolean)
+                        : [];
+                      if (!existing.includes(selectedVal)) {
+                        const updated = [...existing, selectedVal].join(', ');
+                        setCustomTargetCountries(updated);
+                      }
+                    }}
+                    className="w-full px-4 py-2.5 bg-emerald-50/60 border border-emerald-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-slate-900 shadow-sm transition-all mb-2"
+                  >
+                    <option value="">+ Add Country from Database...</option>
+                    {suggestedCountries.map((c, idx) => (
+                      <option key={idx} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Manual Type / Comma-separated Input */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      list="country-suggestions-list"
+                      placeholder="e.g. USA, Canada, Germany, UK"
+                      value={customTargetCountries}
+                      onChange={(e) => setCustomTargetCountries(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold text-slate-900"
+                    />
+                    <datalist id="country-suggestions-list">
+                      {suggestedCountries.map((c, i) => (
+                        <option key={i} value={c} />
+                      ))}
+                    </datalist>
+                  </div>
+                  <p className="text-[10px] text-slate-400 font-medium mt-1">
+                    Select countries above or type comma-separated target countries.
                   </p>
                 </div>
               </div>
@@ -432,22 +607,52 @@ export default function EligibilityPage() {
                 </div>
 
                 {/* Breakdown Grid */}
-                <div className="grid sm:grid-cols-3 gap-4">
-                  <div className={`p-5 rounded-2xl border ${quickResult.cgpaPass ? 'bg-emerald-50/50 border-emerald-100 text-emerald-900' : 'bg-red-50/50 border-red-100 text-red-900'}`}>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className={`p-5 rounded-2xl border ${
+                    quickResult.cgpaInvalid
+                      ? 'bg-red-50/70 border-red-200 text-red-950'
+                      : quickResult.cgpaPass
+                      ? 'bg-emerald-50/50 border-emerald-100 text-emerald-900'
+                      : 'bg-red-50/50 border-red-100 text-red-900'
+                  }`}>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[10px] font-black uppercase tracking-widest opacity-70">CGPA Requirement</span>
-                      {quickResult.cgpaPass ? <CheckCircle2 size={18} className="text-emerald-600" /> : <XCircle size={18} className="text-red-500" />}
+                      {quickResult.cgpaInvalid ? (
+                        <span className="text-[9px] font-black bg-red-100 text-red-700 px-2 py-0.5 rounded-full uppercase">Invalid</span>
+                      ) : quickResult.cgpaPass ? (
+                        <CheckCircle2 size={18} className="text-emerald-600" />
+                      ) : (
+                        <XCircle size={18} className="text-red-500" />
+                      )}
                     </div>
-                    <p className="text-base font-bold">{customCgpa || '0.0'} / 4.00</p>
-                    <p className="text-[10px] opacity-80 mt-1 font-medium">Req: ~{quickResult.minCgpaReq.toFixed(2)}+ CGPA</p>
+                    <p className={`text-base font-bold ${quickResult.cgpaInvalid ? 'text-red-600' : ''}`}>
+                      {customCgpa || '0.0'} / 4.00
+                    </p>
+                    <p className="text-[10px] opacity-80 mt-1 font-medium">
+                      {quickResult.cgpaInvalid
+                        ? '⚠️ CGPA must be ≤ 4.00'
+                        : `Req: ~${quickResult.minCgpaReq.toFixed(2)}+ CGPA`}
+                    </p>
                   </div>
 
-                  <div className={`p-5 rounded-2xl border ${quickResult.levelPass ? 'bg-emerald-50/50 border-emerald-100 text-emerald-900' : 'bg-amber-50/50 border-amber-100 text-amber-900'}`}>
+                  <div className={`p-5 rounded-2xl border ${
+                    !customLevel
+                      ? 'bg-slate-50 border-slate-200 text-slate-700'
+                      : quickResult.levelPass
+                      ? 'bg-emerald-50/50 border-emerald-100 text-emerald-900'
+                      : 'bg-amber-50/50 border-amber-100 text-amber-900'
+                  }`}>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[10px] font-black uppercase tracking-widest opacity-70">Academic Level</span>
-                      {quickResult.levelPass ? <CheckCircle2 size={18} className="text-emerald-600" /> : <AlertCircle size={18} className="text-amber-500" />}
+                      {!customLevel ? (
+                        <span className="text-[9px] font-bold bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full uppercase">Not Selected</span>
+                      ) : quickResult.levelPass ? (
+                        <CheckCircle2 size={18} className="text-emerald-600" />
+                      ) : (
+                        <AlertCircle size={18} className="text-amber-500" />
+                      )}
                     </div>
-                    <p className="text-base font-bold capitalize">{customLevel || 'General'}</p>
+                    <p className="text-base font-bold capitalize">{customLevel || 'Not Selected'}</p>
                     <p className="text-[10px] opacity-80 mt-1 font-medium">Target: {selectedScholarship?.level || 'All'}</p>
                   </div>
 
@@ -458,6 +663,15 @@ export default function EligibilityPage() {
                     </div>
                     <p className="text-base font-bold truncate capitalize">{customMajor || 'General'}</p>
                     <p className="text-[10px] opacity-80 mt-1 font-medium truncate">Field: {selectedScholarship?.field || 'General'}</p>
+                  </div>
+
+                  <div className={`p-5 rounded-2xl border ${quickResult.countryPass ? 'bg-emerald-50/50 border-emerald-100 text-emerald-900' : 'bg-amber-50/50 border-amber-100 text-amber-900'}`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-black uppercase tracking-widest opacity-70">Target Country</span>
+                      {quickResult.countryPass ? <CheckCircle2 size={18} className="text-emerald-600" /> : <AlertCircle size={18} className="text-amber-500" />}
+                    </div>
+                    <p className="text-base font-bold truncate">{customTargetCountries || 'Any Destination'}</p>
+                    <p className="text-[10px] opacity-80 mt-1 font-medium truncate">Scholarship: {selectedScholarship?.country || 'Global'}</p>
                   </div>
                 </div>
 
