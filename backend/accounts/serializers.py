@@ -221,7 +221,8 @@ class ChangePasswordSerializer(serializers.Serializer):
     def validate_old_password(self, value):
         request = self.context.get('request')
         user = request.user if request else None
-        if user and user.has_usable_password():
+        # Only check password against Django DB if the user has a real hashed password stored
+        if user and user.password and user.has_usable_password():
             if not user.check_password(value):
                 raise serializers.ValidationError("Incorrect password.")
         return value

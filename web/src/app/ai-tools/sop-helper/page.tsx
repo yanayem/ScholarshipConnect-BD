@@ -48,6 +48,12 @@ function SOPHelperContent() {
   const [paraphrasing, setParaphrasing] = useState<boolean>(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
+  const [toastMsg, setToastMsg] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
+
+  const showToast = (text: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToastMsg({ text, type });
+    setTimeout(() => setToastMsg(null), 3500);
+  };
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -85,7 +91,7 @@ function SOPHelperContent() {
 
   const handleGenerateSOP = async () => {
     if (!selectedScholarshipId) {
-      alert('Please select a target scholarship first.');
+      showToast('Please select a target scholarship first.', 'error');
       return;
     }
 
@@ -96,12 +102,13 @@ function SOPHelperContent() {
       if (res.ok && res.data) {
         const generatedText = res.data.sop || res.data.text || '';
         setSopText(generatedText);
+        showToast('SOP draft generated successfully!', 'success');
       } else {
-        alert(res.data?.error || 'Failed to generate SOP draft. Please try again.');
+        showToast(res.data?.error || 'Failed to generate SOP draft. Please try again.', 'error');
       }
     } catch (err) {
       console.error('SOP generation error:', err);
-      alert('Error connecting to AI service.');
+      showToast('Error connecting to AI service.', 'error');
     } finally {
       setGenerating(false);
     }
@@ -109,7 +116,7 @@ function SOPHelperContent() {
 
   const handleReviewSOP = async () => {
     if (!sopText || sopText.trim().length < 40) {
-      alert('Please provide at least 40 characters of SOP text for AI review.');
+      showToast('Please provide at least 40 characters of SOP text for AI review.', 'error');
       return;
     }
 
@@ -119,12 +126,13 @@ function SOPHelperContent() {
       const res = await apiService.aiReviewSOP(sopText);
       if (res.ok && res.data) {
         setFeedback(res.data.feedback || res.data.review || 'No specific feedback returned.');
+        showToast('AI review completed!', 'success');
       } else {
-        alert(res.data?.error || 'Failed to review SOP. Please try again.');
+        showToast(res.data?.error || 'Failed to review SOP. Please try again.', 'error');
       }
     } catch (err) {
       console.error('SOP review error:', err);
-      alert('Error submitting SOP for review.');
+      showToast('Error submitting SOP for review.', 'error');
     } finally {
       setReviewing(false);
     }
@@ -132,7 +140,7 @@ function SOPHelperContent() {
 
   const handleParaphraseSOP = async () => {
     if (!sopText || sopText.trim().length < 20) {
-      alert('Please provide at least 20 characters of SOP text for paraphrasing.');
+      showToast('Please provide at least 20 characters of SOP text for paraphrasing.', 'error');
       return;
     }
 
@@ -142,12 +150,13 @@ function SOPHelperContent() {
       const res = await apiService.aiParaphraseSOP(sopText, paraphraseStyle);
       if (res.ok && res.data) {
         setParaphrasedText(res.data.paraphrased_sop || res.data.sop || '');
+        showToast('SOP paraphrased successfully!', 'success');
       } else {
-        alert(res.data?.error || 'Failed to paraphrase SOP. Please try again.');
+        showToast(res.data?.error || 'Failed to paraphrase SOP. Please try again.', 'error');
       }
     } catch (err) {
       console.error('SOP paraphrase error:', err);
-      alert('Error submitting SOP for paraphrasing.');
+      showToast('Error submitting SOP for paraphrasing.', 'error');
     } finally {
       setParaphrasing(false);
     }
@@ -157,6 +166,7 @@ function SOPHelperContent() {
     if (paraphrasedText) {
       setSopText(paraphrasedText);
       setParaphrasedText('');
+      showToast('Applied paraphrased text to editor!', 'success');
     }
   };
 
@@ -164,6 +174,7 @@ function SOPHelperContent() {
     if (!sopText) return;
     navigator.clipboard.writeText(sopText);
     setCopied(true);
+    showToast('Copied to clipboard!', 'success');
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -171,7 +182,7 @@ function SOPHelperContent() {
     if (!textToExport) return;
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      alert('Pop-up blocked. Please allow pop-ups for this site to download/print PDF.');
+      showToast('Pop-up blocked. Please allow pop-ups for this site to download/print PDF.', 'error');
       return;
     }
 
@@ -304,6 +315,20 @@ function SOPHelperContent() {
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20">
       <Header />
+
+      {/* Floating Toast Notification */}
+      {toastMsg && (
+        <div className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl shadow-xl text-white text-xs font-bold transition-all animate-in fade-in slide-in-from-top-4 duration-200 ${
+          toastMsg.type === 'success' ? 'bg-emerald-600' : toastMsg.type === 'error' ? 'bg-red-600' : 'bg-slate-900'
+        }`}>
+          {toastMsg.type === 'success' ? (
+            <CheckCircle2 size={18} className="shrink-0" />
+          ) : (
+            <AlertCircle size={18} className="shrink-0" />
+          )}
+          <span>{toastMsg.text}</span>
+        </div>
+      )}
 
       <main className="max-w-5xl mx-auto px-4 sm:px-3 sm:px-6 py-5 sm:py-8 sm:py-12">
         {/* Top Banner Header */}

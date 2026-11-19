@@ -96,6 +96,7 @@ export default function SettingsPage() {
     setPasswordError(null);
     setPasswordSuccess(null);
 
+    // Client-side validations
     if (!oldPassword) {
       setPasswordError('Current password is required.');
       return;
@@ -123,26 +124,31 @@ export default function SettingsPage() {
           await reauthenticateWithCredential(firebaseUser, credential);
         } catch (authErr: any) {
           console.error('[Firebase Reauth Error]', authErr);
+          setChangingPassword(false);
           if (
             authErr.code === 'auth/wrong-password' ||
             authErr.code === 'auth/invalid-credential' ||
             authErr.code === 'auth/invalid-password'
           ) {
-            setPasswordError('Current password is incorrect.');
-            setChangingPassword(false);
+            setPasswordError('❌ Current password is incorrect. Please try again.');
             return;
           } else if (authErr.code === 'auth/too-many-requests') {
-            setPasswordError('Too many failed attempts. Please try again later or use Email Reset.');
-            setChangingPassword(false);
+            setPasswordError('⚠️ Too many failed attempts. Please try again later or use "Send Temporary Password" above.');
             return;
           } else {
-            setPasswordError(authErr.message || 'Current password verification failed.');
-            setChangingPassword(false);
+            setPasswordError('❌ Current password verification failed. Please check and try again.');
             return;
           }
         }
 
-        await updatePassword(firebaseUser, newPassword);
+        try {
+          await updatePassword(firebaseUser, newPassword);
+        } catch (updateErr: any) {
+          console.error('[Firebase UpdatePassword Error]', updateErr);
+          setChangingPassword(false);
+          setPasswordError('❌ Failed to update password in authentication system. Please try again.');
+          return;
+        }
       }
 
       // Step 2: Update password in Django Backend DB
@@ -153,35 +159,47 @@ export default function SettingsPage() {
       });
 
       if (res.ok) {
-        setPasswordSuccess('Password updated successfully! Signing out to verify new password...');
-        showToast('Password updated! Signing out...', 'success');
+        // Clear form fields immediately
         setOldPassword('');
         setNewPassword('');
         setConfirmPassword('');
-        setTimeout(async () => {
-          await apiService.logout();
-          router.push('/login?reset=success');
-        }, 1500);
+        setShowOldPassword(false);
+        setShowNewPassword(false);
+        setShowConfirmPassword(false);
+        setPasswordError(null);
+        setPasswordSuccess('Password updated successfully!');
+        showToast('Password updated successfully!', 'success');
+
+        // Optional: clear success message after 4 seconds instead of forcing immediate logout
+        setTimeout(() => {
+          setPasswordSuccess(null);
+        }, 4000);
       } else {
         const data = res.data;
-        let errMsg = 'Failed to update password.';
+        let errMsg = '❌ Failed to update password.';
         if (data?.old_password) {
-          errMsg = Array.isArray(data.old_password) ? data.old_password[0] : data.old_password;
+          const msg = Array.isArray(data.old_password) ? data.old_password[0] : data.old_password;
+          errMsg = `❌ ${msg}`;
         } else if (data?.new_password) {
-          errMsg = Array.isArray(data.new_password) ? data.new_password[0] : data.new_password;
+          const msg = Array.isArray(data.new_password) ? data.new_password[0] : data.new_password;
+          errMsg = `❌ ${msg}`;
         } else if (data?.confirm_password) {
-          errMsg = Array.isArray(data.confirm_password) ? data.confirm_password[0] : data.confirm_password;
+          const msg = Array.isArray(data.confirm_password) ? data.confirm_password[0] : data.confirm_password;
+          errMsg = `❌ ${msg}`;
         } else if (data?.non_field_errors) {
-          errMsg = Array.isArray(data.non_field_errors) ? data.non_field_errors[0] : data.non_field_errors;
+          const msg = Array.isArray(data.non_field_errors) ? data.non_field_errors[0] : data.non_field_errors;
+          errMsg = `❌ ${msg}`;
         } else if (data?.detail) {
-          errMsg = data.detail;
+          errMsg = `❌ ${data.detail}`;
         } else if (data?.error) {
-          errMsg = data.error;
+          errMsg = `❌ ${data.error}`;
+        } else if (data?.message) {
+          errMsg = `❌ ${data.message}`;
         }
         setPasswordError(errMsg);
       }
     } catch (err: any) {
-      setPasswordError(err.message || 'An error occurred while changing password.');
+      setPasswordError(`❌ ${err.message || 'An unexpected error occurred while changing password. Please try again.'}`);
     } finally {
       setChangingPassword(false);
     }
@@ -439,9 +457,9 @@ export default function SettingsPage() {
                     </div>
 
                     {passwordError && (
-                      <div className="p-3.5 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs font-bold flex items-center gap-2">
-                        <AlertCircle size={16} className="shrink-0" />
-                        <span>{passwordError}</span>
+                      <div className="p-3.5 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs font-bold flex items-start gap-2">
+                        <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                        <span className="leading-relaxed">{passwordError}</span>
                       </div>
                     )}
 
@@ -463,7 +481,7 @@ export default function SettingsPage() {
                           <input
                             type={showOldPassword ? "text" : "password"}
                             value={oldPassword}
-                            onChange={(e) => { setOldPassword(e.target.value); setPasswordError(null); }}
+                            onChange={(e) => { setOldPassword(e.target.value); setPasswordError(null); setPasswordSuccess(null); }}
                             placeholder="Enter current password"
                             required
                             className="w-full px-3.5 py-2.5 pr-10 text-xs font-medium bg-white border border-slate-200 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-slate-900"
@@ -491,7 +509,7 @@ export default function SettingsPage() {
                           <input
                             type={showNewPassword ? "text" : "password"}
                             value={newPassword}
-                            onChange={(e) => { setNewPassword(e.target.value); setPasswordError(null); }}
+                            onChange={(e) => { setNewPassword(e.target.value); setPasswordError(null); setPasswordSuccess(null); }}
                             placeholder="Enter new password (min. 8 characters)"
                             required
                             minLength={8}
@@ -517,7 +535,7 @@ export default function SettingsPage() {
                           <input
                             type={showConfirmPassword ? "text" : "password"}
                             value={confirmPassword}
-                            onChange={(e) => { setConfirmPassword(e.target.value); setPasswordError(null); }}
+                            onChange={(e) => { setConfirmPassword(e.target.value); setPasswordError(null); setPasswordSuccess(null); }}
                             placeholder="Re-enter new password"
                             required
                             className="w-full px-3.5 py-2.5 pr-10 text-xs font-medium bg-white border border-slate-200 rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-slate-900"
