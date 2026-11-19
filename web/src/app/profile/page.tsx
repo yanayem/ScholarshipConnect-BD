@@ -329,6 +329,7 @@ export default function ProfilePage() {
               </div>
 
               <nav className="space-y-1">
+                 {/* Student Mode / Mentor Mode Switcher commented out
                  {user.is_mentor ? (
                    <div className="px-4 py-3 flex items-center justify-between bg-primary/5 rounded-xl mb-4 border border-primary/10">
                       <div className="flex items-center gap-3">
@@ -343,6 +344,7 @@ export default function ProfilePage() {
                       </button>
                    </div>
                  ) : null}
+                 */}
 
                  {[
                    { name: 'Dashboard', icon: Trophy, href: '/profile' },
