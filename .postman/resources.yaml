@@ -1,0 +1,7 @@
+# Use this workspace to collaborate
+workspace:
+  id: 583ec18a-921c-452e-8274-089cade76516
+
+localResources:
+  specs:
+    - ../schema.yml

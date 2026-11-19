@@ -10,7 +10,20 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from rest_framework import authentication
 from rest_framework import exceptions
+from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from .models import Profile
+
+class FirebaseAuthenticationScheme(OpenApiAuthenticationExtension):
+    target_class = 'accounts.authentication.FirebaseAuthentication'
+    name = 'FirebaseAuth'
+
+    def get_security_definition(self, auto_schema):
+        return {
+            'type': 'http',
+            'scheme': 'bearer',
+            'bearerFormat': 'JWT',
+            'description': 'Firebase Authentication ID Token (Bearer <token>)',
+        }
 
 class FirebaseAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):

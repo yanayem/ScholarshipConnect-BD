@@ -117,7 +117,9 @@ class AICheckEligibilityView(APIView):
         profile = request.user.profile
         allowed, limit = check_ai_limit(profile)
         if not allowed:
-            return Response({"error": "Daily AI limit reached."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({
+                "error": f"Daily AI limit reached ({limit}/day). Upgrade to Pro for unlimited access."
+            }, status=status.HTTP_403_FORBIDDEN)
             
         scholarship_id = request.data.get('scholarship_id')
         try:

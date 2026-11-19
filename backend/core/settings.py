@@ -177,6 +177,19 @@ SPECTACULAR_SETTINGS = {
     'SWAGGER_UI_DIST': 'SIDECAR',
     'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
     'REDOC_DIST': 'SIDECAR',
+    'SECURITY': [{
+        'FirebaseAuth': [],
+    }],
+    'APPEND_COMPONENTS': {
+        'securitySchemes': {
+            'FirebaseAuth': {
+                'type': 'http',
+                'scheme': 'bearer',
+                'bearerFormat': 'JWT',
+                'description': 'Enter your Firebase ID Token (Bearer <token>). You can obtain this from the client Firebase SDK.',
+            }
+        }
+    }
 }
 
 # Email Configuration

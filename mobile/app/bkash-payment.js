@@ -85,6 +85,9 @@ export default function BKashPaymentScreen() {
                         {step === 2 && (
                             <View>
                                 <Text style={styles.stepTitle}>Enter OTP sent to {number}</Text>
+                                <Text style={{ fontSize: 11, color: '#b45309', backgroundColor: '#fef3c7', padding: 8, borderRadius: 6, marginBottom: 12, fontWeight: '600' }}>
+                                    🧪 Test Mode: আসল সিমে SMS যাবে না। টেস্ট OTP হিসেবে 123456 বা যেকোনো ৬ সংখ্যা লিখুন।
+                                </Text>
                                 <TextInput
                                     style={styles.input}
                                     placeholder="6-digit OTP"

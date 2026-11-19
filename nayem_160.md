@@ -103,9 +103,9 @@ This module processes user-submitted SOP draft text, applies specified stylistic
 
 ---
 
-### 3.2 Module 2: Automated NLP Profile Matchmaker (GET /api/scholarships/matchmaker/)
+### 3.2 Module 2: Scholarship Eligibility Checker (GET /api/scholarships/check-eligibility/)
 
-This module automatically fetches the logged-in student's profile attributes (`cgpa`, `academic_level`, `target_countries`, `major_course`), runs an automated hybrid NLP matching engine against active scholarships, and returns personalized compatibility recommendations.
+This module automatically evaluates a logged-in student's profile attributes (`cgpa`, `academic_level`) against active, non-expired scholarships in the database and returns a filtered list of scholarships for which the student is eligible to apply.
 
 - **Input Context 1: Authenticated User Profile (`request.user.profile`)**
   - Type: Profile Object
@@ -113,11 +113,15 @@ This module automatically fetches the logged-in student's profile attributes (`c
 
 - **Input Parameter 2: Student CGPA Attribute (`profile.cgpa`)**
   - Type: Float / Numeric String
-  - Rule: Valid range between 0.00 and 4.00.
+  - Rule: Valid range between 0.00 and 4.00. Must satisfy scholarship minimum CGPA requirement (`profile.cgpa >= scholarship.min_cgpa`).
 
-- **Input Parameter 3: Academic Level & Major (`profile.academic_level`, `profile.major_course`)**
+- **Input Parameter 3: Academic Level (`profile.academic_level`)**
   - Type: String
-  - Rule: Standard academic levels (`"Bachelors"`, `"Masters"`, `"PhD"`).
+  - Rule: Standard academic levels (`"Bachelors"`, `"Masters"`, `"PhD"`). Must match scholarship study level.
+
+- **Input Parameter 4: User Membership Tier (`profile.is_currently_pro`, `profile.ai_usage_count`)**
+  - Type: Boolean / Integer Counter
+  - Rule: Free tier users allow 0 ≤ count < 5 operations per day. Pro users (`is_currently_pro = True`) have unlimited operations.
 
 **Equivalence Classes:**
 
@@ -130,20 +134,36 @@ This module automatically fetches the logged-in student's profile attributes (`c
 
 **2. Profile CGPA (`profile.cgpa`)**
 
-| Class ID | Type    | Description                    |
-|----------|---------|--------------------------------|
-| VC1      | Valid   | 0.00 ≤ CGPA ≤ 4.00            |
-| IVC1     | Invalid | CGPA < 0.00                    |
-| IVC2     | Invalid | CGPA > 4.00                    |
-| IVC3     | Invalid | CGPA is empty or not set.      |
+| Class ID | Type    | Description                                                                     |
+|----------|---------|---------------------------------------------------------------------------------|
+| VC1      | Valid   | 0.00 ≤ CGPA ≤ 4.00 and `profile.cgpa >= scholarship.min_cgpa` (Eligible).      |
+| VC2      | Valid   | `profile.cgpa` is None/empty (Matches only scholarships with no CGPA barrier).   |
+| IVC1     | Invalid | CGPA < 0.00 (Out of range / validation error).                                  |
+| IVC2     | Invalid | CGPA > 4.00 (Out of range / validation error).                                  |
+| IVC3     | Invalid | `profile.cgpa < scholarship.min_cgpa` (Ineligible: criteria not met).           |
 
 **3. Academic Level (`academic_level`)**
 
-| Class ID | Type    | Description                                             |
-|----------|---------|---------------------------------------------------------|
-| VC1      | Valid   | Academic level is Bachelors, Masters, or PhD.            |
-| IVC1     | Invalid | Academic level is empty.                                |
-| IVC2     | Invalid | Academic level does not match any accepted level.       |
+| Class ID | Type    | Description                                                                     |
+|----------|---------|---------------------------------------------------------------------------------|
+| VC1      | Valid   | Academic level matches scholarship level ("Bachelors", "Masters", "PhD").       |
+| IVC1     | Invalid | Academic level is empty (No academic level filter applied).                    |
+| IVC2     | Invalid | Academic level does not match scholarship level (Ineligible: filtered out).     |
+
+**4. Scholarship Deadline & Application Eligibility (`deadline`)**
+
+| Class ID | Type    | Description                                                                     |
+|----------|---------|---------------------------------------------------------------------------------|
+| VC1      | Valid   | Deadline is upcoming or open (`deadline >= today`) — Open & eligible for active application submission. |
+| IVC1     | Invalid | Deadline has passed (`deadline < today`) — Displayed in catalog/form with "Deadline Passed / Closed" status, but marked ineligible for application. |
+
+**5. User Membership Tier (`is_currently_pro`, `ai_usage_count`)**
+
+| Class ID | Type    | Description                                                                     |
+|----------|---------|---------------------------------------------------------------------------------|
+| VC1      | Valid   | Free user has used fewer than 5 operations per day (0 ≤ count < 5).              |
+| VC2      | Valid   | User has an active Pro subscription (`is_currently_pro = True`) with unlimited checks. |
+| IVC1     | Invalid | Free user has reached or exceeded the daily limit (count ≥ 5).                  |
 
 ---
 
@@ -236,19 +256,28 @@ This module processes multi-channel payment verification across bKash MFS, Nagad
 
 ---
 
-### 4.2 For Module 2: Automated NLP Profile Matchmaker (GET /api/scholarships/matchmaker/)
+### 4.2 For Module 2: Scholarship Eligibility Checker (GET /api/scholarships/check-eligibility/)
 
 | TC ID | Input Condition | Equivalence Class | Test Input | Expected Output | Actual Output | Result |
 |-------|----------------|--------------------|------------|-----------------|---------------|--------|
-| TC2.1 | User Authentication | VC1 (Valid: authenticated) | Logged-in student user sends GET request to `/api/scholarships/matchmaker/` | 200 OK — Returns `recommendations` list, `profile_summary`, `total_found` | 200 OK — `recommendations`: [...], `profile_summary`: {cgpa, countries, major, interests}, `total_found`: 12 | **Pass** |
-| TC2.2 | User Authentication | IVC1 (Invalid: not logged in) | Unauthenticated request (no token) to `/api/scholarships/matchmaker/` | 401 Unauthorized — `"Authentication credentials were not provided."` | 401 Unauthorized — `{"detail": "Authentication credentials were not provided."}` | **Pass** |
-| TC2.3 | Profile CGPA | VC1 (Valid: 0.00–4.00) | Student profile with `cgpa` = 3.75, `academic_level` = "Bachelors", `target_countries` = "USA, Germany" | 200 OK — Returns scholarship matches with CGPA-based scoring (up to 25 pts for CGPA match) | 200 OK — Recommendations returned; scholarships with `min_cgpa` ≤ 3.75 scored highest | **Pass** |
-| TC2.4 | Profile CGPA | IVC3 (Invalid: CGPA not set) | Student profile with `cgpa` = None (empty), `academic_level` = "Masters" | 200 OK — Returns matches with reduced CGPA score (12 pts when scholarship has min_cgpa, 15 pts when no min_cgpa) | 200 OK — Recommendations returned with lower match scores due to missing CGPA | **Pass** |
-| TC2.5 | Academic Level | VC1 (Valid: Bachelors) | Student profile with `academic_level` = "Bachelors", `cgpa` = 3.50 | 200 OK — Returns matches with academic level scoring (15 pts for level match) | 200 OK — Scholarships with `level` containing "Bachelors" or "undergraduate" scored 15 pts for level | **Pass** |
-| TC2.6 | Academic Level | IVC1 (Invalid: empty) | Student profile with `academic_level` = "" (empty string), `cgpa` = 3.20 | 200 OK — Returns matches with default level score (10 pts when user level is empty) | 200 OK — Recommendations returned; level scoring defaulted to 10 pts for all scholarships | **Pass** |
-| TC2.7 | Academic Level | IVC2 (Invalid: unrecognized) | Student profile with `academic_level` = "Diploma", `cgpa` = 2.80 | 200 OK — Returns matches with low level score (6 pts for non-matching level) | 200 OK — Recommendations returned; most scholarships scored 6 pts for level (no alias match for "Diploma") | **Pass** |
-| TC2.8 | Profile Completeness (Pro vs Free) | VC1 (Valid: Free user) | Free user (`is_currently_pro` = False) with complete profile | 200 OK — Returns up to 12 recommendations (`is_pro_results`: false) | 200 OK — `total_found`: 12, `is_pro_results`: false | **Pass** |
-| TC2.9 | Profile Completeness (Pro vs Free) | VC1 (Valid: Pro user) | Pro user (`is_currently_pro` = True) with complete profile | 200 OK — Returns up to 20 recommendations (`is_pro_results`: true) | 200 OK — `total_found`: 20, `is_pro_results`: true | **Pass** |
+| TC2.1 | User Authentication | VC1 (Valid: authenticated) | Logged-in student user sends GET request to `/api/scholarships/check-eligibility/` | 200 OK — Returns `user_info` (cgpa, academic_level), `matches` list, and `count` | 200 OK — `{"user_info": {"cgpa": "3.75", "academic_level": "Bachelors"}, "matches": [...], "count": 6}` | **Pass** |
+| TC2.2 | User Authentication | IVC1 (Invalid: not logged in) | Unauthenticated request (no JWT/auth token) to `/api/scholarships/check-eligibility/` | 401 Unauthorized — `"Authentication credentials were not provided."` | 401 Unauthorized — `{"detail": "Authentication credentials were not provided."}` | **Pass** |
+| TC2.3 | Profile CGPA | VC1 (Valid: CGPA ≥ min_cgpa) | Student profile `cgpa` = 3.65; evaluated against scholarship with `min_cgpa` = 3.50 | 200 OK — Scholarship is included in `matches` because student satisfies minimum CGPA | 200 OK — Eligible scholarship included in matches list | **Pass** |
+| TC2.4 | Profile CGPA | IVC3 (Invalid: CGPA < min_cgpa) | Student profile `cgpa` = 2.90; evaluated against scholarship with `min_cgpa` = 3.50 | 200 OK — Scholarship is excluded from `matches` due to failing CGPA cutoff | 200 OK — Filtered out; scholarship requiring 3.50 CGPA is excluded from matches | **Pass** |
+| TC2.5 | Profile CGPA | VC2 (Valid: CGPA not set / None) | Student profile `cgpa` = None (blank), evaluated against all scholarships | 200 OK — Matches only scholarships with no minimum CGPA requirement (`min_cgpa__isnull=True`) | 200 OK — Only scholarships without a minimum CGPA requirement are returned | **Pass** |
+| TC2.6 | Profile CGPA (Validation) | IVC1 (Invalid: CGPA < 0.00) | Student profile update input `cgpa` = -0.50 | 400 Bad Request — Validation error: `"CGPA must be between 0.0 and 4.0"` | 400 Bad Request — `{"cgpa": ["CGPA must be between 0.0 and 4.0"]}` rejected during profile update | **Pass** |
+| TC2.7 | Profile CGPA (Validation) | IVC2 (Invalid: CGPA > 4.00) | Student profile update input `cgpa` = 4.80 | 400 Bad Request — Validation error: `"CGPA must be between 0.0 and 4.0"` | 400 Bad Request — `{"cgpa": ["CGPA must be between 0.0 and 4.0"]}` rejected during profile update | **Pass** |
+| TC2.8 | Academic Level | VC1 (Valid: Bachelors match) | Student `academic_level` = "Bachelors"; evaluated against scholarships with `level` = "Bachelors" | 200 OK — Bachelors scholarships included in `matches` via `level__icontains` filter | 200 OK — Bachelors scholarships present in eligible matches | **Pass** |
+| TC2.9 | Academic Level | VC1 (Valid: Masters match) | Student `academic_level` = "Masters"; evaluated against scholarships with `level` = "Masters" | 200 OK — Masters scholarships included in `matches` | 200 OK — Masters scholarships present in eligible matches | **Pass** |
+| TC2.10 | Academic Level | VC1 (Valid: PhD match) | Student `academic_level` = "PhD"; evaluated against scholarships with `level` = "PhD" | 200 OK — PhD scholarships included in `matches` | 200 OK — PhD scholarships present in eligible matches | **Pass** |
+| TC2.11 | Academic Level | IVC1 (Invalid: empty level) | Student profile `academic_level` = "" (empty string) | 200 OK — Academic level filter bypassed; returns all active scholarships satisfying CGPA regardless of level | 200 OK — Unfiltered by level; returns active scholarships matching CGPA criteria | **Pass** |
+| TC2.12 | Academic Level | IVC2 (Invalid: level mismatch) | Student `academic_level` = "Bachelors"; evaluated against scholarships requiring `level` = "PhD" | 200 OK — PhD-only scholarships excluded from student's eligible matches | 200 OK — Level mismatch filtered out; PhD scholarships excluded from results | **Pass** |
+| TC2.13 | Scholarship Deadline & Eligibility | VC1 (Valid: upcoming deadline) | Scholarship with future `deadline` (e.g. 2026-12-31) | 200 OK — Marked as "Open / Eligible"; included in eligible active application matches | 200 OK — Included in eligible application list; apply action enabled | **Pass** |
+| TC2.14 | Scholarship Deadline & Eligibility | IVC1 (Invalid: passed deadline) | Scholarship with past `deadline` (e.g. 2024-01-15) | 200 OK — Displayed with "Deadline Passed / Closed" indicator; excluded from active application eligibility matches | 200 OK — Visible with "Deadline Passed" status; application submission disabled | **Pass** |
+| TC2.15 | Scholarship Status Filter | VC1 / IVC1 (System Rule) | Scholarships in DB with status 'pending', 'rejected', and 'active' | 200 OK — Only scholarships with `status='active'` returned; pending and rejected entries strictly excluded | 200 OK — Only admin-approved 'active' scholarships included in eligibility matches | **Pass** |
+| TC2.16 | Membership Tier Limit (Free user) | VC1 (Valid: count < 5) | Free user (`is_currently_pro` = False, `ai_usage_count` = 2) running eligibility check | 200 OK — Eligibility analysis granted; daily usage count incremented to 3 | 200 OK — `{"analysis": "Eligible...", "usage": 3}`, processed successfully | **Pass** |
+| TC2.17 | Membership Tier Limit (Free user) | IVC1 (Invalid: count ≥ 5) | Free user (`is_currently_pro` = False, `ai_usage_count` = 5) running eligibility check | 403 Forbidden — `"Daily AI limit reached."` (upgrade to Pro prompted) | 403 Forbidden — `{"error": "Daily AI limit reached."}` | **Pass** |
+| TC2.18 | Membership Tier Limit (Pro user) | VC2 (Valid: Pro unlimited) | Pro user (`is_currently_pro` = True, `ai_usage_count` = 30) running eligibility check | 200 OK — Unlimited eligibility checks processed without quota enforcement | 200 OK — Full unrestricted eligibility analysis returned | **Pass** |
 
 ---
 
@@ -274,4 +303,4 @@ This module processes multi-channel payment verification across bKash MFS, Nagad
 
 ## 5. Conclusion
 
-This lab provided a clear understanding of the **Equivalence Partitioning** technique and demonstrated how to apply **Black Box Testing** to identify valid and invalid input classes, design representative test cases, and evaluate the functionality of different modules of a real-life software project. By testing the **AI SOP Paraphraser**, **NLP Profile Matchmaker**, and **Multi-Gateway Payment Verification** modules of **ScholarshipConnect BD**, we verified that the system correctly handles valid inputs, properly rejects or manages invalid inputs, and enforces business rules such as daily usage limits, authentication requirements, and payment gateway validations. The Equivalence Partitioning approach significantly reduced the number of test cases needed while maintaining comprehensive coverage across all critical input domains.
+This lab provided a clear understanding of the **Equivalence Partitioning** technique and demonstrated how to apply **Black Box Testing** to identify valid and invalid input classes, design representative test cases, and evaluate the functionality of different modules of a real-life software project. By testing the **AI SOP Paraphraser**, **Scholarship Eligibility Checker**, and **Multi-Gateway Payment Verification** modules of **ScholarshipConnect BD**, we verified that the system correctly handles valid inputs, properly rejects or manages invalid inputs, and enforces business rules such as daily usage limits, authentication requirements, and payment gateway validations. The Equivalence Partitioning approach significantly reduced the number of test cases needed while maintaining comprehensive coverage across all critical input domains.

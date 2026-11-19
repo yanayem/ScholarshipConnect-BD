@@ -76,6 +76,8 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         status_param = self.request.query_params.get('status')
+        country_param = self.request.query_params.get('country')
+        level_param = self.request.query_params.get('level')
         
         queryset = Scholarship.objects.all()
         
@@ -91,6 +93,12 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
                     queryset = queryset.filter(status='active')
             else:
                 queryset = queryset.filter(status='active')
+
+            if country_param and country_param.lower() != 'all':
+                queryset = queryset.filter(country__icontains=country_param)
+
+            if level_param and level_param.lower() != 'all':
+                queryset = queryset.filter(level__icontains=level_param)
             
         return queryset
 

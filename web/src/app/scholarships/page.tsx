@@ -1,16 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { apiService } from '@/lib/api';
 import { Scholarship } from '@/types';
 import Link from 'next/link';
-import { Search, MapPin, ArrowRight, GraduationCap, Plus, Sparkles, Brain, AlertCircle, Loader2, History } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { Search, MapPin, ArrowRight, GraduationCap, Plus, Sparkles, Brain, AlertCircle, Loader2, History, X } from 'lucide-react';
 import Header from '@/components/Header';
 
-export default function ScholarshipList() {
+function ScholarshipListContent() {
+  const searchParams = useSearchParams();
+  const countryParam = searchParams.get('country') || '';
+
   const [scholarships, setScholarships] = useState<Scholarship[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState(countryParam);
   const [activeCategory, setActiveCategory] = useState('All');
 
   // Matchmaker States
@@ -22,22 +27,26 @@ export default function ScholarshipList() {
   const categories = ['All', 'Undergraduate', 'Postgraduate', 'PhD', 'Fully Funded'];
 
   useEffect(() => {
-    loadScholarships();
-  }, []);
+    setSelectedCountry(countryParam);
+    loadScholarships(search, activeCategory, countryParam);
+  }, [countryParam]);
 
-  const loadScholarships = async (query = '', category = 'All') => {
+  const loadScholarships = async (query = '', category = 'All', country = selectedCountry) => {
     setLoading(true);
-    let params = query ? `search=${query}` : '';
+    let params = query ? `search=${encodeURIComponent(query)}` : '';
     if (category !== 'All') {
-      params += (params ? '&' : '') + `level=${category}`;
+      params += (params ? '&' : '') + `level=${encodeURIComponent(category)}`;
+    }
+    if (country && country.toLowerCase() !== 'all') {
+      params += (params ? '&' : '') + `country=${encodeURIComponent(country)}`;
     }
 
     const res = await apiService.getScholarships(params);
     if (res.ok) {
-      const all = res.data as unknown as Scholarship[];
+      const all = (res.data as any)?.results ? (res.data as any).results : (res.data as unknown as Scholarship[]);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const active = all.filter(s => !s.deadline || new Date(s.deadline) >= today);
+      const active = (Array.isArray(all) ? all : []).filter(s => !s.deadline || new Date(s.deadline) >= today);
       setScholarships(active);
     }
     setLoading(false);
@@ -45,7 +54,12 @@ export default function ScholarshipList() {
 
   const handleCategoryChange = (cat: string) => {
     setActiveCategory(cat);
-    loadScholarships(search, cat);
+    loadScholarships(search, cat, selectedCountry);
+  };
+
+  const handleClearCountry = () => {
+    setSelectedCountry('');
+    loadScholarships(search, activeCategory, '');
   };
 
   const handleRunSmartMatchmaker = async () => {
@@ -188,7 +202,7 @@ export default function ScholarshipList() {
           )}
 
           {/* Minimal Search & Filter */}
-          <div className="flex flex-col lg:flex-row gap-6 mb-10">
+          <div className="flex flex-col lg:flex-row gap-6 mb-6">
             <div className="flex-1 relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
@@ -197,7 +211,7 @@ export default function ScholarshipList() {
                 className="w-full pl-12 pr-4 py-3.5 border border-slate-200 bg-slate-50/50 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm font-medium"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && loadScholarships(search, activeCategory)}
+                onKeyDown={(e) => e.key === 'Enter' && loadScholarships(search, activeCategory, selectedCountry)}
               />
             </div>
             <div className="flex gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide">
@@ -216,6 +230,24 @@ export default function ScholarshipList() {
               ))}
             </div>
           </div>
+
+          {/* Active Country Filter Tag */}
+          {selectedCountry && (
+            <div className="flex items-center gap-2 mb-6">
+              <span className="text-xs font-semibold text-slate-500">Filtered by country:</span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-teal-50 text-teal-800 border border-teal-200 rounded-full text-xs font-bold">
+                <MapPin size={12} className="text-teal-600" />
+                {selectedCountry}
+                <button
+                  onClick={handleClearCountry}
+                  className="hover:bg-teal-200 p-0.5 rounded-full transition-colors ml-1"
+                  title="Remove country filter"
+                >
+                  <X size={12} />
+                </button>
+              </span>
+            </div>
+          )}
 
           {loading ? (
             <div className="space-y-4">
@@ -273,7 +305,7 @@ export default function ScholarshipList() {
                 <div className="text-center py-24 border border-slate-200 rounded-2xl border-dashed bg-slate-50/30">
                    <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">No scholarships found</p>
                    <button
-                     onClick={() => {setSearch(''); handleCategoryChange('All');}}
+                     onClick={() => {setSearch(''); setSelectedCountry(''); handleCategoryChange('All');}}
                      className="mt-6 text-primary font-black text-xs uppercase tracking-[0.2em] hover:underline"
                    >
                      Clear Filters
@@ -295,5 +327,20 @@ export default function ScholarshipList() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function ScholarshipList() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="max-w-6xl mx-auto px-4 py-16 flex items-center justify-center">
+          <Loader2 className="animate-spin text-primary" size={32} />
+        </div>
+      </div>
+    }>
+      <ScholarshipListContent />
+    </Suspense>
   );
 }

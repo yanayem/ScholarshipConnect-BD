@@ -152,6 +152,11 @@ export default function BKashPaymentPage() {
                     <p className="text-xs text-slate-500 font-medium mt-1">
                       A 6-digit verification code was sent to <span className="font-bold text-slate-800">{bkashNumber || '017XXXXXXXX'}</span>
                     </p>
+                    <div className="mt-2 py-1 px-3 bg-amber-50 border border-amber-200 rounded-lg inline-block">
+                      <p className="text-[11px] font-bold text-amber-800">
+                        🧪 Sandbox / Test Mode: আসল সিমে কোনো SMS যাবে না। টেস্ট OTP হিসেবে <span className="underline font-extrabold text-pink-700">123456</span> বা যেকোনো ৬ সংখ্যার কোড ব্যবহার করুন।
+                      </p>
+                    </div>
                   </div>
 
                   <div className="pt-2">

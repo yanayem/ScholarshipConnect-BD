@@ -256,11 +256,15 @@ export default function EligibilityPage() {
         const analysisText = res.data.analysis || res.data.result || res.data.feedback || '';
         setNlpAnalysis(analysisText);
       } else {
-        setNlpAnalysis('NLP criteria match evaluation completed.');
+        const errMsg = res.data?.error || res.data?.message || 'Daily AI limit reached (5/day). Upgrade to Pro for unlimited access.';
+        setNlpAnalysis(`⚠️ ${errMsg}\n\nNote: Basic criteria evaluation above is calculated locally and remains functional.`);
+        showToast(errMsg, 'error');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('[EligibilityPage] NLP evaluation error:', err);
-      setNlpAnalysis('NLP match evaluation generated successfully.');
+      const errMsg = err?.message || 'Failed to complete NLP analysis.';
+      setNlpAnalysis(`⚠️ ${errMsg}`);
+      showToast(errMsg, 'error');
     } finally {
       setChecking(false);
     }
