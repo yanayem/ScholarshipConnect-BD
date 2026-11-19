@@ -294,26 +294,27 @@ export default function SettingsPage() {
                 </button>
               ))}
 
-              {!user.is_pro && (
-                <button
-                  onClick={() => router.push('/upgrade-pro')}
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-sm transition-all text-left mt-2"
-                >
-                  <div className="flex items-center gap-3">
-                    <Zap size={18} className="text-amber-300 fill-current" />
-                    <span>Upgrade Pro</span>
-                  </div>
-                  <ChevronRight size={16} className="text-white/80" />
-                </button>
-              )}
+              <button
+                onClick={() => router.push('/upgrade-pro')}
+                className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-sm transition-all text-left mt-2"
+              >
+                <div className="flex items-center gap-3">
+                  <Zap size={18} className="text-amber-300 fill-current" />
+                  <span>{user.is_pro ? 'Pro Active' : 'Upgrade Pro'}</span>
+                </div>
+                <ChevronRight size={16} className="text-white/80" />
+              </button>
 
               {user.is_staff && (
                 <button
                   onClick={() => router.push('/admin')}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold text-purple-700 hover:bg-purple-50 transition-all text-left mt-2 border border-purple-100"
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold text-purple-700 bg-purple-50/80 hover:bg-purple-100 transition-all text-left mt-2 border border-purple-200 shadow-sm"
                 >
-                  <Shield size={18} />
-                  <span>Admin Console</span>
+                  <div className="flex items-center gap-3">
+                    <Shield size={18} className="text-purple-600" />
+                    <span>Admin Console</span>
+                  </div>
+                  <ChevronRight size={16} className="text-purple-400" />
                 </button>
               )}
 
