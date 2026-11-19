@@ -219,7 +219,7 @@ function ScholarshipListContent() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
                 <input
                   type="text"
-                  placeholder="e.g., DAAD, Germany..."
+                  placeholder="e.g., DAAD, Fulbright..."
                   className="w-full pl-9 pr-3 py-2.5 border border-slate-200 bg-slate-50/50 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm font-medium"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -270,21 +270,26 @@ function ScholarshipListContent() {
               <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">
                 Country
               </label>
-              {selectedCountry ? (
-                <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-teal-50 text-teal-800 border border-teal-200 rounded-xl text-sm font-bold">
-                  <MapPin size={14} className="text-teal-600" />
-                  {selectedCountry}
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                <input
+                  type="text"
+                  placeholder="e.g., Japan, Germany..."
+                  className="w-full pl-9 pr-8 py-2.5 border border-slate-200 bg-slate-50/50 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm font-medium"
+                  value={selectedCountry}
+                  onChange={(e) => setSelectedCountry(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleApplyFilters()}
+                />
+                {selectedCountry && (
                   <button
                     onClick={handleClearCountry}
-                    className="hover:bg-teal-200 p-0.5 rounded-full transition-colors ml-1"
-                    title="Remove country filter"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 hover:bg-slate-200 p-0.5 rounded-full transition-colors"
+                    title="Clear country"
                   >
-                    <X size={14} />
+                    <X size={14} className="text-slate-400" />
                   </button>
-                </div>
-              ) : (
-                <p className="text-xs text-slate-400 italic">No country selected. Use country links from home page.</p>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Filter Error */}

@@ -54,7 +54,7 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
     serializer_class = ScholarshipSerializer
     permission_classes = [IsAdminOrOwner]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['title', 'provider', 'country', 'category', 'level', 'field']
+    search_fields = ['title', 'provider']
     ordering_fields = ['created_at', 'deadline', 'min_cgpa']
     ordering = ['-created_at']
 
