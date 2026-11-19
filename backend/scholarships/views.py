@@ -105,18 +105,21 @@ class ScholarshipViewSet(viewsets.ModelViewSet):
             # Module 4: Category Filter (e.g. Undergraduate, Postgraduate, Ph.D., Postdoc)
             if category_param and category_param.lower() != 'all':
                 cat_lower = category_param.strip().lower()
-                # Expand synonymous academic terms (e.g. Postgraduate -> Masters / PhD)
+                # Map UI filter values to actual DB terms found in both
+                # 'category' and 'level' fields
                 synonyms = [cat_lower]
                 if 'postgraduate' in cat_lower or 'master' in cat_lower:
-                    synonyms.extend(['master', 'postgraduate', 'ms', 'msc'])
+                    synonyms.extend(['master', "master's", 'masters', 'postgraduate', 'ms', 'msc'])
                 elif 'undergraduate' in cat_lower or 'bachelor' in cat_lower:
-                    synonyms.extend(['undergrad', 'bachelor', 'undergraduate'])
+                    synonyms.extend(['undergrad', 'undergraduate', 'bachelor', 'bachelors'])
                 elif 'phd' in cat_lower or 'ph.d' in cat_lower or 'doctor' in cat_lower:
-                    synonyms.extend(['phd', 'ph.d', 'doctoral'])
+                    synonyms.extend(['phd', 'ph.d', 'doctoral', 'doctorate', 'research student'])
+                elif 'postdoc' in cat_lower:
+                    synonyms.extend(['postdoc', 'postdoctoral', 'post-doctoral'])
 
                 from django.db.models import Q
                 cat_filter = Q()
-                for term in synonyms:
+                for term in set(synonyms):
                     cat_filter |= Q(category__icontains=term) | Q(level__icontains=term)
                 queryset = queryset.filter(cat_filter)
 
